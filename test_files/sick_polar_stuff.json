@@ -8,7 +8,7 @@
     "Framerate": 12
   },
   {
-    "Name": "polar_test",
+    "Name": "spiky_polar",
     "Mod": 500,
     "ModLimLow": 0,
     "ModLimUp": 500,
