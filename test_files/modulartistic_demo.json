@@ -1,0 +1,193 @@
+[
+  {
+    "Function": "x*y",
+    "Size": [
+      500,
+      500
+    ],
+    "Framerate": 12
+  },
+  {
+    "Name": "State_1",
+    "Mod": 500,
+    "ModLimLow": 0,
+    "ModLimUp": 500,
+    "X0": 0,
+    "Y0": 0,
+    "XZoom": 1,
+    "YZoom": 1,
+    "Rotation": 0,
+    "ColorMinimum": 0,
+    "ColorSaturation": 1,
+    "ColorValue": 1,
+    "ColorAlpha": 1,
+    "InvalidColor": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "ColorFactors": [
+      1,
+      1,
+      1
+    ],
+    "Parameters": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "StateSequence",
+    "Scenes": [
+      {
+        "State": {
+          "Name": "State_1",
+          "Mod": 500,
+          "ModLimLow": 0,
+          "ModLimUp": 500,
+          "X0": 0,
+          "Y0": 0,
+          "XZoom": 1,
+          "YZoom": 1,
+          "Rotation": 0,
+          "ColorMinimum": 0,
+          "ColorSaturation": 1,
+          "ColorValue": 1,
+          "ColorAlpha": 1,
+          "InvalidColor": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "ColorFactors": [
+            1,
+            1,
+            1
+          ],
+          "Parameters": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "Length": 3,
+        "EasingType": "Linear"
+      },
+      {
+        "State": {
+          "Name": "State_2",
+          "Mod": 100,
+          "ModLimLow": 0,
+          "ModLimUp": 500,
+          "X0": 0,
+          "Y0": 0,
+          "XZoom": 1,
+          "YZoom": 1,
+          "Rotation": 0,
+          "ColorMinimum": 0,
+          "ColorSaturation": 1,
+          "ColorValue": 1,
+          "ColorAlpha": 1,
+          "InvalidColor": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "ColorFactors": [
+            1,
+            1,
+            1
+          ],
+          "Parameters": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "Length": 3,
+        "EasingType": "Linear"
+      }
+    ]
+  },
+  {
+    "Name": "StateTimeline",
+    "Length": 5000,
+    "Base": {
+      "Name": "Base",
+      "Mod": 500,
+      "ModLimLow": 0,
+      "ModLimUp": 500,
+      "X0": 0,
+      "Y0": 0,
+      "XZoom": 1,
+      "YZoom": 1,
+      "Rotation": 0,
+      "ColorMinimum": 0,
+      "ColorSaturation": 1,
+      "ColorValue": 1,
+      "ColorAlpha": 1,
+      "InvalidColor": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ColorFactors": [
+        1,
+        1,
+        1
+      ],
+      "Parameters": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "Events": [
+      {
+        "StartTime": 0,
+        "Length": 0,
+        "AttackTime": 0,
+        "AttackEasingType": "Linear",
+        "DecayTime": 0,
+        "DecayEasingType": "Linear",
+        "ReleaseTime": 0,
+        "ReleaseEasingType": "Linear",
+        "PeakValues": {},
+        "SustainValues": {}
+      }
+    ]
+  }
+]

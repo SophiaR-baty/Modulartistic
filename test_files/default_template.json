@@ -1,0 +1,65 @@
+{
+  "Metadata": {
+    "Function": "x*y",
+    "Size": [
+      640,
+      360
+    ],
+    "Framerate": 12
+  },
+  "Base": {
+    "Name": "Base",
+    "Mod": 960,
+    "ModLimLow": 0,
+    "ModLimUp": 50,
+    "X0": 0,
+    "Y0": 0,
+    "XZoom": 1,
+    "YZoom": 1,
+    "Rotation": 0,
+    "ColorMinimum": 0,
+    "ColorSaturation": 0,
+    "ColorValue": 1,
+    "ColorAlpha": 1,
+    "InvalidColor": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "ColorFactors": [
+      1,
+      1,
+      1
+    ],
+    "Parameters": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "Events": [
+    {
+      "Channel": 0,
+      "AttackTime": 10,
+      "AttackEasingType": "Linear",
+      "DecayTime": 3500,
+      "DecayEasingType": "Linear",
+      "ReleaseTime": 100,
+      "ReleaseEasingType": "Linear",
+      "PeakValueMappings": {
+		  "ModLimLow": "4*Velocity",
+		  "ModLimUp": "4*Velocity + 50",
+		  "ColorSaturation": "1"
+	  },
+      "SustainValueMappings": {}
+    }
+  ]
+}

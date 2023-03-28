@@ -1,0 +1,6 @@
+C:\Users\Maxim\source\repos\Modar\NGif-master\Components\bin\Debug\Gif.Components.dll
+C:\Users\Maxim\source\repos\Modar\NGif-master\Components\bin\Debug\Gif.Components.pdb
+C:\Users\Maxim\source\repos\Modar\NGif-master\Components\obj\Debug\Components.csproj.AssemblyReference.cache
+C:\Users\Maxim\source\repos\Modar\NGif-master\Components\obj\Debug\Components.csproj.CoreCompileInputs.cache
+C:\Users\Maxim\source\repos\Modar\NGif-master\Components\obj\Debug\Gif.Components.dll
+C:\Users\Maxim\source\repos\Modar\NGif-master\Components\obj\Debug\Gif.Components.pdb
