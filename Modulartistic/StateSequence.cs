@@ -1,22 +1,12 @@
-﻿using Gif.Components;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Xml;
-using FFmpeg;
-using FFmpeg.NET;
-using System.Threading;
-using System.Reflection.Metadata;
-using System.Drawing.Imaging;
 using System.Diagnostics;
 using AnimatedGif;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Runtime.CompilerServices;
 
 namespace Modulartistic
 {
@@ -134,7 +124,7 @@ namespace Modulartistic
         /// <param name="idx">index of the Scene to generate</param>
         /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
         /// <param name="path_out">Where to create the images, if nothing specified it will be set to Output, will throw a DirectoryNotFoundException if directory does not exist.</param>
-        public void GenerateScene(int idx, GenerationArgs args, string path_out = @"")
+        public void GenerateScene(int idx, GenerationArgs args, string path_out)
         {
             uint framerate = args.Framerate;
             
@@ -143,8 +133,8 @@ namespace Modulartistic
             State endState = Scenes[(idx + 1)%Scenes.Count].State;
 
             // Make path
-            string path = path_out == "" ? @"Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            if (path_out == "") { throw new ArgumentException("path_out must not be empty!"); }
+            string path = path_out;
             path += Path.DirectorySeparatorChar + (startState.Name == "" ? "Scene" : startState.Name);
 
             // Validate and Create the Output Path
@@ -167,9 +157,8 @@ namespace Modulartistic
         /// <param name="path_out">the path where to create the animation, if not specified it will be set to Output, if not found an DirectoryNotFoundException is Thrown</param>
         public void GenerateAnimation(GenerationArgs args, string path_out = @"")
         {
-            // Creating filename and path
-            // Make path
-            string path = path_out == "" ? @"Output" : path_out;
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
             path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
 
@@ -186,104 +175,6 @@ namespace Modulartistic
             // Generate the gif
             uint framerate = args.Framerate;
             CreateGif(framerate, path);
-        }
-
-        /// <summary>
-        /// Deprecated, will throw exception be default, do not use
-        /// </summary>
-        /// <param name="framerate"></param>
-        /// <param name="folder"></param>
-        /// <param name="path_out"></param>
-        private void FFmpegCreateGif(double framerate, string folder, string path_out = @"")
-        {
-            throw new NotImplementedException();
-            
-            Directory.CreateDirectory(@"tmp");
-
-            string FFmpegPath = @"C:\Users\Maxim\source\repos\Modar-F\ffmpeg\bin\ffmpeg.exe";
-            string filesIn;
-            string fileOut;
-            string args;
-            Process _process;
-            //creating filename and path
-            //Make path
-            string path;
-            if (path_out == "")
-            {
-                path = @"Output";
-            }
-            else { path = path_out; }
-
-            path += Path.DirectorySeparatorChar + new DirectoryInfo(folder).Name;
-            path += @".gif";
-
-            List<string> sceneDirs = new List<string>();
-            for (int i = 0; i < Count; i++)
-            {
-                //Initialize sceneDirs List
-                string sceneDir = folder;
-                //Define the scenDir of the current scene
-                if (Scenes[i].State.Name == "") { sceneDir += Path.DirectorySeparatorChar + "Scene"; }
-                else { sceneDir += Path.DirectorySeparatorChar + Scenes[i].State.Name; }
-                //If that sceneDir already existed it will be in the list -> increment j in "Scene_j"
-                if (sceneDirs.Contains(sceneDir))
-                {
-                    int j = 1;
-                    while (sceneDirs.Contains(sceneDir + "_" + j))
-                    {
-                        j++;
-                    }
-                    sceneDir = sceneDir + "_" + j;
-                }
-                //Add the actual sceneDir to the List
-                sceneDirs.Add(sceneDir);
-
-                int digits = Directory.GetFiles(sceneDir, "*", SearchOption.TopDirectoryOnly).Length.ToString().Length; // .PadLeft(frames.ToString().Length, '0'
-                filesIn = "\"" + sceneDir + "\\" + "Frame_%0" + digits.ToString() + "d.png" + "\"";
-                fileOut = "\"" + "tmp\\" + sceneDir.Substring(sceneDir.LastIndexOf("\\")) + ".gif" + "\"";
-                //Creating the gif with ffmpeg
-                args = "-f image2 -i " + filesIn + " -vf \"fps=12,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse\" -loop 0 " + fileOut;
-                _process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = FFmpegPath,
-                        Arguments = args,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                    },
-                    EnableRaisingEvents = true
-                };
-                _process.Start();
-            }
-
-
-            filesIn = "";
-            foreach (string sceneDir in sceneDirs)
-            {
-                filesIn += "\"tmp\\" + sceneDir.Substring(sceneDir.LastIndexOf("\\")) + ".gif\"" + "|";
-            }
-            filesIn = filesIn.Remove(filesIn.Length - 1);
-            fileOut = "\"" + path + "\"";
-            //Creating the gif with ffmpeg
-            args = "-i \"concat: " + filesIn + "\" -loop 0 libx264 " + fileOut;
-            Debug.WriteLine(args);
-            _process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = FFmpegPath,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                },
-                EnableRaisingEvents = true
-            };
-            _process.Start();
         }
 
         /// <summary>

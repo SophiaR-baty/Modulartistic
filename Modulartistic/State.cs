@@ -1,10 +1,7 @@
-﻿using ScottPlot.Control.EventProcess.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq.Expressions;
-using System.Text.Json;
 
 namespace Modulartistic
 {
@@ -205,26 +202,20 @@ namespace Modulartistic
         /// <param name="path_out">The Path to save the image at</param>
         public void GenerateImage(GenerationArgs args, string path_out = @"")
         {
+            
+
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
-            Func<double, double, List<double>, double> func = (x, y, i) => Functions.Custom(new NCalc.Expression(args.Function), x, y, i);
-            
+            Function func = new Function(args.Function);
+            func.LoadAddOns(args.AddOns.ToArray());
+
             // Generate the image
             Bitmap image = GetBitmap(size, func);
 
-            // Make path
-            string path;
-            if (path_out == "")
-            {
-                path = @"Output";
-            }
-            else 
-            { 
-                path = path_out; 
-            }
-
-            // Add State Name to Filename
-            path += Path.DirectorySeparatorChar + Name;
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "Output" : path_out;
+            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            path += Path.DirectorySeparatorChar + (Name == "" ? "State" : Name);
 
             // Edit the filename so that it's unique
             path = Helper.ValidFileName(path);
@@ -239,7 +230,7 @@ namespace Modulartistic
         /// <param name="size">The Size of the image</param>
         /// <param name="func">The Function for Color Calculation</param>
         /// <returns></returns>
-        public Bitmap GetBitmap(Size size, Func<double, double, List<double>, double> func)
+        public Bitmap GetBitmap(Size size, Function func)
         {
             // Create instance of Bitmap for pixel data
             Bitmap image = new Bitmap(size.Width, size.Height);
@@ -261,8 +252,8 @@ namespace Modulartistic
                     double pixel;
                     try
                     {
-                        double n = func(x_, y_, Parameters);
-                        pixel = Functions.mod(n, Mod);
+                        double n = func.Evaluate(x_, y_, Parameters, Mod);
+                        pixel = Helper.mod(n, Mod);
                     }
                     catch (Exception) { pixel = -1; }
 
@@ -270,8 +261,8 @@ namespace Modulartistic
                     if (!(ModLimLow == 0 && ModLimUp == Mod))
                     {
                         // Setting Pixel to -1 if out of lower and upper bounds
-                        double lowBound = Functions.mod(ModLimLow, Mod);
-                        double upBound = Functions.mod(ModLimUp - 0.0001, Mod);
+                        double lowBound = Helper.mod(ModLimLow, Mod);
+                        double upBound = Helper.mod(ModLimUp - 0.0001, Mod);
 
                         // If Bounds are equal, the pixel is automatically invalid
                         if (lowBound == upBound) { pixel = -1; }
@@ -300,7 +291,7 @@ namespace Modulartistic
                         if (ColorValue > 1) { ColorValue = 1; } else if (ColorValue < 0) { ColorValue = 0; }
 
                         // Convert the value of Evaluation to hue and then to an RGB color
-                        double hue = Functions.mod(ColorMinimum + 360 * pixel / Mod, 360);
+                        double hue = Helper.mod(ColorMinimum + 360 * pixel / Mod, 360);
                         color = Helper.ConvertHSV2RGB(hue, ColorSaturation, ColorValue);
 
                         // Apply the Color factors
@@ -326,17 +317,6 @@ namespace Modulartistic
                 }
             }
             return image;
-        }
-        #endregion
-
-        #region Serialize and Deserialize
-        public string ToJson()
-        {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-            return JsonSerializer.Serialize(this, options);
         }
         #endregion
     }

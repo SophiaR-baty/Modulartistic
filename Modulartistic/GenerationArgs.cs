@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Modulartistic
 {
@@ -10,6 +8,7 @@ namespace Modulartistic
         public string Function { get; set; }
         public int[] Size { get; set; }
         public uint Framerate { get; set; }
+        public List<string> AddOns { get; set; }
         #endregion
 
         public GenerationArgs() 
@@ -17,13 +16,7 @@ namespace Modulartistic
             Size = new int[2] { 500, 500 };
             Function = "x*y";
             Framerate = 12;
+            AddOns = new List<string>();
         }
-        public GenerationArgs(string func, int[] size, uint framerate = 12) 
-        {
-            Function = func;
-            Size = size;
-            Framerate = framerate;
-        }
-
     }
 }

@@ -1,10 +1,7 @@
-﻿using Modulartistic;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.IO;
-using System.Xml.Linq;
 using System.Linq;
 using NCalc;
 
@@ -45,9 +42,9 @@ namespace Modulartistic
 
             // Creating filename and path
             // Make path
-            string path = path_out == "" ? @"Output" : path_out;
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (name == "" ? "TimelineTests" : name);
+            path += Path.DirectorySeparatorChar + (name == "" ? "timelinetemplate_tests" : name + "_tests");
 
             // Validate and Create the Output Path
             path = Modulartistic.Helper.ValidFileName(path);
@@ -61,7 +58,7 @@ namespace Modulartistic
                 // PeakValues
                 State FrameState = new State()
                 {
-                    Name = "CH" + e.Channel + "_Peak",
+                    Name = "ch" + e.Channel + "_peak",
                 };
                 for (StateProperty j = StateProperty.Mod; j <= StateProperty.i9; j++)
                 {
@@ -78,7 +75,7 @@ namespace Modulartistic
                 // SustainValues
                 FrameState = new State()
                 {
-                    Name = "CH" + e.Channel + "_Sustain",
+                    Name = "ch" + e.Channel + "_sustain",
                 };
                 for (StateProperty j = StateProperty.Mod; j <= StateProperty.i9; j++)
                 {
@@ -221,14 +218,14 @@ namespace Modulartistic
          *  - OffVelocity
          *  - StartTime
          *  - EndTime
-         * And of cours valid Function Names are those defined in NCalc plus eventually AddOns!
+         * And valid Function Names are those defined in NCalc plus eventually AddOns!
          * 
          * 
          */
 
         public StateEventType()
         {
-            Channel = 1;
+            Channel = 0;
             AttackTime = 100;
             AttackEasingType = "Linear";
             DecayTime = 100;

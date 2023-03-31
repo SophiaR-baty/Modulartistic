@@ -1,10 +1,5 @@
-﻿using NCalc;
-using ScottPlot.Drawing.Colormaps;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Net;
 
 namespace Modulartistic
 {
@@ -41,8 +36,8 @@ namespace Modulartistic
                 ST.Events.Add(new StateEvent());
                 ST.Name = "StateTimeline";
                 GD.Add(ST);
-
-                GD.SaveJson("Output\\modulartistic_demo.json");
+                GD.Name = "modulartistic_demo";
+                GD.SaveJson("Output");
                 
                 
                 PrintUsage();
@@ -88,10 +83,9 @@ namespace Modulartistic
                 else if (argv[0].EndsWith(".mid") && File.Exists(argv[0]) && argv[1].EndsWith(".json") && File.Exists(argv[1]))
                 {
                     StateTimelineTemplate template = StateTimelineTemplate.LoadJson(argv[1]);
-                    string filename = Modulartistic.Helper.ValidFileName("Output\\" + Path.GetFileNameWithoutExtension(argv[0]));
-                    MidiAnimationCreator.GenerateJson(argv[0], template, filename + ".json");
+                    MidiAnimationCreator.GenerateJson(argv[0], template);
 
-                    Console.WriteLine("Json has been created. \nCreate Animation now? (y/n)");
+                    Console.WriteLine("Json has been created. \nCreate Animation now? (y?)");
                     if (Console.Read() == 'y')
                     {
                         MidiAnimationCreator.GenerateAnimation(argv[0], template);
@@ -141,7 +135,23 @@ namespace Modulartistic
 
         public static void PrintUsage()
         {
-            Console.WriteLine("Usage: <not implemented>");
+            Console.WriteLine("Usage: ");
+            Console.WriteLine("Modulartistic.exe <generationData.json>");
+            Console.WriteLine("Generates all images and animations defined in generationData.json. They will be created at Output folder. \n");
+           
+            Console.WriteLine("Modulartistic.exe test <timeline_template.json>");
+            Console.WriteLine("Generates tests for a timeline template defined in timeline_template.json. They will be created at Output folder. \n");
+
+            Console.WriteLine("Modulartistic.exe test <generationData.json> <path to folder>");
+            Console.WriteLine("Generates all images and animations defined in generationData.json. They will be created at the specified folder. \n");
+
+            Console.WriteLine("Modulartistic.exe <midiFile.json> <timeline_template.json>");
+            Console.WriteLine("Creates an animation for a specified midi File based on a given template. \n");
+
+            Console.WriteLine("Modulartistic.exe <midiFile.json> <timeline_template.json> <path to folder>");
+            Console.WriteLine("Creates an animation for a specified midi File based on a given template in the specified folder. \n");
+
+            Console.WriteLine("For more information on how to create templates and generationData visit <URL here>");
         }
     }
 }

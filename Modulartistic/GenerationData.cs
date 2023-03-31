@@ -2,13 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Linq;
-using System.Globalization;
-using System.Reflection;
 
 namespace Modulartistic
 {
@@ -21,6 +17,9 @@ namespace Modulartistic
         public int Count => data.Count;
 
         public object this[int index] { get => data[index]; }
+
+        [JsonIgnore]
+        public string Name { get; set; }
         #endregion
 
         #region Fields
@@ -31,6 +30,7 @@ namespace Modulartistic
         public GenerationData() 
         {
             data = new List<Object>();
+            Name = "GenerationData";
         }
         #endregion
 
@@ -76,24 +76,30 @@ namespace Modulartistic
             // return Newtonsoft.Json.JsonConvert.SerializeObject(this.data, Newtonsoft.Json.Formatting.Indented);
         }
         
-        public void SaveJson(string path)
+        public void SaveJson(string path_out)
         {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "Output" : path_out;
+            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            path += Path.DirectorySeparatorChar + (Name == "" ? "State" : Name);
+
+            // Edit the filename so that it's unique
+            path = Helper.ValidFileName(path);
+            path += ".json";
+
+            if (File.Exists(path)) { File.Delete(path); }
 
             File.WriteAllText(path, ToJson());
         }
 
-        public void LoadJson(string path)
+        public void LoadJson(string file_name)
         {
-            if (!File.Exists(path))
+            if (!File.Exists(file_name))
             {
-                throw new FileNotFoundException("The specified File " + path + " does not exist. ");
+                throw new FileNotFoundException("The specified File " + file_name + " does not exist. ");
             }
 
-            string jsontext = File.ReadAllText(path);
+            string jsontext = File.ReadAllText(file_name);
 
             JsonDocument jd = JsonDocument.Parse(jsontext);
             
@@ -102,7 +108,7 @@ namespace Modulartistic
 
             if (root.ValueKind != JsonValueKind.Array)
             {
-                throw new Exception("Error: Expected ArrayType RootElement in Json File " + path);
+                throw new Exception("Error: Expected ArrayType RootElement in Json File " + file_name);
             }
 
             var options = new JsonSerializerOptions
@@ -140,7 +146,7 @@ namespace Modulartistic
                     StateTimeline stateTimeLine = JsonSerializer.Deserialize<StateTimeline>(element.GetRawText(), options);
                     Data.Add(stateTimeLine);
                 }
-                else { throw new Exception("Parsing Error in file " + path + ": Unrecognized Type"); }
+                else { throw new Exception("Parsing Error in file " + file_name + ": Unrecognized Type"); }
             }
         }
         #endregion

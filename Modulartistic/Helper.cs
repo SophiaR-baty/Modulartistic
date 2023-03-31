@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Threading;
 
 namespace Modulartistic
 {
@@ -65,6 +64,14 @@ namespace Modulartistic
             }
 
             return filename;
+        }
+
+        public static double mod(double d1, double d2)
+        {
+            if (d2 <= 0)
+                throw new DivideByZeroException();
+            else
+                return d1 - d2 * Math.Floor(d1 / d2);
         }
     }
 }

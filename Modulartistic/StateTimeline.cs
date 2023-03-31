@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 using System.Drawing;
-using System.Xml.Linq;
 using AnimatedGif;
-using ScottPlot.Drawing;
 using System.IO;
 using System.Text.Json.Serialization;
 
@@ -88,7 +85,7 @@ namespace Modulartistic
 
             // Creating filename and path
             // Make path
-            string path = path_out == "" ? @"Output" : path_out;
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
             path += Path.DirectorySeparatorChar + (Name == "" ? "Timeline" : Name);
 

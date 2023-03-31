@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic", "Modulartistic\Modulartistic.csproj", "{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathFunctions", "MathFunctions\MathFunctions.csproj", "{6B911B9D-3ED3-480D-95E9-5D131A1C7946}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MathFunctions", "MathFunctions\MathFunctions.csproj", "{6B911B9D-3ED3-480D-95E9-5D131A1C7946}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
