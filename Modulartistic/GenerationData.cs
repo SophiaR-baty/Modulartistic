@@ -76,7 +76,7 @@ namespace Modulartistic
             // return Newtonsoft.Json.JsonConvert.SerializeObject(this.data, Newtonsoft.Json.Formatting.Indented);
         }
         
-        public void SaveJson(string path_out)
+        public void SaveJson(string path_out = "")
         {
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "Output" : path_out;

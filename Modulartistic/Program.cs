@@ -9,37 +9,39 @@ namespace Modulartistic
         {
             if (argv.Length == 0 || argv[0] == "-?")
             {
-                GenerationData GD = new GenerationData();
-                GD.Add(new GenerationArgs());
+                if (!File.Exists(AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar + "modulartistic_demo"))
+                {
+                    GenerationData GD = new GenerationData();
+                    GD.Add(new GenerationArgs());
 
-                State S1 = new State();
-                S1.Name = "State_1";
-                GD.Add(S1);
+                    State S1 = new State();
+                    S1.Name = "State_1";
+                    GD.Add(S1);
 
 
-                StateSequence SS = new StateSequence();
-                SS.Name = "StateSequence";
-                State S2 = new State();
-                S2.Name = "State_2";
-                S2.Mod = 100;
-                Scene SC1 = new Scene(S1, 3, "Linear");
-                Scene SC2 = new Scene(S2, 3, "Linear");
-                SS.Scenes.Add(SC1);
-                SS.Scenes.Add(SC2);
-                GD.Add(SS);
+                    StateSequence SS = new StateSequence();
+                    SS.Name = "StateSequence";
+                    State S2 = new State();
+                    S2.Name = "State_2";
+                    S2.Mod = 100;
+                    Scene SC1 = new Scene(S1, 3, "Linear");
+                    Scene SC2 = new Scene(S2, 3, "Linear");
+                    SS.Scenes.Add(SC1);
+                    SS.Scenes.Add(SC2);
+                    GD.Add(SS);
 
-                StateTimeline ST = new StateTimeline();
-                State Base = new State();
-                Base.Name = "Base";
-                ST.Base = Base;
-                ST.Length = 5000;
-                ST.Events.Add(new StateEvent());
-                ST.Name = "StateTimeline";
-                GD.Add(ST);
-                GD.Name = "modulartistic_demo";
-                GD.SaveJson("Output");
-                
-                
+                    StateTimeline ST = new StateTimeline();
+                    State Base = new State();
+                    Base.Name = "Base";
+                    ST.Base = Base;
+                    ST.Length = 5000;
+                    ST.Events.Add(new StateEvent());
+                    ST.Name = "StateTimeline";
+                    GD.Add(ST);
+                    GD.Name = "modulartistic_demo";
+                    GD.SaveJson();
+                }
+                                
                 PrintUsage();
                 return 1;
             }
