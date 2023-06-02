@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.IO;
 
 namespace Modulartistic
@@ -200,7 +201,7 @@ namespace Modulartistic
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
         /// <param name="path_out">The Path to save the image at</param>
-        public void GenerateImage(GenerationArgs args, string path_out = @"")
+        public string GenerateImage(GenerationArgs args, string path_out = @"")
         {
             
 
@@ -213,7 +214,7 @@ namespace Modulartistic
             Bitmap image = GetBitmap(size, func);
 
             // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "Output" : path_out;
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + "Output" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
             path += Path.DirectorySeparatorChar + (Name == "" ? "State" : Name);
 
@@ -222,6 +223,8 @@ namespace Modulartistic
             
             // Save the image
             image.Save(path + @".png", System.Drawing.Imaging.ImageFormat.Png);
+
+            return path + @".png";
         }
 
         /// <summary>
@@ -318,6 +321,175 @@ namespace Modulartistic
             }
             return image;
         }
+        #endregion
+
+        #region Methods for multi-threaded Generating
+        /// <summary>
+        /// Generates an Image of this State with a given a Size and a Function for the Color calculation.
+        /// </summary>
+        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <param name="path_out">The Path to save the image at</param>
+        public string GenerateImageThreaded(GenerationArgs args, string path_out = @"")
+        {
+            // Generate the image
+            Bitmap image = GetBitmapThreaded(args);
+
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + "Output" : path_out;
+            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            path += Path.DirectorySeparatorChar + (Name == "" ? "State" : Name);
+
+            // Edit the filename so that it's unique
+            path = Helper.ValidFileName(path);
+
+            // Save the image
+            image.Save(path + @".png", System.Drawing.Imaging.ImageFormat.Png);
+
+            return path + @".png";
+        }
+
+        /// <summary>
+        /// Generates the Bitmap object of the state, given a size and Function for Color calculation.
+        /// </summary>
+        /// <param name="size">The Size of the image</param>
+        /// <param name="func">The Function for Color Calculation</param>
+        /// <returns></returns>
+        public Bitmap GetBitmapThreaded(GenerationArgs args)
+        {
+            // Parsing GenerationArgs Size
+            Size size = new Size(args.Size[0], args.Size[1]);
+
+            // Get count of Cores
+            int cores = Environment.ProcessorCount;
+
+            // Create instance of Bitmap for pixel data
+            Bitmap image = new Bitmap(size.Width, size.Height);
+            Bitmap[] partial_images = new Bitmap[cores];
+
+            Thread[] threads = new Thread[cores];
+            
+
+            // Threads
+            for (int i = 0; i < cores; i++)
+            {
+                int local_i = i;
+                threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, local_i, cores, out partial_images[local_i])));
+                threads[local_i].Start();
+                
+                // partial_images[i] = GetPartialBitmap(size, func, i, cores);
+            }
+
+            Graphics gr = Graphics.FromImage(image);
+            for (int i = 0; i < cores; i++)
+            {
+                threads[i].Join();
+                gr.DrawImage(partial_images[i], i * (size.Width / cores), 0, partial_images[i].Width, partial_images[i].Height); 
+            }
+
+            return image;
+        }
+
+        public void GetPartialBitmap(GenerationArgs args, int idx, int max, out Bitmap image)
+        {
+            // Parsing GenerationArgs
+            Size size = new Size(args.Size[0], args.Size[1]);
+            Function func = new Function(args.Function);
+            func.LoadAddOns(args.AddOns.ToArray());
+
+            int partial_width = size.Width / max;
+            int first_px = idx * partial_width;
+            if (idx == max - 1)
+            {
+                partial_width = size.Width - first_px;
+            }
+
+            image = new Bitmap(partial_width, size.Height);
+
+            // Iterate over every pixel
+            for (int y = 0; y < size.Height; y++)
+            {
+                for (int x = 0; x < partial_width; x++)
+                {
+                    // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
+                    // Then pass them into the function
+                    double x_ = X0 + Math.Cos(Rotation) * XZoom * (x + first_px - (double)size.Width / 2) - Math.Sin(Rotation) * YZoom * (y - size.Height / 2);
+                    double y_ = Y0 + Math.Cos(Rotation) * YZoom * (y - (double)size.Height / 2) + Math.Sin(Rotation) * XZoom * (x + first_px - size.Width / 2);
+
+                    // Validating Mod by making it double.Epsilon if it's less or equal to 0
+                    if (Mod <= 0) { Mod = double.Epsilon; }
+
+                    // Creating Instance of the pixel
+                    double pixel;
+                    try
+                    {
+                        double n = func.Evaluate(x_, y_, Parameters, Mod);
+                        pixel = Helper.mod(n, Mod);
+                    }
+                    catch (Exception) { pixel = -1; }
+
+                    // Only check for lower and upper bounds if... 
+                    if (!(ModLimLow == 0 && ModLimUp == Mod))
+                    {
+                        // Setting Pixel to -1 if out of lower and upper bounds
+                        double lowBound = Helper.mod(ModLimLow, Mod);
+                        double upBound = Helper.mod(ModLimUp - 0.0001, Mod);
+
+                        // If Bounds are equal, the pixel is automatically invalid
+                        if (lowBound == upBound) { pixel = -1; }
+
+                        // if the lower bound is less than the upper bound,
+                        // pixel is invalid if its value is not between the bound
+                        if (lowBound < upBound)
+                        {
+                            if (!(pixel >= lowBound && pixel <= upBound)) { pixel = -1; }
+                        }
+                        // if the lower bound is greater than the upper bound,
+                        // pixel is invalid if its value IS between the bounds
+                        else if (lowBound > upBound)
+                        {
+                            if (pixel <= lowBound && pixel >= upBound) { pixel = -1; }
+                        }
+                    }
+
+                    // Setting col to inval col if pixel == -1
+                    Color color;
+                    if (pixel >= 0)
+                    {
+                        // Validate ColorAlpha, ColorSaturation, ColorValue (to range 0-1)
+                        if (ColorAlpha > 1) { ColorAlpha = 1; } else if (ColorAlpha < 0) { ColorAlpha = 0; }
+                        if (ColorSaturation > 1) { ColorSaturation = 1; } else if (ColorSaturation < 0) { ColorSaturation = 0; }
+                        if (ColorValue > 1) { ColorValue = 1; } else if (ColorValue < 0) { ColorValue = 0; }
+
+                        // Convert the value of Evaluation to hue and then to an RGB color
+                        double hue = Helper.mod(ColorMinimum + 360 * pixel / Mod, 360);
+                        color = Helper.ConvertHSV2RGB(hue, ColorSaturation, ColorValue);
+
+                        // Apply the Color factors
+                        int a, r, g, b;
+                        a = (int)(255 * ColorAlpha);
+                        r = (int)(color.R * ColorFactors[0]);
+                        g = (int)(color.G * ColorFactors[1]);
+                        b = (int)(color.B * ColorFactors[2]);
+
+                        // Validate the Colors (range 0-1)
+                        if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
+                        if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
+                        if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
+
+                        // Convert argb ints to a color Object
+                        color = Color.FromArgb(a, r, g, b);
+                    }
+                    // If pixel was -1 set color to InvalidColor
+                    else { color = Helper.ARGBFromArray(InvalidColor); }
+
+                    // Append the pixel to the image bitmap
+                    image.SetPixel(x, y, color);
+                }
+            }
+            // return image;
+        }
+
+
         #endregion
     }
 

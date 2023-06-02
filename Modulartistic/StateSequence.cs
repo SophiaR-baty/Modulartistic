@@ -155,7 +155,7 @@ namespace Modulartistic
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
         /// <param name="path_out">the path where to create the animation, if not specified it will be set to Output, if not found an DirectoryNotFoundException is Thrown</param>
-        public void GenerateAnimation(GenerationArgs args, string path_out = @"")
+        public string GenerateAnimation(GenerationArgs args, string path_out = @"")
         {
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
@@ -175,6 +175,8 @@ namespace Modulartistic
             // Generate the gif
             uint framerate = args.Framerate;
             CreateGif(framerate, path);
+
+            return path + @".gif";
         }
 
         /// <summary>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Modulartistic": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files\\Modulartistic\\demofiles\\binomtest.json\""
+    }
+  }
+}

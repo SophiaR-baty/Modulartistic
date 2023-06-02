@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Modulartistic
 {
@@ -165,11 +166,28 @@ namespace Modulartistic
                 }
                 else if (obj.GetType() == typeof(State))
                 {
-                    (obj as State).GenerateImage(currentArgs, path_out);
+                    string filename = (obj as State).GenerateImage(currentArgs, path_out);
+                    Console.WriteLine(filename);
+
+                    var p = new Process();
+                    p.StartInfo = new ProcessStartInfo(filename)
+                    {
+                        UseShellExecute = true
+                    };
+                    p.Start();
                 }
                 else if (obj.GetType() == typeof(StateSequence))
                 {
-                    (obj as StateSequence).GenerateAnimation(currentArgs, path_out);
+                    string filename = (obj as StateSequence).GenerateAnimation(currentArgs, path_out);
+
+                    Console.WriteLine(filename);
+
+                    var p = new Process();
+                    p.StartInfo = new ProcessStartInfo(filename)
+                    {
+                        UseShellExecute = true
+                    };
+                    p.Start();
                 }
                 else if (obj.GetType() == typeof(StateTimeline))
                 {

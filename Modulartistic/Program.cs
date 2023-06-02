@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Modulartistic
@@ -144,13 +145,13 @@ namespace Modulartistic
             Console.WriteLine("Modulartistic.exe test <timeline_template.json>");
             Console.WriteLine("Generates tests for a timeline template defined in timeline_template.json. They will be created at Output folder. \n");
 
-            Console.WriteLine("Modulartistic.exe test <generationData.json> <path to folder>");
+            Console.WriteLine("Modulartistic.exe <generationData.json> <path to folder>");
             Console.WriteLine("Generates all images and animations defined in generationData.json. They will be created at the specified folder. \n");
 
-            Console.WriteLine("Modulartistic.exe <midiFile.json> <timeline_template.json>");
+            Console.WriteLine("Modulartistic.exe <midiFile.mid> <timeline_template.json>");
             Console.WriteLine("Creates an animation for a specified midi File based on a given template. \n");
 
-            Console.WriteLine("Modulartistic.exe <midiFile.json> <timeline_template.json> <path to folder>");
+            Console.WriteLine("Modulartistic.exe <midiFile.mid> <timeline_template.json> <path to folder>");
             Console.WriteLine("Creates an animation for a specified midi File based on a given template in the specified folder. \n");
 
             Console.WriteLine("For more information on how to create templates and generationData visit <URL here>");
