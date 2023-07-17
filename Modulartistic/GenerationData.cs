@@ -80,7 +80,7 @@ namespace Modulartistic
         public void SaveJson(string path_out = "")
         {
             // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "Output" : path_out;
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "demofiles" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
             path += Path.DirectorySeparatorChar + (Name == "" ? "State" : Name);
 
@@ -199,6 +199,136 @@ namespace Modulartistic
                 }
             }
         }
+
+        public void GenerateAll(GenerationDataFlags flags, string path_out = @"")
+        {
+            // convert the flags to boolean variables
+            bool Show = (flags & GenerationDataFlags.Show) == GenerationDataFlags.Show;
+            bool Debug = (flags & GenerationDataFlags.Debug) == GenerationDataFlags.Debug;
+            bool Faster = (flags & GenerationDataFlags.Faster) == GenerationDataFlags.Faster;
+
+            // set initial GenerationArgs
+            GenerationArgs currentArgs = new GenerationArgs();
+            for (int i = 0; i < Count; i++)
+            {
+                object obj = Data[i];
+
+                // if the object is GenerationArgs update the current GenerationArgs
+                if (obj.GetType() == typeof(GenerationArgs))
+                {
+                    currentArgs = (GenerationArgs)obj;
+                    
+                    // Print Debug Information
+                    if (Debug)
+                    {
+                        Console.WriteLine("Updated GenerationArgs to: ");
+                        Console.WriteLine($"{"Function: ",-15} {currentArgs.Function}");
+                        Console.WriteLine($"{"Width: ",-15} {currentArgs.Size[0]}");
+                        Console.WriteLine($"{"Height: ",-15} {currentArgs.Size[1]}");
+                        Console.WriteLine($"{"Framerate: ",-15} {currentArgs.Framerate}");
+                        Console.WriteLine($"{"AddOns: ",-15} {(currentArgs.AddOns.Count == 0 ? "None" : "")}");
+                        foreach (string addon in currentArgs.AddOns) { Console.WriteLine($"     {addon}"); }
+
+                        Console.WriteLine();
+                        
+                    }
+                }
+               
+                // if the object is a state, generate said state
+                else if (obj.GetType() == typeof(State))
+                {
+                    State S = (obj as State);
+
+                    // print Debug Information Pre Generating
+                    if (Debug)
+                    {
+                        Console.WriteLine("Generating Image for State: ");
+                        Console.WriteLine(S.GetDetailsString());
+                        
+                        Console.WriteLine();
+                    }
+
+                    // generate Image, if Faster Flag use Multithreaded
+                    string filename;
+                    if (Faster) { filename = S.GenerateImage(currentArgs, -1, path_out); }
+                    else { filename = S.GenerateImage(currentArgs, path_out); }
+
+                    // print Debug Information Post Generating
+                    if (Debug)
+                    {
+                        Console.WriteLine("Done Generating \"{0}\"\n", filename);
+                    }
+
+                    // if Show Flag, show Image
+                    if (Show)
+                    {
+                        var p = new Process();
+                        p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
+                        p.Start();
+                    }
+                }
+
+                // if the object is a StateSequence, generate that StateSequence
+                else if (obj.GetType() == typeof(StateSequence))
+                {
+                    StateSequence SS = (obj as StateSequence);
+
+                    // print Debug Information Pre Generating
+                    if (Debug)
+                    {
+                        Console.WriteLine("Generating Image for StateTimeline: ");
+                        Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate));
+
+                        Console.WriteLine();
+                    }
+
+                    // generate Animation, if Faster Flag use Multithreaded 
+                    string filename;
+                    if (Faster) { filename = SS.GenerateAnimation(currentArgs, -1, path_out); }
+                    else { filename = SS.GenerateAnimation(currentArgs, path_out); }
+
+                    //print Debug Information Post Generating
+                    if (Debug)
+                    {
+                        Console.WriteLine("Done Generating \"{0}\"\n", filename);
+                    }
+
+                    // if Show Flag, show Image
+                    if (Show)
+                    {
+                        var p = new Process();
+                        p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
+                        p.Start();
+                    }
+                }
+                else if (obj.GetType() == typeof(StateTimeline))
+                {
+                    if (Faster) { Console.Error.WriteLine("Faster Mode not implemented for StateTimeline. Using normal mode. "); } // ADD FASTER HERE
+                    if (Debug) { Console.Error.WriteLine("Debug Mode not implemented for StateTimeline. Using normal mode. "); } // ADD DEBUG HERE
+                    if (Show) { Console.Error.WriteLine("Show Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
+
+                    StateTimeline ST = (obj as StateTimeline);
+                    ST.GenerateAnimation(currentArgs, path_out);
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+        }
         #endregion
+    }
+
+
+    /// <summary>
+    /// Enum console argument flags
+    /// </summary>
+    [Flags]
+    public enum GenerationDataFlags
+    {
+        None = 0b_0000_0000,
+        Show = 0b_0000_0001,
+        Debug = 0b_0000_0010,
+        Faster = 0b_0000_0100,
     }
 }

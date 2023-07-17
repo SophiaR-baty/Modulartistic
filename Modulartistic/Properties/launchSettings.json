@@ -2,7 +2,7 @@
   "profiles": {
     "Modulartistic": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Program Files\\Modulartistic\\demofiles\\binomtest.json\""
+      "commandLineArgs": "generate\r\n--debug\r\n--show\r\n--faster"
     }
   }
 }

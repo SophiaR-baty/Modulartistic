@@ -201,17 +201,12 @@ namespace Modulartistic
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
         /// <param name="path_out">The Path to save the image at</param>
+        /// <returns>the filepath to the generated image</returns>
+        /// <exception cref="DirectoryNotFoundException">Thrown if path_out does not exist</exception>
         public string GenerateImage(GenerationArgs args, string path_out = @"")
         {
-            
-
-            // Parsing GenerationArgs
-            Size size = new Size(args.Size[0], args.Size[1]);
-            Function func = new Function(args.Function);
-            func.LoadAddOns(args.AddOns.ToArray());
-
             // Generate the image
-            Bitmap image = GetBitmap(size, func);
+            Bitmap image = GetBitmap(args);
 
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + "Output" : path_out;
@@ -224,17 +219,22 @@ namespace Modulartistic
             // Save the image
             image.Save(path + @".png", System.Drawing.Imaging.ImageFormat.Png);
 
+            // return the filepath
             return path + @".png";
         }
 
         /// <summary>
         /// Generates the Bitmap object of the state, given a size and Function for Color calculation.
         /// </summary>
-        /// <param name="size">The Size of the image</param>
-        /// <param name="func">The Function for Color Calculation</param>
-        /// <returns></returns>
-        public Bitmap GetBitmap(Size size, Function func)
+        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <returns>The Generated Bitmap</returns>
+        public Bitmap GetBitmap(GenerationArgs args)
         {
+            // Parsing GenerationArgs
+            Size size = new Size(args.Size[0], args.Size[1]);
+            Function func = new Function(args.Function);
+            func.LoadAddOns(args.AddOns.ToArray());
+
             // Create instance of Bitmap for pixel data
             Bitmap image = new Bitmap(size.Width, size.Height);
 
@@ -325,14 +325,17 @@ namespace Modulartistic
 
         #region Methods for multi-threaded Generating
         /// <summary>
-        /// Generates an Image of this State with a given a Size and a Function for the Color calculation.
+        /// Generates an Image of this State with a given a Size and a Function for the Color calculation. If max_threads = -1 the max number is used
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <param name="max_threads">The maximum number of threads this will use</param>
         /// <param name="path_out">The Path to save the image at</param>
-        public string GenerateImageThreaded(GenerationArgs args, string path_out = @"")
+        /// <returns>the filepath of the generated image</returns>
+        /// <exception cref="DirectoryNotFoundException">thrown if path_out does not exist</exception>
+        public string GenerateImage(GenerationArgs args, int max_threads, string path_out = @"")
         {
             // Generate the image
-            Bitmap image = GetBitmapThreaded(args);
+            Bitmap image = GetBitmap(args, max_threads);
 
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + "Output" : path_out;
@@ -349,60 +352,70 @@ namespace Modulartistic
         }
 
         /// <summary>
-        /// Generates the Bitmap object of the state, given a size and Function for Color calculation.
+        /// Generates the Bitmap object of the state, given a size and Function for Color calculation. If max_threads = -1 the max number is used
         /// </summary>
-        /// <param name="size">The Size of the image</param>
-        /// <param name="func">The Function for Color Calculation</param>
-        /// <returns></returns>
-        public Bitmap GetBitmapThreaded(GenerationArgs args)
+        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <param name="max_threads">The maximum number of threads this will use</param>
+        /// <returns>The generated Bitmap</returns>
+        public Bitmap GetBitmap(GenerationArgs args, int max_threads)
         {
             // Parsing GenerationArgs Size
             Size size = new Size(args.Size[0], args.Size[1]);
 
-            // Get count of Cores
-            int cores = Environment.ProcessorCount;
+            // Set the number 
+            int threads_num = max_threads;
+            if (max_threads == -1 || max_threads > Environment.ProcessorCount) { threads_num = Environment.ProcessorCount; }
+            else if (max_threads < 1) { threads_num = 1; }
 
-            // Create instance of Bitmap for pixel data
+            // Create instance of Bitmap for pixel data and array of Bitmaps for Threads to work on
             Bitmap image = new Bitmap(size.Width, size.Height);
-            Bitmap[] partial_images = new Bitmap[cores];
+            Bitmap[] partial_images = new Bitmap[threads_num];
 
-            Thread[] threads = new Thread[cores];
-            
+            // Create the Threads
+            Thread[] threads = new Thread[threads_num];
 
-            // Threads
-            for (int i = 0; i < cores; i++)
+            // Run the threads
+            for (int i = 0; i < threads_num; i++)
             {
+                // index needs to be made local for the lambda function
                 int local_i = i;
-                threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, local_i, cores, out partial_images[local_i])));
+
+                threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, local_i, threads_num, out partial_images[local_i])));
                 threads[local_i].Start();
-                
-                // partial_images[i] = GetPartialBitmap(size, func, i, cores);
             }
 
+            // Join the Threads and put all partial Bitmaps together
             Graphics gr = Graphics.FromImage(image);
-            for (int i = 0; i < cores; i++)
+            for (int i = 0; i < threads_num; i++)
             {
                 threads[i].Join();
-                gr.DrawImage(partial_images[i], i * (size.Width / cores), 0, partial_images[i].Width, partial_images[i].Height); 
+                gr.DrawImage(partial_images[i], i * (size.Width / threads_num), 0, partial_images[i].Width, partial_images[i].Height); 
             }
 
+            // return the Bitmap
             return image;
         }
 
-        public void GetPartialBitmap(GenerationArgs args, int idx, int max, out Bitmap image)
+        /// <summary>
+        /// Generates part of the Bitmap object of the state, given a size and Function for Color calculation and index of the thread and number of max threads.
+        /// </summary>
+        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <param name="idx">The number of the Thread</param>
+        /// <param name="max">The Total Number of Threads</param>
+        /// <param name="image">The Bitmap where the Data should be stored</param>
+        private void GetPartialBitmap(GenerationArgs args, int idx, int max, out Bitmap image)
         {
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
             Function func = new Function(args.Function);
             func.LoadAddOns(args.AddOns.ToArray());
 
+            // setting the Width of the Bitmap and the first pixel to generate
             int partial_width = size.Width / max;
             int first_px = idx * partial_width;
-            if (idx == max - 1)
-            {
-                partial_width = size.Width - first_px;
-            }
-
+            if (idx == max - 1) { partial_width = size.Width - first_px; }
+            
+            // setting the Bitmap
             image = new Bitmap(partial_width, size.Height);
 
             // Iterate over every pixel
@@ -486,10 +499,40 @@ namespace Modulartistic
                     image.SetPixel(x, y, color);
                 }
             }
-            // return image;
         }
+        #endregion
 
+        #region Other Methods
+        /// <summary>
+        /// Gets details about this state. Useful for debugging. 
+        /// </summary>
+        /// <returns>A formatted details string</returns>
+        public string GetDetailsString()
+        {
+            string result =
+                $"{"Name: ",-30} {Name} \n" +
+                $"{"Modulus Number: ",-30} {Mod} \n" +
+                $"{"Modulus Lower Limit: ",-30} {ModLimLow} \n" +
+                $"{"Modulus Upper Limit: ",-30} {ModLimUp} \n" +
 
+                $"{"X0 Coordinate: ",-30} {X0} \n" +
+                $"{"Y0 Coordinate: ",-30} {Y0} \n" +
+                $"{"X-Factor: ",-30} {XZoom} \n" +
+                $"{"Y-Factor: ",-30} {YZoom} \n" +
+                $"{"Rotation: ",-30} {Rotation} \n" +
+
+                $"{"Color Minimum: ",-30} {ColorMinimum} \n" +
+                $"{"Color Saturation: ",-30} {ColorSaturation} \n" +
+                $"{"Color Value: ",-30} {ColorValue} \n" +
+                $"{"Color Alpha: ",-30} {ColorAlpha} \n" +
+                $"{"Invalid Color (R G B A): ",-30} {InvalidColor[0]} {InvalidColor[1]} {InvalidColor[2]} {InvalidColor[3]} \n" +
+                $"{"Color Factors (R G B): ",-30} {ColorFactors[0]} {ColorFactors[1]} {ColorFactors[2]} \n" +
+
+                $"{"Parameters: ",-30} {Parameters[0]} {Parameters[1]} {Parameters[2]} {Parameters[3]} {Parameters[4]} {Parameters[5]} {Parameters[6]} {Parameters[7]} {Parameters[8]} {Parameters[9]}";
+
+            return result;
+        }
+        
         #endregion
     }
 

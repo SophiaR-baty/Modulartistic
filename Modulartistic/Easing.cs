@@ -1,5 +1,7 @@
 ﻿using NCalc;
 using System;
+using System.Linq;
+using System.Reflection.Metadata;
 
 namespace Modulartistic
 {
@@ -9,10 +11,27 @@ namespace Modulartistic
         private Func<double, double, double, double, double> easingFunction;
         private Expression easingExpression;
         private string name;
+        
+        private static string[] types = new string[]
+        {
+            "Linear",
+
+            "SineIn",
+            "SineOut",
+            "SineInOut",
+
+            "ElasticIn",
+            "ElasticOut",
+            "ElasticInOut",
+
+            "BounceOut"
+        };
         #endregion
 
         #region Properties
         public string Type { get => name; }
+
+        public static string[] ImplementedEasingTypes { get => types; }
         #endregion
 
         #region Constructors
@@ -25,22 +44,21 @@ namespace Modulartistic
 
         public static Easing FromString(string type)
         {
+            if (!ImplementedEasingTypes.Contains(type)) { throw new NotImplementedException(); }
+            
             if (type == "Linear") { return Linear(); }
 
-            else if (type == "SineIn") { return SineIn(); }
-            else if (type == "SineOut") { return SineOut(); }
-            else if (type == "SineInOut") { return SineInOut(); }
+            if (type == "SineIn") { return SineIn(); }
+            if (type == "SineOut") { return SineOut(); }
+            if (type == "SineInOut") { return SineInOut(); }
 
-            else if (type == "ElasticIn") { return ElasticIn(); }
-            else if (type == "ElasticOut") { return ElasticOut(); }
-            else if (type == "ElasticInOut") { return ElasticInOut(); }
+            if (type == "ElasticIn") { return ElasticIn(); }
+            if (type == "ElasticOut") { return ElasticOut(); }
+            if (type == "ElasticInOut") { return ElasticInOut(); }
 
-            else if (type == "BounceOut") { return BounceOut(); }
+            if (type == "BounceOut") { return BounceOut(); }
 
-            else
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
         }
 
         public double Ease(double start, double end, int idx, int maxIdx)

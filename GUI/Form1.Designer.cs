@@ -102,15 +102,16 @@
             rotationInput = new System.Windows.Forms.TextBox();
             statesListBox = new System.Windows.Forms.ListBox();
             addStateButton = new System.Windows.Forms.Button();
-            button2 = new System.Windows.Forms.Button();
+            remStateButton = new System.Windows.Forms.Button();
             button3 = new System.Windows.Forms.Button();
             button4 = new System.Windows.Forms.Button();
             button5 = new System.Windows.Forms.Button();
             button6 = new System.Windows.Forms.Button();
             panel2 = new System.Windows.Forms.Panel();
-            button10 = new System.Windows.Forms.Button();
-            button9 = new System.Windows.Forms.Button();
-            button8 = new System.Windows.Forms.Button();
+            saveSequenceButton = new System.Windows.Forms.Button();
+            saveStateJsonButton = new System.Windows.Forms.Button();
+            saveImageButton = new System.Windows.Forms.Button();
+            generateAnimationButton = new System.Windows.Forms.Button();
             groupbox_genargs = new System.Windows.Forms.GroupBox();
             tableLayoutPanel12 = new System.Windows.Forms.TableLayoutPanel();
             tableLayoutPanel13 = new System.Windows.Forms.TableLayoutPanel();
@@ -127,10 +128,20 @@
             functionInput = new System.Windows.Forms.TextBox();
             generateImageButton = new System.Windows.Forms.Button();
             panel3 = new System.Windows.Forms.Panel();
+            tableLayoutPanel15 = new System.Windows.Forms.TableLayoutPanel();
+            groupBox5 = new System.Windows.Forms.GroupBox();
+            tableLayoutPanel16 = new System.Windows.Forms.TableLayoutPanel();
+            tableLayoutPanel17 = new System.Windows.Forms.TableLayoutPanel();
+            label33 = new System.Windows.Forms.Label();
+            animLengthInput = new System.Windows.Forms.TextBox();
+            tableLayoutPanel18 = new System.Windows.Forms.TableLayoutPanel();
+            label34 = new System.Windows.Forms.Label();
+            easingComboBox = new System.Windows.Forms.ComboBox();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
             splitContainer2 = new System.Windows.Forms.SplitContainer();
             pictureBox1 = new System.Windows.Forms.PictureBox();
             errorProvider1 = new System.Windows.Forms.ErrorProvider(components);
+            errorToolTip = new System.Windows.Forms.ToolTip(components);
             groupBox1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
@@ -152,6 +163,11 @@
             tableLayoutPanel13.SuspendLayout();
             tableLayoutPanel14.SuspendLayout();
             panel3.SuspendLayout();
+            tableLayoutPanel15.SuspendLayout();
+            groupBox5.SuspendLayout();
+            tableLayoutPanel16.SuspendLayout();
+            tableLayoutPanel17.SuspendLayout();
+            tableLayoutPanel18.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -166,12 +182,11 @@
             // 
             // groupBox1
             // 
-            groupBox1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             groupBox1.Controls.Add(tableLayoutPanel1);
-            groupBox1.Location = new System.Drawing.Point(9, 9);
-            groupBox1.Margin = new System.Windows.Forms.Padding(10);
+            groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox1.Location = new System.Drawing.Point(3, 3);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(216, 86);
+            groupBox1.Size = new System.Drawing.Size(330, 106);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Modulo";
@@ -188,7 +203,7 @@
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new System.Drawing.Size(210, 64);
+            tableLayoutPanel1.Size = new System.Drawing.Size(324, 84);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel2
@@ -203,7 +218,7 @@
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel2.Size = new System.Drawing.Size(204, 26);
+            tableLayoutPanel2.Size = new System.Drawing.Size(318, 36);
             tableLayoutPanel2.TabIndex = 0;
             // 
             // label1
@@ -211,19 +226,20 @@
             label1.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label1.AutoSize = true;
             label1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            label1.Location = new System.Drawing.Point(3, 5);
+            label1.Location = new System.Drawing.Point(3, 10);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(34, 15);
+            label1.Size = new System.Drawing.Size(57, 15);
             label1.TabIndex = 3;
             label1.Text = "Num";
             // 
             // numInput
             // 
             numInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            numInput.Location = new System.Drawing.Point(43, 3);
+            numInput.BackColor = System.Drawing.SystemColors.Window;
+            numInput.Location = new System.Drawing.Point(66, 6);
             numInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             numInput.Name = "numInput";
-            numInput.Size = new System.Drawing.Size(141, 23);
+            numInput.Size = new System.Drawing.Size(232, 23);
             numInput.TabIndex = 0;
             // 
             // tableLayoutPanel3
@@ -236,49 +252,49 @@
             tableLayoutPanel3.Controls.Add(modLimLowInput, 1, 0);
             tableLayoutPanel3.Controls.Add(modLimUpInput, 2, 0);
             tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel3.Location = new System.Drawing.Point(3, 35);
+            tableLayoutPanel3.Location = new System.Drawing.Point(3, 45);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new System.Drawing.Size(204, 26);
+            tableLayoutPanel3.Size = new System.Drawing.Size(318, 36);
             tableLayoutPanel3.TabIndex = 1;
             // 
             // label2
             // 
             label2.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(3, 0);
+            label2.Location = new System.Drawing.Point(3, 10);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(34, 26);
+            label2.Size = new System.Drawing.Size(57, 15);
             label2.TabIndex = 5;
             label2.Text = "Range";
             // 
             // modLimLowInput
             // 
             modLimLowInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            modLimLowInput.Location = new System.Drawing.Point(43, 3);
+            modLimLowInput.Location = new System.Drawing.Point(66, 6);
             modLimLowInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             modLimLowInput.Name = "modLimLowInput";
-            modLimLowInput.Size = new System.Drawing.Size(58, 23);
-            modLimLowInput.TabIndex = 4;
+            modLimLowInput.Size = new System.Drawing.Size(104, 23);
+            modLimLowInput.TabIndex = 1;
             // 
             // modLimUpInput
             // 
             modLimUpInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            modLimUpInput.Location = new System.Drawing.Point(124, 3);
+            modLimUpInput.Location = new System.Drawing.Point(193, 6);
             modLimUpInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             modLimUpInput.Name = "modLimUpInput";
-            modLimUpInput.Size = new System.Drawing.Size(60, 23);
+            modLimUpInput.Size = new System.Drawing.Size(105, 23);
             modLimUpInput.TabIndex = 2;
             // 
             // groupBox3
             // 
-            groupBox3.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             groupBox3.Controls.Add(tableLayoutPanel7);
-            groupBox3.Location = new System.Drawing.Point(12, 256);
+            groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox3.Location = new System.Drawing.Point(3, 290);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new System.Drawing.Size(213, 217);
-            groupBox3.TabIndex = 1;
+            groupBox3.Size = new System.Drawing.Size(330, 238);
+            groupBox3.TabIndex = 2;
             groupBox3.TabStop = false;
             groupBox3.Text = "Color";
             // 
@@ -293,10 +309,10 @@
             tableLayoutPanel7.Location = new System.Drawing.Point(3, 19);
             tableLayoutPanel7.Name = "tableLayoutPanel7";
             tableLayoutPanel7.RowCount = 3;
-            tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 17.85F));
-            tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 32.15F));
+            tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 19.5266266F));
+            tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.177515F));
             tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel7.Size = new System.Drawing.Size(207, 195);
+            tableLayoutPanel7.Size = new System.Drawing.Size(324, 216);
             tableLayoutPanel7.TabIndex = 0;
             // 
             // tableLayoutPanel8
@@ -311,26 +327,26 @@
             tableLayoutPanel8.Name = "tableLayoutPanel8";
             tableLayoutPanel8.RowCount = 1;
             tableLayoutPanel8.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel8.Size = new System.Drawing.Size(201, 28);
+            tableLayoutPanel8.Size = new System.Drawing.Size(318, 36);
             tableLayoutPanel8.TabIndex = 0;
             // 
             // label8
             // 
             label8.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label8.AutoSize = true;
-            label8.Location = new System.Drawing.Point(3, 0);
+            label8.Location = new System.Drawing.Point(3, 3);
             label8.Name = "label8";
-            label8.Size = new System.Drawing.Size(34, 28);
+            label8.Size = new System.Drawing.Size(57, 30);
             label8.TabIndex = 18;
             label8.Text = "Minimum";
             // 
             // colMinInput
             // 
             colMinInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colMinInput.Location = new System.Drawing.Point(43, 3);
+            colMinInput.Location = new System.Drawing.Point(66, 6);
             colMinInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colMinInput.Name = "colMinInput";
-            colMinInput.Size = new System.Drawing.Size(138, 23);
+            colMinInput.Size = new System.Drawing.Size(232, 23);
             colMinInput.TabIndex = 8;
             // 
             // tableLayoutPanel9
@@ -346,21 +362,21 @@
             tableLayoutPanel9.Controls.Add(colValInput, 1, 1);
             tableLayoutPanel9.Controls.Add(colAlphaInput, 2, 1);
             tableLayoutPanel9.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel9.Location = new System.Drawing.Point(3, 37);
+            tableLayoutPanel9.Location = new System.Drawing.Point(3, 45);
             tableLayoutPanel9.Name = "tableLayoutPanel9";
             tableLayoutPanel9.RowCount = 2;
             tableLayoutPanel9.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             tableLayoutPanel9.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel9.Size = new System.Drawing.Size(201, 56);
+            tableLayoutPanel9.Size = new System.Drawing.Size(318, 59);
             tableLayoutPanel9.TabIndex = 1;
             // 
             // label9
             // 
             label9.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label9.AutoSize = true;
-            label9.Location = new System.Drawing.Point(3, 0);
+            label9.Location = new System.Drawing.Point(3, 2);
             label9.Name = "label9";
-            label9.Size = new System.Drawing.Size(60, 20);
+            label9.Size = new System.Drawing.Size(99, 15);
             label9.TabIndex = 19;
             label9.Text = "Saturation";
             label9.Click += label9_Click;
@@ -369,9 +385,9 @@
             // 
             label10.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label10.AutoSize = true;
-            label10.Location = new System.Drawing.Point(69, 2);
+            label10.Location = new System.Drawing.Point(108, 2);
             label10.Name = "label10";
-            label10.Size = new System.Drawing.Size(61, 15);
+            label10.Size = new System.Drawing.Size(100, 15);
             label10.TabIndex = 20;
             label10.Text = "Value";
             label10.Click += label10_Click;
@@ -380,9 +396,9 @@
             // 
             label11.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label11.AutoSize = true;
-            label11.Location = new System.Drawing.Point(136, 2);
+            label11.Location = new System.Drawing.Point(214, 2);
             label11.Name = "label11";
-            label11.Size = new System.Drawing.Size(62, 15);
+            label11.Size = new System.Drawing.Size(101, 15);
             label11.TabIndex = 21;
             label11.Text = "Alpha";
             label11.Click += label11_Click;
@@ -390,30 +406,30 @@
             // colSatInput
             // 
             colSatInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colSatInput.Location = new System.Drawing.Point(3, 26);
+            colSatInput.Location = new System.Drawing.Point(3, 28);
             colSatInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colSatInput.Name = "colSatInput";
-            colSatInput.Size = new System.Drawing.Size(43, 23);
+            colSatInput.Size = new System.Drawing.Size(82, 23);
             colSatInput.TabIndex = 9;
             colSatInput.TextChanged += textBox10_TextChanged;
             // 
             // colValInput
             // 
             colValInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colValInput.Location = new System.Drawing.Point(69, 26);
+            colValInput.Location = new System.Drawing.Point(108, 28);
             colValInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colValInput.Name = "colValInput";
-            colValInput.Size = new System.Drawing.Size(44, 23);
+            colValInput.Size = new System.Drawing.Size(83, 23);
             colValInput.TabIndex = 10;
             colValInput.TextChanged += textBox11_TextChanged;
             // 
             // colAlphaInput
             // 
             colAlphaInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colAlphaInput.Location = new System.Drawing.Point(136, 26);
+            colAlphaInput.Location = new System.Drawing.Point(214, 28);
             colAlphaInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colAlphaInput.Name = "colAlphaInput";
-            colAlphaInput.Size = new System.Drawing.Size(45, 23);
+            colAlphaInput.Size = new System.Drawing.Size(84, 23);
             colAlphaInput.TabIndex = 11;
             colAlphaInput.TextChanged += textBox12_TextChanged;
             // 
@@ -439,78 +455,78 @@
             tableLayoutPanel10.Controls.Add(invalColGInput, 2, 1);
             tableLayoutPanel10.Controls.Add(invalColBInput, 3, 1);
             tableLayoutPanel10.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel10.Location = new System.Drawing.Point(3, 99);
+            tableLayoutPanel10.Location = new System.Drawing.Point(3, 110);
             tableLayoutPanel10.Name = "tableLayoutPanel10";
             tableLayoutPanel10.RowCount = 3;
             tableLayoutPanel10.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             tableLayoutPanel10.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel10.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel10.Size = new System.Drawing.Size(201, 93);
+            tableLayoutPanel10.Size = new System.Drawing.Size(318, 103);
             tableLayoutPanel10.TabIndex = 2;
             // 
             // invalColAInput
             // 
             invalColAInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            invalColAInput.Location = new System.Drawing.Point(163, 26);
+            invalColAInput.Location = new System.Drawing.Point(255, 29);
             invalColAInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             invalColAInput.Name = "invalColAInput";
-            invalColAInput.Size = new System.Drawing.Size(18, 23);
-            invalColAInput.TabIndex = 28;
+            invalColAInput.Size = new System.Drawing.Size(43, 23);
+            invalColAInput.TabIndex = 15;
             // 
             // label16
             // 
             label16.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label16.AutoSize = true;
-            label16.Location = new System.Drawing.Point(3, 20);
+            label16.Location = new System.Drawing.Point(3, 25);
             label16.Name = "label16";
-            label16.Size = new System.Drawing.Size(34, 36);
+            label16.Size = new System.Drawing.Size(57, 30);
             label16.TabIndex = 26;
             label16.Text = "Invalid Color";
             // 
             // colFactBInput
             // 
             colFactBInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colFactBInput.Location = new System.Drawing.Point(123, 63);
+            colFactBInput.Location = new System.Drawing.Point(192, 70);
             colFactBInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colFactBInput.Name = "colFactBInput";
-            colFactBInput.Size = new System.Drawing.Size(17, 23);
-            colFactBInput.TabIndex = 17;
+            colFactBInput.Size = new System.Drawing.Size(40, 23);
+            colFactBInput.TabIndex = 18;
             // 
             // label15
             // 
             label15.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label15.AutoSize = true;
-            label15.Location = new System.Drawing.Point(163, 2);
+            label15.Location = new System.Drawing.Point(255, 2);
             label15.Name = "label15";
-            label15.Size = new System.Drawing.Size(35, 15);
+            label15.Size = new System.Drawing.Size(60, 15);
             label15.TabIndex = 25;
             label15.Text = "A";
             // 
             // colFactGInput
             // 
             colFactGInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colFactGInput.Location = new System.Drawing.Point(83, 63);
+            colFactGInput.Location = new System.Drawing.Point(129, 70);
             colFactGInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colFactGInput.Name = "colFactGInput";
-            colFactGInput.Size = new System.Drawing.Size(17, 23);
-            colFactGInput.TabIndex = 16;
+            colFactGInput.Size = new System.Drawing.Size(40, 23);
+            colFactGInput.TabIndex = 17;
             // 
             // colFactRInput
             // 
             colFactRInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            colFactRInput.Location = new System.Drawing.Point(43, 63);
+            colFactRInput.Location = new System.Drawing.Point(66, 70);
             colFactRInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             colFactRInput.Name = "colFactRInput";
-            colFactRInput.Size = new System.Drawing.Size(17, 23);
-            colFactRInput.TabIndex = 15;
+            colFactRInput.Size = new System.Drawing.Size(40, 23);
+            colFactRInput.TabIndex = 16;
             // 
             // label12
             // 
             label12.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label12.AutoSize = true;
-            label12.Location = new System.Drawing.Point(43, 2);
+            label12.Location = new System.Drawing.Point(66, 2);
             label12.Name = "label12";
-            label12.Size = new System.Drawing.Size(34, 15);
+            label12.Size = new System.Drawing.Size(57, 15);
             label12.TabIndex = 22;
             label12.Text = "R";
             // 
@@ -518,9 +534,9 @@
             // 
             label14.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label14.AutoSize = true;
-            label14.Location = new System.Drawing.Point(123, 2);
+            label14.Location = new System.Drawing.Point(192, 2);
             label14.Name = "label14";
-            label14.Size = new System.Drawing.Size(34, 15);
+            label14.Size = new System.Drawing.Size(57, 15);
             label14.TabIndex = 24;
             label14.Text = "B";
             // 
@@ -528,9 +544,9 @@
             // 
             label17.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label17.AutoSize = true;
-            label17.Location = new System.Drawing.Point(3, 56);
+            label17.Location = new System.Drawing.Point(3, 67);
             label17.Name = "label17";
-            label17.Size = new System.Drawing.Size(34, 37);
+            label17.Size = new System.Drawing.Size(57, 30);
             label17.TabIndex = 27;
             label17.Text = "Color Factors";
             // 
@@ -538,47 +554,47 @@
             // 
             label13.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label13.AutoSize = true;
-            label13.Location = new System.Drawing.Point(83, 2);
+            label13.Location = new System.Drawing.Point(129, 2);
             label13.Name = "label13";
-            label13.Size = new System.Drawing.Size(34, 15);
+            label13.Size = new System.Drawing.Size(57, 15);
             label13.TabIndex = 23;
             label13.Text = "G";
             // 
             // invalColRInput
             // 
             invalColRInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            invalColRInput.Location = new System.Drawing.Point(43, 26);
+            invalColRInput.Location = new System.Drawing.Point(66, 29);
             invalColRInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             invalColRInput.Name = "invalColRInput";
-            invalColRInput.Size = new System.Drawing.Size(17, 23);
+            invalColRInput.Size = new System.Drawing.Size(40, 23);
             invalColRInput.TabIndex = 12;
             // 
             // invalColGInput
             // 
             invalColGInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            invalColGInput.Location = new System.Drawing.Point(83, 26);
+            invalColGInput.Location = new System.Drawing.Point(129, 29);
             invalColGInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             invalColGInput.Name = "invalColGInput";
-            invalColGInput.Size = new System.Drawing.Size(17, 23);
+            invalColGInput.Size = new System.Drawing.Size(40, 23);
             invalColGInput.TabIndex = 13;
             // 
             // invalColBInput
             // 
             invalColBInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            invalColBInput.Location = new System.Drawing.Point(123, 26);
+            invalColBInput.Location = new System.Drawing.Point(192, 29);
             invalColBInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             invalColBInput.Name = "invalColBInput";
-            invalColBInput.Size = new System.Drawing.Size(17, 23);
+            invalColBInput.Size = new System.Drawing.Size(40, 23);
             invalColBInput.TabIndex = 14;
             // 
             // groupBox4
             // 
-            groupBox4.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             groupBox4.Controls.Add(tableLayoutPanel11);
-            groupBox4.Location = new System.Drawing.Point(12, 479);
+            groupBox4.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox4.Location = new System.Drawing.Point(3, 534);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new System.Drawing.Size(213, 117);
-            groupBox4.TabIndex = 1;
+            groupBox4.Size = new System.Drawing.Size(330, 136);
+            groupBox4.TabIndex = 3;
             groupBox4.TabStop = false;
             groupBox4.Text = "Parameters";
             groupBox4.Enter += groupBox4_Enter;
@@ -619,16 +635,16 @@
             tableLayoutPanel11.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel11.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             tableLayoutPanel11.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel11.Size = new System.Drawing.Size(207, 95);
+            tableLayoutPanel11.Size = new System.Drawing.Size(324, 114);
             tableLayoutPanel11.TabIndex = 0;
             // 
             // label23
             // 
             label23.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label23.AutoSize = true;
-            label23.Location = new System.Drawing.Point(167, 49);
+            label23.Location = new System.Drawing.Point(259, 59);
             label23.Name = "label23";
-            label23.Size = new System.Drawing.Size(37, 15);
+            label23.Size = new System.Drawing.Size(62, 15);
             label23.TabIndex = 37;
             label23.Text = "9";
             // 
@@ -638,62 +654,62 @@
             label18.AutoSize = true;
             label18.Location = new System.Drawing.Point(3, 2);
             label18.Name = "label18";
-            label18.Size = new System.Drawing.Size(35, 15);
+            label18.Size = new System.Drawing.Size(58, 15);
             label18.TabIndex = 28;
             label18.Text = "0";
             // 
             // para9Input
             // 
             para9Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para9Input.Location = new System.Drawing.Point(167, 70);
+            para9Input.Location = new System.Drawing.Point(259, 84);
             para9Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para9Input.Name = "para9Input";
-            para9Input.Size = new System.Drawing.Size(20, 23);
-            para9Input.TabIndex = 27;
+            para9Input.Size = new System.Drawing.Size(45, 23);
+            para9Input.TabIndex = 28;
             // 
             // para8Input
             // 
             para8Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para8Input.Location = new System.Drawing.Point(126, 70);
+            para8Input.Location = new System.Drawing.Point(195, 84);
             para8Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para8Input.Name = "para8Input";
-            para8Input.Size = new System.Drawing.Size(18, 23);
-            para8Input.TabIndex = 24;
+            para8Input.Size = new System.Drawing.Size(41, 23);
+            para8Input.TabIndex = 27;
             // 
             // para6Input
             // 
             para6Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para6Input.Location = new System.Drawing.Point(44, 70);
+            para6Input.Location = new System.Drawing.Point(67, 84);
             para6Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para6Input.Name = "para6Input";
-            para6Input.Size = new System.Drawing.Size(18, 23);
-            para6Input.TabIndex = 22;
+            para6Input.Size = new System.Drawing.Size(41, 23);
+            para6Input.TabIndex = 25;
             // 
             // para5Input
             // 
             para5Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para5Input.Location = new System.Drawing.Point(3, 70);
+            para5Input.Location = new System.Drawing.Point(3, 84);
             para5Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para5Input.Name = "para5Input";
-            para5Input.Size = new System.Drawing.Size(18, 23);
-            para5Input.TabIndex = 21;
+            para5Input.Size = new System.Drawing.Size(41, 23);
+            para5Input.TabIndex = 24;
             // 
             // para7Input
             // 
             para7Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para7Input.Location = new System.Drawing.Point(85, 70);
+            para7Input.Location = new System.Drawing.Point(131, 84);
             para7Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para7Input.Name = "para7Input";
-            para7Input.Size = new System.Drawing.Size(18, 23);
-            para7Input.TabIndex = 25;
+            para7Input.Size = new System.Drawing.Size(41, 23);
+            para7Input.TabIndex = 26;
             // 
             // label19
             // 
             label19.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label19.AutoSize = true;
-            label19.Location = new System.Drawing.Point(44, 2);
+            label19.Location = new System.Drawing.Point(67, 2);
             label19.Name = "label19";
-            label19.Size = new System.Drawing.Size(35, 15);
+            label19.Size = new System.Drawing.Size(58, 15);
             label19.TabIndex = 29;
             label19.Text = "1";
             label19.Click += label19_Click;
@@ -702,9 +718,9 @@
             // 
             label24.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label24.AutoSize = true;
-            label24.Location = new System.Drawing.Point(126, 49);
+            label24.Location = new System.Drawing.Point(195, 59);
             label24.Name = "label24";
-            label24.Size = new System.Drawing.Size(35, 15);
+            label24.Size = new System.Drawing.Size(58, 15);
             label24.TabIndex = 36;
             label24.Text = "8";
             // 
@@ -712,9 +728,9 @@
             // 
             label20.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label20.AutoSize = true;
-            label20.Location = new System.Drawing.Point(85, 2);
+            label20.Location = new System.Drawing.Point(131, 2);
             label20.Name = "label20";
-            label20.Size = new System.Drawing.Size(35, 15);
+            label20.Size = new System.Drawing.Size(58, 15);
             label20.TabIndex = 30;
             label20.Text = "2";
             // 
@@ -722,9 +738,9 @@
             // 
             label21.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label21.AutoSize = true;
-            label21.Location = new System.Drawing.Point(126, 2);
+            label21.Location = new System.Drawing.Point(195, 2);
             label21.Name = "label21";
-            label21.Size = new System.Drawing.Size(35, 15);
+            label21.Size = new System.Drawing.Size(58, 15);
             label21.TabIndex = 31;
             label21.Text = "3";
             // 
@@ -732,9 +748,9 @@
             // 
             label25.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label25.AutoSize = true;
-            label25.Location = new System.Drawing.Point(85, 49);
+            label25.Location = new System.Drawing.Point(131, 59);
             label25.Name = "label25";
-            label25.Size = new System.Drawing.Size(35, 15);
+            label25.Size = new System.Drawing.Size(58, 15);
             label25.TabIndex = 35;
             label25.Text = "7";
             // 
@@ -742,9 +758,9 @@
             // 
             label22.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label22.AutoSize = true;
-            label22.Location = new System.Drawing.Point(167, 2);
+            label22.Location = new System.Drawing.Point(259, 2);
             label22.Name = "label22";
-            label22.Size = new System.Drawing.Size(37, 15);
+            label22.Size = new System.Drawing.Size(62, 15);
             label22.TabIndex = 32;
             label22.Text = "4";
             // 
@@ -752,74 +768,74 @@
             // 
             label26.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label26.AutoSize = true;
-            label26.Location = new System.Drawing.Point(44, 49);
+            label26.Location = new System.Drawing.Point(67, 59);
             label26.Name = "label26";
-            label26.Size = new System.Drawing.Size(35, 15);
+            label26.Size = new System.Drawing.Size(58, 15);
             label26.TabIndex = 34;
             label26.Text = "6";
             // 
             // para4Input
             // 
             para4Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para4Input.Location = new System.Drawing.Point(167, 23);
+            para4Input.Location = new System.Drawing.Point(259, 27);
             para4Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para4Input.Name = "para4Input";
-            para4Input.Size = new System.Drawing.Size(20, 23);
-            para4Input.TabIndex = 26;
+            para4Input.Size = new System.Drawing.Size(45, 23);
+            para4Input.TabIndex = 23;
             // 
             // label27
             // 
             label27.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label27.AutoSize = true;
-            label27.Location = new System.Drawing.Point(3, 49);
+            label27.Location = new System.Drawing.Point(3, 59);
             label27.Name = "label27";
-            label27.Size = new System.Drawing.Size(35, 15);
+            label27.Size = new System.Drawing.Size(58, 15);
             label27.TabIndex = 33;
             label27.Text = "5";
             // 
             // para0Input
             // 
             para0Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para0Input.Location = new System.Drawing.Point(3, 23);
+            para0Input.Location = new System.Drawing.Point(3, 27);
             para0Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para0Input.Name = "para0Input";
-            para0Input.Size = new System.Drawing.Size(18, 23);
-            para0Input.TabIndex = 18;
+            para0Input.Size = new System.Drawing.Size(41, 23);
+            para0Input.TabIndex = 19;
             // 
             // para1Input
             // 
             para1Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para1Input.Location = new System.Drawing.Point(44, 23);
+            para1Input.Location = new System.Drawing.Point(67, 27);
             para1Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para1Input.Name = "para1Input";
-            para1Input.Size = new System.Drawing.Size(18, 23);
-            para1Input.TabIndex = 19;
+            para1Input.Size = new System.Drawing.Size(41, 23);
+            para1Input.TabIndex = 20;
             // 
             // para2Input
             // 
             para2Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para2Input.Location = new System.Drawing.Point(85, 23);
+            para2Input.Location = new System.Drawing.Point(131, 27);
             para2Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para2Input.Name = "para2Input";
-            para2Input.Size = new System.Drawing.Size(18, 23);
-            para2Input.TabIndex = 20;
+            para2Input.Size = new System.Drawing.Size(41, 23);
+            para2Input.TabIndex = 21;
             // 
             // para3Input
             // 
             para3Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            para3Input.Location = new System.Drawing.Point(126, 23);
+            para3Input.Location = new System.Drawing.Point(195, 27);
             para3Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             para3Input.Name = "para3Input";
-            para3Input.Size = new System.Drawing.Size(18, 23);
-            para3Input.TabIndex = 23;
+            para3Input.Size = new System.Drawing.Size(41, 23);
+            para3Input.TabIndex = 22;
             // 
             // groupBox2
             // 
-            groupBox2.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             groupBox2.Controls.Add(tableLayoutPanel4);
-            groupBox2.Location = new System.Drawing.Point(12, 104);
+            groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox2.Location = new System.Drawing.Point(3, 115);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new System.Drawing.Size(213, 146);
+            groupBox2.Size = new System.Drawing.Size(330, 169);
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "Coordinates";
@@ -836,7 +852,7 @@
             tableLayoutPanel4.RowCount = 2;
             tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 73.68F));
             tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 26.32F));
-            tableLayoutPanel4.Size = new System.Drawing.Size(207, 124);
+            tableLayoutPanel4.Size = new System.Drawing.Size(324, 147);
             tableLayoutPanel4.TabIndex = 0;
             // 
             // tableLayoutPanel5
@@ -860,16 +876,16 @@
             tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel5.Size = new System.Drawing.Size(201, 85);
+            tableLayoutPanel5.Size = new System.Drawing.Size(318, 102);
             tableLayoutPanel5.TabIndex = 0;
             // 
             // label6
             // 
             label6.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label6.AutoSize = true;
-            label6.Location = new System.Drawing.Point(3, 53);
+            label6.Location = new System.Drawing.Point(3, 74);
             label6.Name = "label6";
-            label6.Size = new System.Drawing.Size(34, 30);
+            label6.Size = new System.Drawing.Size(57, 15);
             label6.TabIndex = 11;
             label6.Text = "Factor";
             // 
@@ -877,55 +893,55 @@
             // 
             label3.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(43, 2);
+            label3.Location = new System.Drawing.Point(66, 2);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(74, 15);
+            label3.Size = new System.Drawing.Size(121, 15);
             label3.TabIndex = 8;
             label3.Text = "X";
             // 
             // yFactInput
             // 
             yFactInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            yFactInput.Location = new System.Drawing.Point(123, 57);
+            yFactInput.Location = new System.Drawing.Point(193, 70);
             yFactInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             yFactInput.Name = "yFactInput";
-            yFactInput.Size = new System.Drawing.Size(58, 23);
+            yFactInput.Size = new System.Drawing.Size(105, 23);
             yFactInput.TabIndex = 6;
             // 
             // y0Input
             // 
             y0Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            y0Input.Location = new System.Drawing.Point(123, 24);
+            y0Input.Location = new System.Drawing.Point(193, 29);
             y0Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             y0Input.Name = "y0Input";
-            y0Input.Size = new System.Drawing.Size(58, 23);
+            y0Input.Size = new System.Drawing.Size(105, 23);
             y0Input.TabIndex = 4;
             // 
             // xFactInput
             // 
             xFactInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            xFactInput.Location = new System.Drawing.Point(43, 57);
+            xFactInput.Location = new System.Drawing.Point(66, 70);
             xFactInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             xFactInput.Name = "xFactInput";
-            xFactInput.Size = new System.Drawing.Size(57, 23);
+            xFactInput.Size = new System.Drawing.Size(104, 23);
             xFactInput.TabIndex = 5;
             // 
             // x0Input
             // 
             x0Input.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            x0Input.Location = new System.Drawing.Point(43, 24);
+            x0Input.Location = new System.Drawing.Point(66, 29);
             x0Input.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             x0Input.Name = "x0Input";
-            x0Input.Size = new System.Drawing.Size(57, 23);
+            x0Input.Size = new System.Drawing.Size(104, 23);
             x0Input.TabIndex = 3;
             // 
             // label4
             // 
             label4.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(123, 2);
+            label4.Location = new System.Drawing.Point(193, 2);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(75, 15);
+            label4.Size = new System.Drawing.Size(122, 15);
             label4.TabIndex = 9;
             label4.Text = "Y";
             // 
@@ -933,9 +949,9 @@
             // 
             label5.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label5.AutoSize = true;
-            label5.Location = new System.Drawing.Point(3, 21);
+            label5.Location = new System.Drawing.Point(3, 33);
             label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(34, 30);
+            label5.Size = new System.Drawing.Size(57, 15);
             label5.TabIndex = 10;
             label5.Text = "Offset";
             // 
@@ -947,30 +963,30 @@
             tableLayoutPanel6.Controls.Add(label7, 0, 0);
             tableLayoutPanel6.Controls.Add(rotationInput, 1, 0);
             tableLayoutPanel6.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel6.Location = new System.Drawing.Point(3, 94);
+            tableLayoutPanel6.Location = new System.Drawing.Point(3, 111);
             tableLayoutPanel6.Name = "tableLayoutPanel6";
             tableLayoutPanel6.RowCount = 1;
-            tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
-            tableLayoutPanel6.Size = new System.Drawing.Size(201, 27);
+            tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 33F));
+            tableLayoutPanel6.Size = new System.Drawing.Size(318, 33);
             tableLayoutPanel6.TabIndex = 1;
             // 
             // label7
             // 
             label7.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             label7.AutoSize = true;
-            label7.Location = new System.Drawing.Point(3, 0);
+            label7.Location = new System.Drawing.Point(3, 9);
             label7.Name = "label7";
-            label7.Size = new System.Drawing.Size(34, 27);
+            label7.Size = new System.Drawing.Size(57, 15);
             label7.TabIndex = 12;
             label7.Text = "Rotation";
             // 
             // rotationInput
             // 
             rotationInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            rotationInput.Location = new System.Drawing.Point(43, 3);
+            rotationInput.Location = new System.Drawing.Point(66, 5);
             rotationInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             rotationInput.Name = "rotationInput";
-            rotationInput.Size = new System.Drawing.Size(138, 23);
+            rotationInput.Size = new System.Drawing.Size(232, 23);
             rotationInput.TabIndex = 7;
             // 
             // statesListBox
@@ -989,25 +1005,25 @@
             addStateButton.Location = new System.Drawing.Point(132, 3);
             addStateButton.Name = "addStateButton";
             addStateButton.Size = new System.Drawing.Size(50, 23);
-            addStateButton.TabIndex = 3;
+            addStateButton.TabIndex = 31;
             addStateButton.Text = "+";
             addStateButton.UseVisualStyleBackColor = true;
             addStateButton.Click += addStateButton_Click;
             // 
-            // button2
+            // remStateButton
             // 
-            button2.Location = new System.Drawing.Point(132, 32);
-            button2.Name = "button2";
-            button2.Size = new System.Drawing.Size(50, 23);
-            button2.TabIndex = 4;
-            button2.Text = "-";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
+            remStateButton.Location = new System.Drawing.Point(132, 32);
+            remStateButton.Name = "remStateButton";
+            remStateButton.Size = new System.Drawing.Size(50, 23);
+            remStateButton.TabIndex = 32;
+            remStateButton.Text = "-";
+            remStateButton.UseVisualStyleBackColor = true;
+            remStateButton.Click += remStateButton_Click;
             // 
             // button3
             // 
             button3.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            button3.Location = new System.Drawing.Point(1728, 224);
+            button3.Location = new System.Drawing.Point(1728, 225);
             button3.Name = "button3";
             button3.Size = new System.Drawing.Size(140, 20);
             button3.TabIndex = 6;
@@ -1017,7 +1033,7 @@
             // button4
             // 
             button4.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            button4.Location = new System.Drawing.Point(1728, 198);
+            button4.Location = new System.Drawing.Point(1728, 199);
             button4.Name = "button4";
             button4.Size = new System.Drawing.Size(140, 20);
             button4.TabIndex = 7;
@@ -1027,7 +1043,7 @@
             // button5
             // 
             button5.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            button5.Location = new System.Drawing.Point(1728, 146);
+            button5.Location = new System.Drawing.Point(1728, 147);
             button5.Name = "button5";
             button5.Size = new System.Drawing.Size(140, 20);
             button5.TabIndex = 8;
@@ -1037,7 +1053,7 @@
             // button6
             // 
             button6.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            button6.Location = new System.Drawing.Point(1728, 171);
+            button6.Location = new System.Drawing.Point(1728, 172);
             button6.Name = "button6";
             button6.Size = new System.Drawing.Size(140, 20);
             button6.TabIndex = 9;
@@ -1048,9 +1064,10 @@
             // 
             panel2.AutoScroll = true;
             panel2.BackColor = System.Drawing.SystemColors.Control;
-            panel2.Controls.Add(button10);
-            panel2.Controls.Add(button9);
-            panel2.Controls.Add(button8);
+            panel2.Controls.Add(saveSequenceButton);
+            panel2.Controls.Add(saveStateJsonButton);
+            panel2.Controls.Add(saveImageButton);
+            panel2.Controls.Add(generateAnimationButton);
             panel2.Controls.Add(groupbox_genargs);
             panel2.Controls.Add(generateImageButton);
             panel2.Controls.Add(statesListBox);
@@ -1059,44 +1076,56 @@
             panel2.Controls.Add(button6);
             panel2.Controls.Add(addStateButton);
             panel2.Controls.Add(button5);
-            panel2.Controls.Add(button2);
+            panel2.Controls.Add(remStateButton);
             panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             panel2.ForeColor = System.Drawing.Color.FromArgb(18, 18, 18);
             panel2.Location = new System.Drawing.Point(0, 0);
             panel2.MinimumSize = new System.Drawing.Size(0, 169);
             panel2.Name = "panel2";
-            panel2.Size = new System.Drawing.Size(881, 255);
+            panel2.Size = new System.Drawing.Size(881, 256);
             panel2.TabIndex = 1;
             // 
-            // button10
+            // saveSequenceButton
             // 
-            button10.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            button10.Location = new System.Drawing.Point(803, 89);
-            button10.Name = "button10";
-            button10.Size = new System.Drawing.Size(75, 23);
-            button10.TabIndex = 14;
-            button10.Text = "button10";
-            button10.UseVisualStyleBackColor = true;
+            saveSequenceButton.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            saveSequenceButton.Location = new System.Drawing.Point(803, 119);
+            saveSequenceButton.Name = "saveSequenceButton";
+            saveSequenceButton.Size = new System.Drawing.Size(71, 23);
+            saveSequenceButton.TabIndex = 42;
+            saveSequenceButton.Text = "Save Sequence Json";
+            saveSequenceButton.UseVisualStyleBackColor = true;
             // 
-            // button9
+            // saveStateJsonButton
             // 
-            button9.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            button9.Location = new System.Drawing.Point(803, 60);
-            button9.Name = "button9";
-            button9.Size = new System.Drawing.Size(75, 23);
-            button9.TabIndex = 13;
-            button9.Text = "button9";
-            button9.UseVisualStyleBackColor = true;
+            saveStateJsonButton.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            saveStateJsonButton.Location = new System.Drawing.Point(803, 89);
+            saveStateJsonButton.Name = "saveStateJsonButton";
+            saveStateJsonButton.Size = new System.Drawing.Size(71, 23);
+            saveStateJsonButton.TabIndex = 41;
+            saveStateJsonButton.Text = "Save State Json";
+            saveStateJsonButton.UseVisualStyleBackColor = true;
             // 
-            // button8
+            // saveImageButton
             // 
-            button8.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            button8.Location = new System.Drawing.Point(803, 31);
-            button8.Name = "button8";
-            button8.Size = new System.Drawing.Size(75, 23);
-            button8.TabIndex = 12;
-            button8.Text = "button8";
-            button8.UseVisualStyleBackColor = true;
+            saveImageButton.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            saveImageButton.Location = new System.Drawing.Point(803, 60);
+            saveImageButton.Name = "saveImageButton";
+            saveImageButton.Size = new System.Drawing.Size(71, 23);
+            saveImageButton.TabIndex = 40;
+            saveImageButton.Text = "Save Image";
+            saveImageButton.UseVisualStyleBackColor = true;
+            saveImageButton.Click += saveImageButton_Click;
+            // 
+            // generateAnimationButton
+            // 
+            generateAnimationButton.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            generateAnimationButton.Location = new System.Drawing.Point(803, 31);
+            generateAnimationButton.Name = "generateAnimationButton";
+            generateAnimationButton.Size = new System.Drawing.Size(71, 23);
+            generateAnimationButton.TabIndex = 39;
+            generateAnimationButton.Text = "Generate Animation";
+            generateAnimationButton.UseVisualStyleBackColor = true;
+            generateAnimationButton.Click += generateAnimationButton_Click;
             // 
             // groupbox_genargs
             // 
@@ -1106,7 +1135,7 @@
             groupbox_genargs.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             groupbox_genargs.Location = new System.Drawing.Point(188, 3);
             groupbox_genargs.Name = "groupbox_genargs";
-            groupbox_genargs.Size = new System.Drawing.Size(609, 240);
+            groupbox_genargs.Size = new System.Drawing.Size(609, 241);
             groupbox_genargs.TabIndex = 11;
             groupbox_genargs.TabStop = false;
             groupbox_genargs.Text = "GenerationArgs";
@@ -1123,7 +1152,7 @@
             tableLayoutPanel12.Name = "tableLayoutPanel12";
             tableLayoutPanel12.RowCount = 1;
             tableLayoutPanel12.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel12.Size = new System.Drawing.Size(603, 218);
+            tableLayoutPanel12.Size = new System.Drawing.Size(603, 219);
             tableLayoutPanel12.TabIndex = 0;
             // 
             // tableLayoutPanel13
@@ -1146,26 +1175,26 @@
             tableLayoutPanel13.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.3333321F));
             tableLayoutPanel13.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             tableLayoutPanel13.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.3333321F));
-            tableLayoutPanel13.Size = new System.Drawing.Size(74, 212);
+            tableLayoutPanel13.Size = new System.Drawing.Size(74, 213);
             tableLayoutPanel13.TabIndex = 0;
             // 
             // framerateInput
             // 
             framerateInput.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             framerateInput.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            framerateInput.Location = new System.Drawing.Point(3, 163);
+            framerateInput.Location = new System.Drawing.Point(3, 165);
             framerateInput.Name = "framerateInput";
             framerateInput.Size = new System.Drawing.Size(68, 23);
-            framerateInput.TabIndex = 5;
+            framerateInput.TabIndex = 35;
             // 
             // heightInput
             // 
             heightInput.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             heightInput.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            heightInput.Location = new System.Drawing.Point(3, 93);
+            heightInput.Location = new System.Drawing.Point(3, 94);
             heightInput.Name = "heightInput";
             heightInput.Size = new System.Drawing.Size(68, 23);
-            heightInput.TabIndex = 4;
+            heightInput.TabIndex = 34;
             // 
             // label28
             // 
@@ -1179,7 +1208,7 @@
             // label29
             // 
             label29.AutoSize = true;
-            label29.Location = new System.Drawing.Point(3, 70);
+            label29.Location = new System.Drawing.Point(3, 71);
             label29.Name = "label29";
             label29.Size = new System.Drawing.Size(43, 15);
             label29.TabIndex = 1;
@@ -1188,7 +1217,7 @@
             // label30
             // 
             label30.AutoSize = true;
-            label30.Location = new System.Drawing.Point(3, 140);
+            label30.Location = new System.Drawing.Point(3, 142);
             label30.Name = "label30";
             label30.Size = new System.Drawing.Size(60, 15);
             label30.TabIndex = 2;
@@ -1201,7 +1230,7 @@
             widthInput.Location = new System.Drawing.Point(3, 23);
             widthInput.Name = "widthInput";
             widthInput.Size = new System.Drawing.Size(68, 23);
-            widthInput.TabIndex = 3;
+            widthInput.TabIndex = 33;
             // 
             // tableLayoutPanel14
             // 
@@ -1219,7 +1248,7 @@
             tableLayoutPanel14.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             tableLayoutPanel14.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             tableLayoutPanel14.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel14.Size = new System.Drawing.Size(517, 212);
+            tableLayoutPanel14.Size = new System.Drawing.Size(517, 213);
             tableLayoutPanel14.TabIndex = 1;
             // 
             // label31
@@ -1247,8 +1276,9 @@
             addOnInput.Location = new System.Drawing.Point(3, 73);
             addOnInput.Multiline = true;
             addOnInput.Name = "addOnInput";
-            addOnInput.Size = new System.Drawing.Size(511, 136);
-            addOnInput.TabIndex = 3;
+            addOnInput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            addOnInput.Size = new System.Drawing.Size(511, 137);
+            addOnInput.TabIndex = 37;
             // 
             // functionInput
             // 
@@ -1257,15 +1287,15 @@
             functionInput.Location = new System.Drawing.Point(3, 23);
             functionInput.Name = "functionInput";
             functionInput.Size = new System.Drawing.Size(511, 23);
-            functionInput.TabIndex = 4;
+            functionInput.TabIndex = 36;
             // 
             // generateImageButton
             // 
             generateImageButton.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
             generateImageButton.Location = new System.Drawing.Point(803, 2);
             generateImageButton.Name = "generateImageButton";
-            generateImageButton.Size = new System.Drawing.Size(75, 23);
-            generateImageButton.TabIndex = 10;
+            generateImageButton.Size = new System.Drawing.Size(71, 23);
+            generateImageButton.TabIndex = 38;
             generateImageButton.Text = "Generate Image";
             generateImageButton.UseVisualStyleBackColor = true;
             generateImageButton.Click += generateImageButton_Click;
@@ -1273,15 +1303,129 @@
             // panel3
             // 
             panel3.AutoScroll = true;
-            panel3.Controls.Add(groupBox4);
-            panel3.Controls.Add(groupBox1);
-            panel3.Controls.Add(groupBox2);
-            panel3.Controls.Add(groupBox3);
+            panel3.Controls.Add(tableLayoutPanel15);
             panel3.Dock = System.Windows.Forms.DockStyle.Fill;
             panel3.Location = new System.Drawing.Point(0, 0);
             panel3.Name = "panel3";
-            panel3.Size = new System.Drawing.Size(354, 519);
+            panel3.Size = new System.Drawing.Size(353, 518);
             panel3.TabIndex = 3;
+            // 
+            // tableLayoutPanel15
+            // 
+            tableLayoutPanel15.ColumnCount = 1;
+            tableLayoutPanel15.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel15.Controls.Add(groupBox4, 0, 3);
+            tableLayoutPanel15.Controls.Add(groupBox1, 0, 0);
+            tableLayoutPanel15.Controls.Add(groupBox2, 0, 1);
+            tableLayoutPanel15.Controls.Add(groupBox3, 0, 2);
+            tableLayoutPanel15.Controls.Add(groupBox5, 0, 4);
+            tableLayoutPanel15.Dock = System.Windows.Forms.DockStyle.Top;
+            tableLayoutPanel15.Location = new System.Drawing.Point(0, 0);
+            tableLayoutPanel15.Name = "tableLayoutPanel15";
+            tableLayoutPanel15.RowCount = 5;
+            tableLayoutPanel15.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 112F));
+            tableLayoutPanel15.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 175F));
+            tableLayoutPanel15.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 244F));
+            tableLayoutPanel15.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 142F));
+            tableLayoutPanel15.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
+            tableLayoutPanel15.Size = new System.Drawing.Size(336, 824);
+            tableLayoutPanel15.TabIndex = 0;
+            // 
+            // groupBox5
+            // 
+            groupBox5.Controls.Add(tableLayoutPanel16);
+            groupBox5.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox5.Location = new System.Drawing.Point(3, 676);
+            groupBox5.Name = "groupBox5";
+            groupBox5.Size = new System.Drawing.Size(330, 145);
+            groupBox5.TabIndex = 4;
+            groupBox5.TabStop = false;
+            groupBox5.Text = "Animation";
+            // 
+            // tableLayoutPanel16
+            // 
+            tableLayoutPanel16.ColumnCount = 1;
+            tableLayoutPanel16.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel16.Controls.Add(tableLayoutPanel17, 0, 0);
+            tableLayoutPanel16.Controls.Add(tableLayoutPanel18, 0, 1);
+            tableLayoutPanel16.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel16.Location = new System.Drawing.Point(3, 19);
+            tableLayoutPanel16.Name = "tableLayoutPanel16";
+            tableLayoutPanel16.RowCount = 2;
+            tableLayoutPanel16.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel16.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel16.Size = new System.Drawing.Size(324, 123);
+            tableLayoutPanel16.TabIndex = 0;
+            // 
+            // tableLayoutPanel17
+            // 
+            tableLayoutPanel17.ColumnCount = 2;
+            tableLayoutPanel17.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            tableLayoutPanel17.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 80F));
+            tableLayoutPanel17.Controls.Add(label33, 0, 0);
+            tableLayoutPanel17.Controls.Add(animLengthInput, 1, 0);
+            tableLayoutPanel17.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel17.Location = new System.Drawing.Point(3, 3);
+            tableLayoutPanel17.Name = "tableLayoutPanel17";
+            tableLayoutPanel17.RowCount = 1;
+            tableLayoutPanel17.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel17.Size = new System.Drawing.Size(318, 55);
+            tableLayoutPanel17.TabIndex = 0;
+            // 
+            // label33
+            // 
+            label33.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            label33.AutoSize = true;
+            label33.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            label33.Location = new System.Drawing.Point(3, 20);
+            label33.Name = "label33";
+            label33.Size = new System.Drawing.Size(57, 15);
+            label33.TabIndex = 3;
+            label33.Text = "Length";
+            // 
+            // animLengthInput
+            // 
+            animLengthInput.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            animLengthInput.Location = new System.Drawing.Point(66, 16);
+            animLengthInput.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
+            animLengthInput.Name = "animLengthInput";
+            animLengthInput.Size = new System.Drawing.Size(232, 23);
+            animLengthInput.TabIndex = 29;
+            // 
+            // tableLayoutPanel18
+            // 
+            tableLayoutPanel18.ColumnCount = 2;
+            tableLayoutPanel18.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            tableLayoutPanel18.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 80F));
+            tableLayoutPanel18.Controls.Add(label34, 0, 0);
+            tableLayoutPanel18.Controls.Add(easingComboBox, 1, 0);
+            tableLayoutPanel18.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel18.Location = new System.Drawing.Point(3, 64);
+            tableLayoutPanel18.Name = "tableLayoutPanel18";
+            tableLayoutPanel18.RowCount = 1;
+            tableLayoutPanel18.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel18.Size = new System.Drawing.Size(318, 56);
+            tableLayoutPanel18.TabIndex = 1;
+            // 
+            // label34
+            // 
+            label34.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            label34.AutoSize = true;
+            label34.Location = new System.Drawing.Point(3, 20);
+            label34.Name = "label34";
+            label34.Size = new System.Drawing.Size(57, 15);
+            label34.TabIndex = 5;
+            label34.Text = "Easing";
+            // 
+            // easingComboBox
+            // 
+            easingComboBox.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            easingComboBox.FormattingEnabled = true;
+            easingComboBox.Location = new System.Drawing.Point(66, 16);
+            easingComboBox.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
+            easingComboBox.Name = "easingComboBox";
+            easingComboBox.Size = new System.Drawing.Size(232, 23);
+            easingComboBox.TabIndex = 30;
             // 
             // splitContainer1
             // 
@@ -1299,8 +1443,8 @@
             splitContainer1.Panel2.Controls.Add(panel2);
             splitContainer1.Panel2MinSize = 255;
             splitContainer1.Size = new System.Drawing.Size(881, 780);
-            splitContainer1.SplitterDistance = 521;
-            splitContainer1.TabIndex = 4;
+            splitContainer1.SplitterDistance = 520;
+            splitContainer1.TabIndex = 1;
             // 
             // splitContainer2
             // 
@@ -1312,13 +1456,14 @@
             // splitContainer2.Panel1
             // 
             splitContainer2.Panel1.Controls.Add(panel3);
+            splitContainer2.Panel1.Paint += splitContainer2_Panel1_Paint;
             // 
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.BackColor = System.Drawing.Color.White;
             splitContainer2.Panel2.Controls.Add(pictureBox1);
-            splitContainer2.Size = new System.Drawing.Size(881, 521);
-            splitContainer2.SplitterDistance = 356;
+            splitContainer2.Size = new System.Drawing.Size(881, 520);
+            splitContainer2.SplitterDistance = 355;
             splitContainer2.TabIndex = 0;
             // 
             // pictureBox1
@@ -1326,13 +1471,23 @@
             pictureBox1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             pictureBox1.Location = new System.Drawing.Point(3, 3);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new System.Drawing.Size(513, 512);
+            pictureBox1.Size = new System.Drawing.Size(511, 512);
+            pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
             // errorProvider1
             // 
+            errorProvider1.BlinkRate = 0;
+            errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             errorProvider1.ContainerControl = this;
+            // 
+            // errorToolTip
+            // 
+            errorToolTip.AutomaticDelay = 100;
+            errorToolTip.AutoPopDelay = 5000;
+            errorToolTip.InitialDelay = 100;
+            errorToolTip.ReshowDelay = 20;
             // 
             // Form1
             // 
@@ -1341,7 +1496,7 @@
             ClientSize = new System.Drawing.Size(881, 780);
             Controls.Add(splitContainer1);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Modulartistic GUI";
             groupBox1.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel2.ResumeLayout(false);
@@ -1373,6 +1528,13 @@
             tableLayoutPanel14.ResumeLayout(false);
             tableLayoutPanel14.PerformLayout();
             panel3.ResumeLayout(false);
+            tableLayoutPanel15.ResumeLayout(false);
+            groupBox5.ResumeLayout(false);
+            tableLayoutPanel16.ResumeLayout(false);
+            tableLayoutPanel17.ResumeLayout(false);
+            tableLayoutPanel17.PerformLayout();
+            tableLayoutPanel18.ResumeLayout(false);
+            tableLayoutPanel18.PerformLayout();
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
@@ -1393,7 +1555,7 @@
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.ListBox statesListBox;
         private System.Windows.Forms.Button addStateButton;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button remStateButton;
         private System.Windows.Forms.TextBox modLimUpInput;
         private System.Windows.Forms.TextBox numInput;
         private System.Windows.Forms.TextBox x0Input;
@@ -1474,9 +1636,9 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel13;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel14;
         private System.Windows.Forms.Button generateImageButton;
-        private System.Windows.Forms.Button button10;
-        private System.Windows.Forms.Button button9;
-        private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.Button saveStateJsonButton;
+        private System.Windows.Forms.Button saveImageButton;
+        private System.Windows.Forms.Button generateAnimationButton;
         private System.Windows.Forms.TextBox framerateInput;
         private System.Windows.Forms.TextBox heightInput;
         private System.Windows.Forms.Label label28;
@@ -1489,5 +1651,16 @@
         private System.Windows.Forms.TextBox functionInput;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ErrorProvider errorProvider1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel15;
+        private System.Windows.Forms.Button saveSequenceButton;
+        private System.Windows.Forms.GroupBox groupBox5;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel16;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel17;
+        private System.Windows.Forms.Label label33;
+        private System.Windows.Forms.TextBox animLengthInput;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel18;
+        private System.Windows.Forms.Label label34;
+        private System.Windows.Forms.ComboBox easingComboBox;
+        private System.Windows.Forms.ToolTip errorToolTip;
     }
 }

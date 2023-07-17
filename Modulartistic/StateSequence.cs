@@ -70,7 +70,7 @@ namespace Modulartistic
         /// </summary>
         /// <param name="framerate">The framerate for which to calculate the frames</param>
         /// <returns>int</returns>
-        public int TotalFrameCount(int framerate)
+        public int TotalFrameCount(uint framerate)
         {
             int total = 0;
             for (int i = 0; i < Count; i++)
@@ -117,7 +117,7 @@ namespace Modulartistic
         }
         #endregion
 
-        #region synchronous gif/frame generation
+        #region gif/frame generation
         /// <summary>
         /// Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state
         /// </summary>
@@ -222,6 +222,99 @@ namespace Modulartistic
                 }
             }
         }
+
+
+        #endregion
+
+        #region multithreaded gif/frame generation
+        /// <summary>
+        /// Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state. If max_threads = -1 uses the maximum number
+        /// </summary>
+        /// <param name="idx">index of the Scene to generate</param>
+        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
+        /// <param name="max_threads">The maximum number of Threads to create. If -1 uses the maximum number</param>
+        /// <param name="path_out">Where to create the images, if nothing specified it will be set to Output, will throw a DirectoryNotFoundException if directory does not exist.</param>
+        public void GenerateScene(int idx, GenerationArgs args, int max_threads, string path_out)
+        {
+            uint framerate = args.Framerate;
+
+            // Defining the start and endstates
+            State startState = Scenes[idx].State;
+            State endState = Scenes[(idx + 1) % Scenes.Count].State;
+
+            // Make path
+            if (path_out == "") { throw new ArgumentException("path_out must not be empty!"); }
+            string path = path_out;
+            path += Path.DirectorySeparatorChar + (startState.Name == "" ? "Scene" : startState.Name);
+
+            // Validate and Create the Output Path
+            path = Modulartistic.Helper.ValidFileName(path);
+            Directory.CreateDirectory(path);
+
+            // iterate over all Frames and create the corresponding images
+            int frames = (int)(Scenes[idx].Length * framerate);
+            for (int i = 0; i < frames; i++)
+            {
+                State frameState = new State(startState, endState, Scenes[idx].Easing, i, frames);
+                frameState.GenerateImage(args, max_threads, path);
+            }
+        }
+
+        /// <summary>
+        /// Generates an Animation for this StateSequence. If max_threads = -1 uses the maximum number
+        /// </summary>
+        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
+        /// /// <param name="max_threads">The maximum number of Threads to create. If -1 uses the maximum number</param>
+        /// <param name="path_out">the path where to create the animation, if not specified it will be set to Output, if not found an DirectoryNotFoundException is Thrown</param>
+        public string GenerateAnimation(GenerationArgs args, int max_threads, string path_out = @"")
+        {
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
+            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
+
+            // Validate and Create the Output Path
+            path = Modulartistic.Helper.ValidFileName(path);
+            Directory.CreateDirectory(path);
+
+            // Generate Every Scene
+            for (int i = 0; i < Count; i++)
+            {
+                GenerateScene(i, args, max_threads, path);
+            }
+
+            // Generate the gif
+            uint framerate = args.Framerate;
+            CreateGif(framerate, path);
+
+            return path + @".gif";
+        }
+        #endregion
+
+        #region Other Methods
+        /// <summary>
+        /// Gets details about this StateSequence. Useful for debugging. 
+        /// </summary>
+        /// <returns>A formatted details string</returns>
+        public string GetDetailsString(uint framerate = 12)
+        {
+            string result = string.Format(
+                $"{"Name: ",-30} {Name} \n" +
+                $"{"Scene Count: ",-30} {Count} \n" +
+                $"{"Total Frame Count: ",-30} {TotalFrameCount(framerate)} \n" +
+                $"{"Length in Seconds: ",-30} {LengthInSeconds()} \n\n" +
+                $"{"Scenes: ",-30} \n\n"
+                );
+            for (int i = 0; i < Count; i++)
+            {
+                result +=
+                    $"Scene {i}: \n" +
+                    $"{"Easing: ",-30} {Scenes[i].EasingType} \n" +
+                    Scenes[i].State.GetDetailsString() + "\n\n";
+            }
+
+            return result;
+        }
         #endregion
     }
 
@@ -247,6 +340,7 @@ namespace Modulartistic
         public string EasingType { get => Easing.Type; set => Easing = Modulartistic.Easing.FromString(value); }
         #endregion
 
+        #region Constructors
         /// <summary>
         /// Standard Constructor with 0 Args
         /// </summary>
@@ -282,5 +376,6 @@ namespace Modulartistic
             Length = length;
             EasingType = easingType;
         }
+        #endregion
     }
 }

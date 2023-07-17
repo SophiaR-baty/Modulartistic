@@ -2,6 +2,9 @@
 using System.Numerics;
 using System.Linq;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Threading;
+using MathNet.Numerics.Random;
 
 namespace MathFunctions
 {
@@ -104,6 +107,61 @@ namespace MathFunctions
         {
             return MathNet.Numerics.SpecialFunctions.BesselI0(a);
         }
+
+        public static double ModIFS1(double x, double y, int depth)
+        {
+            double new_x = x;
+            double new_y = y;
+            
+            for (int i = 0; i < depth; i++)
+            {
+                new_x += Mod(new_x, Math.Abs(new_y));
+                new_y += Mod(new_y, Math.Abs(new_x));
+            }
+            return Math.Sqrt(new_x*new_x+new_y*new_y);
+        }
+
+        public static double ModIFS2(double x, double y, int depth)
+        {
+            double new_x = x;
+            double new_y = y;
+
+            for (int i = 0; i < depth; i++)
+            {
+                new_x += Mod(new_x, Math.Abs(new_y));
+                new_y += Mod(new_y, Math.Abs(new_x));
+            }
+            return 180 * Math.Atan2(new_y, new_x) / Math.PI;
+        }
+
+        public static double RandomNumber(double min, double max)
+        {
+            Random r = new Random();
+            return min + r.NextDouble()*(max-min);
+        }
+
+        public static double Bezier(double x, double y, double p0_x, double p0_y, double p1_x, double p1_y, double p2_x, double p2_y, double p3_x, double p3_y)
+        {
+            const double STEP = 0.001;
+            // const double TOLERANCE = 0.5;
+            
+            Func<double, double> xFunc = (t) => Math.Pow(1 - t, 3) * p0_x + 3 * (1 - t) * (1 - t) * t * p1_x + 3 * (1 - t) * t * t * p2_x + Math.Pow(t, 3) * p3_x;
+            Func<double, double> yFunc = (t) => Math.Pow(1 - t, 3) * p0_y + 3 * (1 - t) * (1 - t) * t * p1_y + 3 * (1 - t) * t * t * p2_y + Math.Pow(t, 3) * p3_y;
+            // Func<double, double> bezierAngleFunc = (t) => Math.Atan2(yFunc(t), xFunc(t)); // from -180 to 180
+            // Func<double, double> pointBezierAngleFunc = (t) => Math.Atan2(y-yFunc(t), x-xFunc(t)); // from -180 to 180
+            Func<double, double> distanceFunc = (t) => Math.Sqrt(Math.Pow(x - xFunc(t), 2) + Math.Pow(y - yFunc(t), 2));
+            // Func<double, double> gradFunc = (t) => Math.Sqrt(Math.Pow(xFunc(t), 2) + Math.Pow(yFunc(t), 2));
+
+            double minDistance = double.MaxValue;
+            for (double t = 0; t < 1; t += STEP)
+            {
+                double distance = distanceFunc(t);
+                if (distance < minDistance) { minDistance = distance; }
+            }
+
+            return minDistance;
+        }
+
 
 
         public static double Mod(double d1, double d2)
