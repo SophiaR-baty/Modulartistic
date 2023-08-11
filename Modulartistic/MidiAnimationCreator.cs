@@ -97,7 +97,7 @@ namespace Modulartistic
         {
             StateTimeline timeline = CreateStateTimeline(midi_path, template);
             timeline.Name = Path.GetFileNameWithoutExtension(midi_path);
-            Console.WriteLine("Creating Animation with " + timeline.TotalFrameCount(template.Metadata.Framerate) + " Frames");
+            Console.WriteLine("Creating Animation with " + timeline.TotalFrameCount(template.Metadata.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)) + " Frames");
             timeline.GenerateAnimation(template.Metadata, path_out);
         }
 

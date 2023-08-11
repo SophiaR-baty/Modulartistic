@@ -81,7 +81,7 @@ namespace Modulartistic
         /// <exception cref="DirectoryNotFoundException">If path_out is not found</exception>
         public string GenerateAnimation(GenerationArgs args, string path_out)
         {
-            uint framerate = args.Framerate;
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
 
             // Creating filename and path
             // Make path
@@ -272,7 +272,7 @@ namespace Modulartistic
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     if (!PeakValues.ContainsKey(i)) { result[i] = BaseState[i]; }
-                    else { result[i] = easing.Ease(BaseState[i], PeakValues[i], Convert.ToInt32(t_active / 2), Convert.ToInt32(AttackTime / 2)); }
+                    else { result[i] = easing.Ease(BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)), PeakValues[i], Convert.ToInt32(t_active / 2), Convert.ToInt32(AttackTime / 2)); }
                 }
             }
             // Decay
@@ -288,8 +288,8 @@ namespace Modulartistic
                     else
                     {
                         result[i] = easing.Ease(
-                            PeakValues.ContainsKey(i) ? PeakValues[i] : BaseState[i],
-                            SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i],
+                            PeakValues.ContainsKey(i) ? PeakValues[i] : BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)),
+                            SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)),
                             Convert.ToInt32((t_active - AttackTime) / 2),
                             Convert.ToInt32(DecayTime / 2));
                     }
@@ -314,7 +314,7 @@ namespace Modulartistic
                     {
                         result[i] = easing.Ease(
                             SustainValues.ContainsKey(i) ? SustainValues[i] : PeakValues[i],
-                            BaseState[i],
+                            BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)),
                             Convert.ToInt32((t_active - AttackTime - Length - DecayTime) / 2),
                             Convert.ToInt32(ReleaseTime / 2));
                     }

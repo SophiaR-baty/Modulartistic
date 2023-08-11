@@ -1,12 +1,7 @@
-﻿using ImageFunctions;
-using MathNet.Numerics.Financial;
-using NCalc;
+﻿using NCalc;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using VectorImageFunctions;
 
 namespace Modulartistic
 {
@@ -14,68 +9,20 @@ namespace Modulartistic
     {
         private Expression expression;
 
-        private Dictionary<int, Curve> convertedImages;
-        private string[] imageInFiles;
-
         public Function(Expression expression) 
         {
             this.expression = expression;
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-
-            imageInFiles = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "Input").Where(file => file.EndsWith(".jpg") || file.EndsWith(".png") || file.EndsWith(".bmp")).ToArray();
-
-            convertedImages = new Dictionary<int, Curve>();
-
-            // vector image stuff
-            this.expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == "Image")
-                {
-                    int idx = (int)((double)args.Parameters[2].Evaluate());
-                    Curve c;
-                    if (convertedImages.ContainsKey(idx)) { c = convertedImages[idx]; }
-                    else { c = Curve.FromImage(imageInFiles[idx], 150, 200); }
-                    args.Result = c.distance((double)args.Parameters[0].Evaluate(), (double)args.Parameters[1].Evaluate(), 0.4);
-                }
-            };
         }
 
         public Function(string expression)
         {
             this.expression = new Expression(expression);
             this.expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-
-            // LoadAddOn(AppDomain.CurrentDomain.BaseDirectory + "MathFunctions.dll");
-            InitializeImageFunctions();
-
-            /* temporarily disabled // vector image stuff
-            
-            imageInFiles = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "Input").Where(file => file.EndsWith(".jpg") || file.EndsWith(".png") || file.EndsWith(".bmp")).OrderBy(s => s.Length).ThenBy(s => s).ToArray();
-            convertedImages = new Dictionary<int, Curve>();
-
-            this.expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == "Image")
-                {
-                    int idx = (int)(double)args.Parameters[2].Evaluate();
-                    Curve c;
-                    if (convertedImages.ContainsKey(idx)) { c = convertedImages[idx]; }
-                    else
-                    {
-                        string s = imageInFiles[idx];
-                        // Console.WriteLine(s);
-                        c = Curve.FromImage(s, 150, 200); //, 150, 200
-                        convertedImages[idx] = c;
-                    }
-                    args.Result = c.angle((double)args.Parameters[0].Evaluate(), (double)args.Parameters[1].Evaluate(), 0.1);
-                }
-            };
-            */
         }
 
-        public double Evaluate(double x, double y, List<double> paras, double mod)
+        public double Evaluate(double x, double y, double[] paras, double mod)
         {
-            
             
             expression.Parameters["x"] = x;
             expression.Parameters["y"] = y;
@@ -96,28 +43,129 @@ namespace Modulartistic
             expression.Parameters["i_8"] = paras[8];
             expression.Parameters["i_9"] = paras[9];
 
+            // Console.WriteLine((double)expression.Evaluate());
             return (double)expression.Evaluate();
         }
 
         public void LoadAddOn(string dll_path)
         {
+            
+            if (!File.Exists(dll_path)) { return; }
+
             Assembly testDLL = Assembly.LoadFile(dll_path);
+
+            // enumerates all public classes/interfaces/enums/etc. 
+            // -> Classes in a plugin should only be public if they should expose functions to the parser
             foreach (Type type in testDLL.GetTypes())
             {
-                // Console.WriteLine(type.FullName);
+                // gets all public static methods of the type
+                // -> only methods that should be exposed to the parser should be public static
                 MethodInfo[] methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
-                // foreach (MethodInfo methodInfo in methodInfos) { Console.WriteLine(methodInfo.Name); }
+                
+                // iterates over all such methods
                 foreach (MethodInfo methodInfo in methodInfos)
                 {
-                    expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                    if (methodInfo.ReturnType == typeof(double))
                     {
-                        if (name == methodInfo.Name)
+                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
-                            object[] parameters = new object[args.Parameters.Length]; 
-                            for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-                            args.Result = (double)methodInfo.Invoke(null, parameters); 
-                        }
-                    };
+                            if (name == methodInfo.Name)
+                            {
+                                ParameterInfo[] paraInf = methodInfo.GetParameters();
+                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
+
+                                object[] parameters = new object[args.Parameters.Length];
+                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
+
+                                // checks if the function args are of correct value, otherwise returns (error)
+                                for (int i = 0; i < paraInf.Length; i++)
+                                {
+                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
+                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
+                                }
+
+                                // Console.WriteLine((double)methodInfo.Invoke(null, parameters));
+                                args.Result = (double)methodInfo.Invoke(null, parameters);
+                            }
+                        };
+                    }
+
+                    else if (methodInfo.ReturnType == typeof(int))
+                    {
+                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        {
+                            if (name == methodInfo.Name)
+                            {
+                                ParameterInfo[] paraInf = methodInfo.GetParameters();
+                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
+
+                                object[] parameters = new object[args.Parameters.Length];
+                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
+
+
+                                // checks if the function args are of correct value, otherwise returns (error)
+                                for (int i = 0; i < paraInf.Length; i++)
+                                {
+                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
+                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
+                                }
+
+                                args.Result = (int)methodInfo.Invoke(null, parameters);
+                            }
+                        };
+                    }
+
+                    else if (methodInfo.ReturnType == typeof(string))
+                    {
+                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        {
+                            if (name == methodInfo.Name)
+                            {
+                                ParameterInfo[] paraInf = methodInfo.GetParameters();
+                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
+
+                                object[] parameters = new object[args.Parameters.Length];
+                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
+
+
+                                // checks if the function args are of correct value, otherwise returns (error)
+                                for (int i = 0; i < paraInf.Length; i++)
+                                {
+                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
+                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
+                                }
+
+                                args.Result = (string)methodInfo.Invoke(null, parameters);
+                            }
+                        };
+                    }
+
+                    else if (methodInfo.ReturnType == typeof(bool))
+                    {
+                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        {
+                            if (name == methodInfo.Name)
+                            {
+                                ParameterInfo[] paraInf = methodInfo.GetParameters();
+                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
+
+                                object[] parameters = new object[args.Parameters.Length];
+                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
+
+
+                                // checks if the function args are of correct value, otherwise returns (error)
+                                for (int i = 0; i < paraInf.Length; i++)
+                                {
+                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
+                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
+                                }
+
+                                args.Result = (bool)methodInfo.Invoke(null, parameters);
+                            }
+                        };
+                    }
+
+                    else { continue; }
                 }
             }
         }
@@ -126,32 +174,8 @@ namespace Modulartistic
         {
             foreach (string dll in dll_paths)
             {
-                LoadAddOn(dll);
+                LoadAddOn(Helper.GetAbsolutePath(dll));
             }
-        }
-
-        public void InitializeImageFunctions()
-        {
-            ImageFunctions.ImageFunctions.Initialize();
-            this.expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == "ImageHUE")
-                {
-                    args.Result = ImageFunctions.ImageFunctions.ImageHUE(Convert.ToDouble(args.Parameters[0].Evaluate()), Convert.ToDouble(args.Parameters[1].Evaluate()), Convert.ToDouble(args.Parameters[2].Evaluate()));
-                    return;
-                }
-                if (name == "ImageBrightness")
-                {
-                    args.Result = ImageFunctions.ImageFunctions.ImageBrightness(Convert.ToDouble(args.Parameters[0].Evaluate()), Convert.ToDouble(args.Parameters[1].Evaluate()), Convert.ToDouble(args.Parameters[2].Evaluate()));
-                    return;
-                }
-                if (name == "ImageSaturation")
-                {
-                    args.Result = ImageFunctions.ImageFunctions.ImageSaturation(Convert.ToDouble(args.Parameters[0].Evaluate()), Convert.ToDouble(args.Parameters[1].Evaluate()), Convert.ToDouble(args.Parameters[2].Evaluate()));
-                    return;
-                }
-
-            };
         }
 
         public bool IsValid()

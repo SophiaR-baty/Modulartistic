@@ -12,6 +12,8 @@
     <PackageReference Include="AnimatedGif" Version="1.0.5" />
     <PackageReference Include="BitmapToVector" Version="1.16.3" />
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
+    <PackageReference Include="FFMpegCore" Version="5.1.0" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="6.1.4" />
     <PackageReference Include="OpenCvSharp4" Version="4.7.0.20230115" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.7.0.20230115" />
@@ -26,12 +28,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ImageFunctions\ImageFunctions.csproj" />
-    <ProjectReference Include="..\MathFunctions\MathFunctions.csproj" />
-    <ProjectReference Include="..\VectorImageFunctions\VectorImageFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.AddOns\MusicVisualizingFunctions\MusicVisualizingFunctions.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="md $(OutDir)\Output&#xD;&#xA;md $(OutDir)\demofiles&#xD;&#xA;&#xD;&#xA;xcopy /s /e /y demofiles $(OutDir)\demofiles" />
+    <Exec Command="md $(OutDir)\Output&#xD;&#xA;md $(OutDir)\addons&#xD;&#xA;md $(OutDir)\demofiles&#xD;&#xA;&#xD;&#xA;xcopy /s /e /y $(SolutionDir)\demofiles $(OutDir)\demofiles&#xD;&#xA;copy /y $(OutDir)\MathFunctions.dll $(OutDir)\addons&#xD;&#xA;copy /y $(OutDir)\ImageFunctions.dll $(OutDir)\addons" />
   </Target>
 
 </Project>

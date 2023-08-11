@@ -7,6 +7,9 @@ using System.Diagnostics;
 using AnimatedGif;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using FFMpegCore.Pipes;
+using FFMpegCore;
+using FFMpegCore.Enums;
 
 namespace Modulartistic
 {
@@ -107,11 +110,21 @@ namespace Modulartistic
         #endregion
 
         #region Serialize and Deserialize
+        public StateSequence FromJson(string jsonstring)
+        {
+            var options = new JsonSerializerOptions
+            {
+                AllowTrailingCommas = true,
+            };
+            return JsonSerializer.Deserialize<StateSequence>(jsonstring, options);
+        }
+
         public string ToJson()
         {
             var options = new JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
+                IgnoreNullValues = true,
             };
             return JsonSerializer.Serialize(this, options);
         }
@@ -126,7 +139,7 @@ namespace Modulartistic
         /// <param name="path_out">Where to create the images, if nothing specified it will be set to Output, will throw a DirectoryNotFoundException if directory does not exist.</param>
         public void GenerateScene(int idx, GenerationArgs args, string path_out)
         {
-            uint framerate = args.Framerate;
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             
             // Defining the start and endstates
             State startState = Scenes[idx].State;
@@ -135,7 +148,7 @@ namespace Modulartistic
             // Make path
             if (path_out == "") { throw new ArgumentException("path_out must not be empty!"); }
             string path = path_out;
-            path += Path.DirectorySeparatorChar + (startState.Name == "" ? "Scene" : startState.Name);
+            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(startState.Name) ? Constants.SCENE_NAME_DEFAULT : startState.Name);
 
             // Validate and Create the Output Path
             path = Modulartistic.Helper.ValidFileName(path);
@@ -160,7 +173,7 @@ namespace Modulartistic
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
+            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATESEQUENCE_NAME_DEFAULT : Name);
 
             // Validate and Create the Output Path
             path = Modulartistic.Helper.ValidFileName(path);
@@ -173,7 +186,7 @@ namespace Modulartistic
             }
 
             // Generate the gif
-            uint framerate = args.Framerate;
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             CreateGif(framerate, path);
 
             return path + @".gif";
@@ -194,7 +207,7 @@ namespace Modulartistic
             for (int i = 0; i < Count; i++)
             {
                 // Define the scenDir of the current scene
-                string sceneDir = folder + Path.DirectorySeparatorChar + (Scenes[i].State.Name == "" ? "Scene" : Scenes[i].State.Name);
+                string sceneDir = folder + Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Scenes[i].State.Name) ? Constants.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
 
                 // In case of identically named Scenes convert Name to Name_n
                 if (sceneDirs.Contains(sceneDir))
@@ -236,7 +249,7 @@ namespace Modulartistic
         /// <param name="path_out">Where to create the images, if nothing specified it will be set to Output, will throw a DirectoryNotFoundException if directory does not exist.</param>
         public void GenerateScene(int idx, GenerationArgs args, int max_threads, string path_out)
         {
-            uint framerate = args.Framerate;
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
 
             // Defining the start and endstates
             State startState = Scenes[idx].State;
@@ -245,7 +258,7 @@ namespace Modulartistic
             // Make path
             if (path_out == "") { throw new ArgumentException("path_out must not be empty!"); }
             string path = path_out;
-            path += Path.DirectorySeparatorChar + (startState.Name == "" ? "Scene" : startState.Name);
+            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(startState.Name) ? Constants.SCENE_NAME_DEFAULT : startState.Name);
 
             // Validate and Create the Output Path
             path = Modulartistic.Helper.ValidFileName(path);
@@ -271,7 +284,7 @@ namespace Modulartistic
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
             if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
+            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATESEQUENCE_NAME_DEFAULT : Name);
 
             // Validate and Create the Output Path
             path = Modulartistic.Helper.ValidFileName(path);
@@ -284,12 +297,63 @@ namespace Modulartistic
             }
 
             // Generate the gif
-            uint framerate = args.Framerate;
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             CreateGif(framerate, path);
 
             return path + @".gif";
         }
         #endregion
+
+        #region methods for mp4 creation
+        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args)
+        {
+            // parses GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+
+            // loops through the scenes
+            for (int i = 0; i < Count; i++)
+            {
+                Scene current = Scenes[i];
+                Scene next = Scenes[(i + 1) % Scenes.Count];
+
+                // iterate over all Frames and create the corresponding images
+                int frames = (int)(current.Length * framerate);
+                for (int j = 0; j < frames; j++)
+                {
+                    State frameState = new State(current.State, next.State, current.Easing, j, frames);
+
+                    // Get Bitmap Should only take the generation args, and do the rest itself tbh
+                    yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args));
+                }
+            }
+        }
+
+        private async void CreateMp4(GenerationArgs args, string path_out)
+        {
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
+            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
+
+            // Validate and Create the Output Path
+            path = Modulartistic.Helper.ValidFileName(path);
+            Directory.CreateDirectory(path);
+
+
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args))
+            {
+                FrameRate = 30 //set source frame rate
+            };
+
+
+            await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(path + @".mp4", false, options => options
+                    .WithVideoCodec(VideoCodec.LibVpx))
+                .ProcessAsynchronously();
+        }
+        #endregion
+
 
         #region Other Methods
         /// <summary>
@@ -310,7 +374,7 @@ namespace Modulartistic
                 result +=
                     $"Scene {i}: \n" +
                     $"{"Easing: ",-30} {Scenes[i].EasingType} \n" +
-                    Scenes[i].State.GetDetailsString() + "\n\n";
+                    Scenes[i].State.GetDebugInfo() + "\n\n";
             }
 
             return result;
@@ -337,7 +401,8 @@ namespace Modulartistic
         /// </summary>
         [JsonIgnore]
         public Easing Easing { get; private set; }
-        public string EasingType { get => Easing.Type; set => Easing = Modulartistic.Easing.FromString(value); }
+        
+        public string EasingType { get => Easing.Type; set => Easing = Easing.FromString(value); }
         #endregion
 
         #region Constructors

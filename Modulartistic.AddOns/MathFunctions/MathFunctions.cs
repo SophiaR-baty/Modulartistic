@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using System.Linq;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Threading;
-using MathNet.Numerics.Random;
 
 namespace MathFunctions
 {
@@ -176,6 +171,11 @@ namespace MathFunctions
         {
             double z = Math.Floor(Math.Sqrt(x) + 1.0 / 2);
             return z + 1 - Math.Abs(x - 1 - z * z);
+        }
+
+        public static double TEST(double x, double y, string s)
+        {
+            return x * y;
         }
     }
 }

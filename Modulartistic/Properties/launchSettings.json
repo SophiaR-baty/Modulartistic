@@ -2,7 +2,7 @@
   "profiles": {
     "Modulartistic": {
       "commandName": "Project",
-      "commandLineArgs": "generate\r\n--debug\r\n--show\r\n--faster"
+      "commandLineArgs": "generate \r\ndemofiles/state_example_1.json\r\n--debug\r\n--show"
     }
   }
 }

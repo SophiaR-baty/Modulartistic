@@ -12,7 +12,7 @@ namespace Modulartistic
     public class GenerationData
     {
         #region Properties
-        public List<Object> Data { get => data; }
+        public List<object> Data { get => data; }
 
         [JsonIgnore]
         public int Count => data.Count;
@@ -67,6 +67,7 @@ namespace Modulartistic
         {
             var options = new JsonSerializerOptions
             {
+                IgnoreNullValues = true,
                 WriteIndented = true,
                 Converters = 
                 { 
@@ -153,55 +154,28 @@ namespace Modulartistic
         #endregion
 
         #region Generating Methods
+        /// <summary>
+        /// Generates all States, StateSequences and StateTimelines in the Collection
+        /// </summary>
+        /// <param name="path_out">the folder to save in</param>
+        /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
         public void GenerateAll(string path_out = @"")
         {
-            GenerationArgs currentArgs = new GenerationArgs();
-            for (int i = 0; i < Count; i++)
-            {
-                object obj = Data[i];
-                
-                if (obj.GetType() == typeof(GenerationArgs))
-                {
-                    currentArgs = (GenerationArgs)obj;
-                }
-                else if (obj.GetType() == typeof(State))
-                {
-                    string filename = (obj as State).GenerateImage(currentArgs, path_out);
-                    Console.WriteLine(filename);
-
-                    var p = new Process();
-                    p.StartInfo = new ProcessStartInfo(filename)
-                    {
-                        UseShellExecute = true
-                    };
-                    p.Start();
-                }
-                else if (obj.GetType() == typeof(StateSequence))
-                {
-                    string filename = (obj as StateSequence).GenerateAnimation(currentArgs, path_out);
-
-                    Console.WriteLine(filename);
-
-                    var p = new Process();
-                    p.StartInfo = new ProcessStartInfo(filename)
-                    {
-                        UseShellExecute = true
-                    };
-                    p.Start();
-                }
-                else if (obj.GetType() == typeof(StateTimeline))
-                {
-                    (obj as StateTimeline).GenerateAnimation(currentArgs, path_out);
-                }
-                else
-                {
-                    throw new Exception();
-                }
-            }
+            GenerateAll(GenerationDataFlags.None, path_out);
         }
 
+        /// <summary>
+        /// Generates all States, StateSequences and StateTimelines in the Collection
+        /// </summary>
+        /// <param name="flags">Generation flags</param>
+        /// <param name="path_out">the folder to save in</param>
+        /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
         public void GenerateAll(GenerationDataFlags flags, string path_out = @"")
         {
+            // initiates a stopwatch for the whole execution and for each iteration
+            Stopwatch totalTime = Stopwatch.StartNew();
+            Stopwatch iterationTime = new Stopwatch();
+            
             // convert the flags to boolean variables
             bool Show = (flags & GenerationDataFlags.Show) == GenerationDataFlags.Show;
             bool Debug = (flags & GenerationDataFlags.Debug) == GenerationDataFlags.Debug;
@@ -209,8 +183,13 @@ namespace Modulartistic
 
             // set initial GenerationArgs
             GenerationArgs currentArgs = new GenerationArgs();
+
+            // loop over all objects in collection
             for (int i = 0; i < Count; i++)
             {
+                // set clock
+                iterationTime.Restart();
+
                 object obj = Data[i];
 
                 // if the object is GenerationArgs update the current GenerationArgs
@@ -221,20 +200,12 @@ namespace Modulartistic
                     // Print Debug Information
                     if (Debug)
                     {
-                        Console.WriteLine("Updated GenerationArgs to: ");
-                        Console.WriteLine($"{"Function: ",-15} {currentArgs.Function}");
-                        Console.WriteLine($"{"Width: ",-15} {currentArgs.Size[0]}");
-                        Console.WriteLine($"{"Height: ",-15} {currentArgs.Size[1]}");
-                        Console.WriteLine($"{"Framerate: ",-15} {currentArgs.Framerate}");
-                        Console.WriteLine($"{"AddOns: ",-15} {(currentArgs.AddOns.Count == 0 ? "None" : "")}");
-                        foreach (string addon in currentArgs.AddOns) { Console.WriteLine($"     {addon}"); }
-
+                        Console.WriteLine(currentArgs.GetDebugInfo());
                         Console.WriteLine();
-                        
                     }
                 }
                
-                // if the object is a state, generate said state
+                // else if the object is a state, generate said state
                 else if (obj.GetType() == typeof(State))
                 {
                     State S = (obj as State);
@@ -243,7 +214,7 @@ namespace Modulartistic
                     if (Debug)
                     {
                         Console.WriteLine("Generating Image for State: ");
-                        Console.WriteLine(S.GetDetailsString());
+                        Console.WriteLine(S.GetDebugInfo());
                         
                         Console.WriteLine();
                     }
@@ -277,7 +248,7 @@ namespace Modulartistic
                     if (Debug)
                     {
                         Console.WriteLine("Generating Image for StateTimeline: ");
-                        Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate));
+                        Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
 
                         Console.WriteLine();
                     }
@@ -314,7 +285,13 @@ namespace Modulartistic
                 {
                     throw new Exception();
                 }
+
+                if (Debug)
+                {
+                    Console.WriteLine("Took " + iterationTime.Elapsed.ToString());
+                }
             }
+            Console.WriteLine("Generating all took: " + totalTime.Elapsed.ToString());
         }
         #endregion
     }
