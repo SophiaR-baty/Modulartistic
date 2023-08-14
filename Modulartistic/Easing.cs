@@ -7,6 +7,8 @@ namespace Modulartistic
 {
     public class Easing
     {
+        // based on https://easings.net/
+
         #region Fields
         private Func<double, double, double, double, double> easingFunction;
         private Expression easingExpression;

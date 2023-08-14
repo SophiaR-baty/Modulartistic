@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ImageFunctions\ImageFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.AddOns\MusicVisualizingFunctions\MusicVisualizingFunctions.csproj" />

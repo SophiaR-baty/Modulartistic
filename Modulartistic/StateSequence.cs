@@ -354,7 +354,6 @@ namespace Modulartistic
         }
         #endregion
 
-
         #region Other Methods
         /// <summary>
         /// Gets details about this StateSequence. Useful for debugging. 
