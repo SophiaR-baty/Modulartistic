@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json;
-using static OpenCvSharp.Stitcher;
-using System.Xml.Linq;
 
 #nullable enable
 

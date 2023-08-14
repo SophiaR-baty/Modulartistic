@@ -140,10 +140,19 @@
   },
   "active": "7b41551ff242bfc8",
   "lastOpenFiles": [
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.pdb",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.dll",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.dev.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.json",
+    "Modulartistic/obj/Debug/netcoreapp3.1/Modulartistic.genruntimeconfig.cache",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.deps.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Melanchall_DryWetMidi_Native64.dylib",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Melanchall_DryWetMidi_Native32.dll",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.exe",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Melanchall_DryWetMidi_Native64.dll",
+    "Modulartistic/bin/Debug/netcoreapp3.1/NCalc.dll",
     "documentation/examples.md",
     "documentation/addons.md",
-    "documentation/json format.md",
-    "documentation",
-    "Neuer Ordner"
+    "documentation/json format.md"
   ]
 }
