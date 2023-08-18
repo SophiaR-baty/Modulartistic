@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Drawing;
+using Modulartistic.Drawing;
+// using System.Drawing;
 using System.Threading;
 using System.IO;
 using MathNet.Numerics;
@@ -470,7 +471,7 @@ namespace Modulartistic
             }
 
             // Create instance of Bitmap for pixel data
-            Bitmap image = new Bitmap(size.Width, size.Height);
+            Bitmap image = new Bitmap((int)size.Width, (int)size.Height);
 
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
@@ -655,7 +656,7 @@ namespace Modulartistic
                         if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
                         if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
 
-                        color = Color.FromArgb(a, r, g, b);
+                        color = new Color(r, g, b, a);
                     }
                     else
                     {
@@ -690,7 +691,7 @@ namespace Modulartistic
                             Helper.inclusiveMod(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
                         }
 
-                        color = Helper.ConvertHSV2RGB(h, s, v);
+                        color = Color.FromHSV(h, s, v);
                         int r, g, b;
                         // Apply the Color factors
                         r = (int)(color.R * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
@@ -705,7 +706,7 @@ namespace Modulartistic
                         // Console.WriteLine(r.ToString() + " " + g.ToString() + " " + b.ToString());
 
                         // Update Color
-                        color = Color.FromArgb((int)(255*a), r, g, b);
+                        color = new Color(r, g, b, (int)(255 * a));
                     }
                     // Console.WriteLine(color.R.ToString() + " " + color.G.ToString() + " " + color.B.ToString());
                     // Append the pixel to the image bitmap

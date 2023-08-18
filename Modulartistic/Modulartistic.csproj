@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.AddOns\MusicVisualizingFunctions\MusicVisualizingFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
