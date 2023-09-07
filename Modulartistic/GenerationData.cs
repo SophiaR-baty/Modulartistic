@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Linq;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Modulartistic
 {
@@ -159,9 +160,9 @@ namespace Modulartistic
         /// </summary>
         /// <param name="path_out">the folder to save in</param>
         /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
-        public void GenerateAll(string path_out = @"")
+        public async Task GenerateAll(string path_out = @"")
         {
-            GenerateAll(GenerationDataFlags.None, path_out);
+            await GenerateAll(GenerationDataFlags.None, path_out);
         }
 
         /// <summary>
@@ -170,7 +171,7 @@ namespace Modulartistic
         /// <param name="flags">Generation flags</param>
         /// <param name="path_out">the folder to save in</param>
         /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
-        public void GenerateAll(GenerationDataFlags flags, string path_out = @"")
+        public async Task GenerateAll(GenerationDataFlags flags, string path_out = @"")
         {
             // initiates a stopwatch for the whole execution and for each iteration
             Stopwatch totalTime = Stopwatch.StartNew();
@@ -180,6 +181,7 @@ namespace Modulartistic
             bool Show = (flags & GenerationDataFlags.Show) == GenerationDataFlags.Show;
             bool Debug = (flags & GenerationDataFlags.Debug) == GenerationDataFlags.Debug;
             bool Faster = (flags & GenerationDataFlags.Faster) == GenerationDataFlags.Faster;
+            bool MP4 = (flags & GenerationDataFlags.MP4) == GenerationDataFlags.MP4;
 
             // set initial GenerationArgs
             GenerationArgs currentArgs = new GenerationArgs();
@@ -255,7 +257,9 @@ namespace Modulartistic
 
                     // generate Animation, if Faster Flag use Multithreaded 
                     string filename;
-                    if (Faster) { filename = SS.GenerateAnimation(currentArgs, -1, path_out); }
+                    if (MP4) 
+                    { filename = await SS.CreateMp4(currentArgs, path_out); }
+                    else if (Faster) { filename = SS.GenerateAnimation(currentArgs, -1, path_out); }
                     else { filename = SS.GenerateAnimation(currentArgs, path_out); }
 
                     //print Debug Information Post Generating
@@ -307,5 +311,6 @@ namespace Modulartistic
         Show = 0b_0000_0001,
         Debug = 0b_0000_0010,
         Faster = 0b_0000_0100,
+        MP4 = 0b_0000_1000,
     }
 }
