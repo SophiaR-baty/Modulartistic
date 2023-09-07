@@ -394,7 +394,7 @@ namespace Modulartistic
             path = Helper.ValidFileName(path);
             
             // Save the image
-            image.Save(path + @".png", System.Drawing.Imaging.ImageFormat.Png);
+            image.Save(path + @".png");
 
             // return the filepath
             return path + @".png";
@@ -691,7 +691,7 @@ namespace Modulartistic
                             Helper.inclusiveMod(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
                         }
 
-                        color = Color.FromHSV(h, s, v);
+                        color = Color.FromHSV((float)h, (float)s, (float)v);
                         int r, g, b;
                         // Apply the Color factors
                         r = (int)(color.R * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
@@ -740,7 +740,7 @@ namespace Modulartistic
             path = Helper.ValidFileName(path);
 
             // Save the image
-            image.Save(path + @".png", System.Drawing.Imaging.ImageFormat.Png);
+            image.Save(path + @".png");
 
             return path + @".png";
         }
@@ -1088,7 +1088,7 @@ namespace Modulartistic
                             Helper.inclusiveMod(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
                         }
 
-                        color = Helper.ConvertHSV2RGB(h, s, v);
+                        color = Color.FromHSV((float)h, (float)s, (float)v);
                         int r, g, b;
                         // Apply the Color factors
                         r = (int)(color.R * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));

@@ -303,7 +303,8 @@ namespace Modulartistic
             return path + @".gif";
         }
         #endregion
-
+        
+        /*
         #region methods for mp4 creation
         private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args)
         {
@@ -353,6 +354,7 @@ namespace Modulartistic
                 .ProcessAsynchronously();
         }
         #endregion
+        */
 
         #region Other Methods
         /// <summary>

@@ -54,7 +54,12 @@ namespace Modulartistic.Drawing
             byte g = (byte)(255 * (rgb[1] + (value - chroma)));
             byte b = (byte)(255 * (rgb[2] + (value - chroma)));
             
-            return new Color(r, g, b, 255);
+            return new Color(r, g, b, (byte)255);
+        }
+
+        public static Color FromArgb(int a, int r, int g, int b)
+        {
+            return new Color(a, r, g, b);
         }
         #endregion
 
