@@ -13,9 +13,6 @@ namespace Modulartistic.Drawing
         public int Width { get => _bm.Width; }
         public int Height { get => _bm.Height; }
 
-        internal SKBitmap SK { get => _bm; }
-
-
         public Bitmap(int width, int height)
         {
             _bm = new SKBitmap(width, height);
@@ -24,7 +21,7 @@ namespace Modulartistic.Drawing
 
         public void SetPixel(int x, int y, Color color)
         {
-            _bm.SetPixel(x, y, color.SK);
+            _bm.SetPixel(x, y, color);
         }
 
         public bool Save(string destination)
@@ -43,6 +40,12 @@ namespace Modulartistic.Drawing
             }
 
             return success;
+        }
+
+        // Implicit conversion operator from BitmapWrapper to SKBitmap
+        public static implicit operator SKBitmap(Bitmap wrapper)
+        {
+            return wrapper._bm;
         }
     }
 }

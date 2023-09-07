@@ -2,12 +2,13 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Modulartistic
 {
     internal class Program
     {
-        static int Main(string[] argv)
+        static async Task<int> Main(string[] argv)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -147,9 +148,10 @@ namespace Modulartistic
                                 if (argv[i] == "--show") { flags |= GenerationDataFlags.Show; }
                                 else if (argv[i] == "--debug") { flags |= GenerationDataFlags.Debug; }
                                 else if (argv[i] == "--faster") { flags |= GenerationDataFlags.Faster; }
+                                else if (argv[i] == "--mp4") { flags |= GenerationDataFlags.MP4; }
                                 else
                                 {
-                                    Console.Error.WriteLine("Unrecognized Flag: {0} \nUse -? for help. ");
+                                    Console.Error.WriteLine($"Unrecognized Flag: {argv[i]} \nUse -? for help. ");
                                     return 1;
                                 }
                             }
@@ -176,9 +178,10 @@ namespace Modulartistic
                             if (argv[i] == "--show") { flags |= GenerationDataFlags.Show; }
                             else if (argv[i] == "--debug") { flags |= GenerationDataFlags.Debug; }
                             else if (argv[i] == "--faster") { flags |= GenerationDataFlags.Faster; }
+                            else if (argv[i] == "--mp4") { flags |= GenerationDataFlags.MP4; }
                             else
                             {
-                                Console.Error.WriteLine("Unrecognized Flag: {0} \nUse -? for help. ");
+                                Console.Error.WriteLine($"Unrecognized Flag: {argv[i]} \nUse -? for help. ");
                                 return 1;
                             }
                         }
@@ -188,7 +191,7 @@ namespace Modulartistic
                         GenerationData gd = new GenerationData();
                         gd.LoadJson(argv[1]);
 
-                        gd.GenerateAll(flags);
+                        await gd.GenerateAll(flags);
                         Console.WriteLine("Done!");
                         stopwatch.Stop();
                         Console.WriteLine("Program took " + stopwatch.Elapsed.ToString());
@@ -196,7 +199,7 @@ namespace Modulartistic
                     }
                 }
 
-                // if there are valid flags
+                // otherwise
                 else
                 {
                     // if the demo file does not already exist, create it
@@ -251,6 +254,7 @@ namespace Modulartistic
                         GD.SaveJson();
                     }
 
+                    // check flags
                     GenerationDataFlags flags = GenerationDataFlags.None;
                     for (int i = 1; i < argv.Length; i++)
                     {
@@ -382,8 +386,7 @@ namespace Modulartistic
 
             #region State Example 1
             /* Example 1 will create a simple 500x500 State with x*y HueFunction
-             * and all other Color values set to 1 (0.5 because circular so 0.5
-             * gives the maximum value)
+             * and all other Color values set to 1 
              */
             name = "state_example_1";
             if (!File.Exists(demofilesfolder + Path.DirectorySeparatorChar + name))
@@ -534,6 +537,57 @@ namespace Modulartistic
 
                 };
                 GD.Add(S);
+
+                // Save Generation Data
+                GD.Name = name;
+                GD.SaveJson();
+            }
+            #endregion
+
+            #region StateSequence Example 1
+            /* Example 1 will create a simple 500x500 StateSequence Animation using the same Configuration as in
+             * State Example 1. It will animate over the Hue with standard linear easing.
+             */
+            name = "state_sequence_example_1";
+            if (!File.Exists(demofilesfolder + Path.DirectorySeparatorChar + name))
+            {
+                // generation data
+                GenerationData GD = new GenerationData();
+
+                // Generation Args
+                GenerationArgs GA = new GenerationArgs()
+                {
+                    Size = new int[] { 500, 500 },
+                    HueFunction = "x*y",
+                    Framerate = 12,
+                    Circular = true,
+                };
+                GD.Add(GA);
+
+                // create 2 States (standard state and one with hue shifted)
+                State S1 = new State()
+                {
+                    Name = "scene1",
+                    ColorSaturation = 1,
+                    ColorValue = 1,
+                    ColorAlpha = 1,
+                };
+                State S2 = new State()
+                {
+                    Name = "scene2",
+                    ColorSaturation = 1,
+                    ColorValue = 1,
+                    ColorAlpha = 1,
+                    ColorHue = 360,
+                };
+
+                // create new StateSequence and add the states inside scenes
+                StateSequence SS = new StateSequence(name);
+                SS.Scenes.Add(new Scene(S1, 3, Easing.Linear()));
+                SS.Scenes.Add(new Scene(S2, 3, Easing.Linear()));
+                
+                // add the StateSequence to the GenerationData
+                GD.Add(SS);
 
                 // Save Generation Data
                 GD.Name = name;

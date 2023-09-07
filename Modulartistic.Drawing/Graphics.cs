@@ -11,7 +11,7 @@ namespace Modulartistic.Drawing
         
         private Graphics(Bitmap bmp)
         {
-            _canvas = new SKCanvas(bmp.SK);
+            _canvas = new SKCanvas(bmp);
         }
 
         public static Graphics FromImage(Bitmap bmp)
@@ -21,8 +21,8 @@ namespace Modulartistic.Drawing
 
         public void DrawImage(Bitmap bmp, int x, int y, int width, int height)
         {
-            SKRect destRect = new SKRect(x, 0, width, height);
-            _canvas.DrawBitmap(bmp.SK, destRect);
+            SKRect destRect = new SKRect(x, 0, x+width, height);
+            _canvas.DrawBitmap(bmp, destRect);
         }
     }
 }

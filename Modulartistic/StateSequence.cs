@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 using FFMpegCore.Pipes;
 using FFMpegCore;
 using FFMpegCore.Enums;
+using FFMpegCore.Extensions.SkiaSharp;
+using SkiaSharp;
+using System.Threading.Tasks;
 
 namespace Modulartistic
 {
@@ -304,7 +307,6 @@ namespace Modulartistic
         }
         #endregion
         
-        /*
         #region methods for mp4 creation
         private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args)
         {
@@ -324,12 +326,13 @@ namespace Modulartistic
                     State frameState = new State(current.State, next.State, current.Easing, j, frames);
 
                     // Get Bitmap Should only take the generation args, and do the rest itself tbh
+                    
                     yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args));
                 }
             }
         }
 
-        private async void CreateMp4(GenerationArgs args, string path_out)
+        public async Task<string> CreateMp4(GenerationArgs args, string path_out)
         {
             // Creating filename and path, checking if directory exists
             string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
@@ -337,24 +340,24 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
-            Directory.CreateDirectory(path);
-
-
+            path = Helper.ValidFileName(path);
+            // parses GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args))
             {
-                FrameRate = 30 //set source frame rate
+                FrameRate = framerate, //set source frame rate
             };
-
 
             await FFMpegArguments
                 .FromPipeInput(videoFramesSource)
                 .OutputToFile(path + @".mp4", false, options => options
-                    .WithVideoCodec(VideoCodec.LibVpx))
+                    .WithVideoCodec(VideoCodec.Png))
                 .ProcessAsynchronously();
+
+            return path + @".mp4";
         }
         #endregion
-        */
+        
 
         #region Other Methods
         /// <summary>

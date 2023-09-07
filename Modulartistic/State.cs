@@ -591,8 +591,9 @@ namespace Modulartistic
 
                         // if the lower bound is less than the upper bound,
                         // pixel is invalid if its value is not between the bound
-                        if (lowBound < upBound)
+                        else if (lowBound < upBound)
                         {
+                            Console.WriteLine("1");
                             if (!(pixel_r_h >= lowBound && pixel_r_h <= upBound)) { pixel_r_h = -1; }
                             if (!(pixel_g_s >= lowBound && pixel_g_s <= upBound)) { pixel_g_s = -1; }
                             if (!(pixel_b_v >= lowBound && pixel_b_v <= upBound)) { pixel_b_v = -1; }
@@ -602,6 +603,7 @@ namespace Modulartistic
                         // pixel is invalid if its value IS between the bounds
                         else if (lowBound > upBound)
                         {
+                            Console.WriteLine("2");
                             if (pixel_r_h <= lowBound && pixel_r_h >= upBound) { pixel_r_h = -1; }
                             if (pixel_g_s <= lowBound && pixel_g_s >= upBound) { pixel_g_s = -1; }
                             if (pixel_b_v <= lowBound && pixel_b_v >= upBound) { pixel_b_v = -1; }
@@ -669,10 +671,15 @@ namespace Modulartistic
                             Helper.inclusiveMod(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
                         }
 
-                        if (pixel_r_h == -1) { h = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT); }
+                        if (pixel_r_h == -1) {
+                            Console.WriteLine(pixel_r_h);
+                            Console.WriteLine((useRGB ? RedFunc : HueFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)));
+                            h = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT); 
+                        }
                         else
                         {
-                            h = Helper.inclusiveMod(ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 360;
+                            // this used inclusive mod before, which caused problems with animations. In case that happens in any other sections refer to this comment :)
+                            h = Helper.mod(ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT) / 360 + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 360;
                         }
 
                         if (pixel_g_s == -1) { s = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT); }
@@ -802,9 +809,9 @@ namespace Modulartistic
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
 
-            bool invalGlobal = args.InvalidColorGlobal ?? true;
-            bool circ = args.Circular ?? true;
-            bool useRGB = args.UseRGB ?? false;
+            bool invalGlobal = args.InvalidColorGlobal.GetValueOrDefault(Constants.INVALIDCOLORGLOBAL_DEFAULT);
+            bool circ = args.Circular.GetValueOrDefault(Constants.CIRCULAR_DEFAULT);
+            bool useRGB = args.UseRGB.GetValueOrDefault(Constants.USERGB_DEFAULT);
 
 
             Function? HueFunc = null;
@@ -975,7 +982,7 @@ namespace Modulartistic
                     {
                         // Setting Pixel to -1 if out of lower and upper bounds
                         double lowBound = Helper.inclusiveMod(ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT), Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                        double upBound = Helper.inclusiveMod(ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT) - 0.0001, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
+                        double upBound = Helper.inclusiveMod(ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT), Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
 
                         // If Bounds are equal, the pixel is automatically invalid
                         if (lowBound == upBound)
@@ -1069,7 +1076,7 @@ namespace Modulartistic
                         if (pixel_r_h == -1) { h = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT); }
                         else
                         {
-                            h = Helper.mod(ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 360;
+                            h = Helper.mod(ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT) / 360 + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 360;
                         }
 
                         if (pixel_g_s == -1) { s = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT); }

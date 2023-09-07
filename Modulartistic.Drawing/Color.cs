@@ -8,7 +8,6 @@ namespace Modulartistic.Drawing
     public struct Color
     {
         private SKColor _color;
-        internal SKColor SK { get => _color; }
 
         public byte R { get => _color.Red; }
         public byte G { get => _color.Green; }
@@ -30,6 +29,7 @@ namespace Modulartistic.Drawing
         #region Methods
         public static Color FromHSV(float hue, float saturation, float value )
         {
+            saturation = saturation % 360;
             float chroma = saturation * value;
             float Hi = hue / 60;
             float X = chroma * (1 - Math.Abs(Hi % 2 - 1));
@@ -59,10 +59,14 @@ namespace Modulartistic.Drawing
 
         public static Color FromArgb(int a, int r, int g, int b)
         {
-            return new Color(a, r, g, b);
+            return new Color(r, g, b, a);
         }
         #endregion
 
-
+        // Implicit conversion operator from BitmapWrapper to SKBitmap
+        public static implicit operator SKColor(Color wrapper)
+        {
+            return wrapper._color;
+        }
     }
 }
