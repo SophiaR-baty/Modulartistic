@@ -5,4 +5,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
+    <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
+  </ItemGroup>
+
 </Project>

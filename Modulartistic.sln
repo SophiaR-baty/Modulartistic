@@ -30,6 +30,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.Core", "Modulartistic.Core\Modulartistic.Core.csproj", "{547590D9-7011-44E1-8B52-0C15245CA971}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic", "Modulartistic\Modulartistic.csproj", "{01293691-9589-4075-8DB0-74584EFA4188}"
+	ProjectSection(ProjectDependencies) = postProject
+		{903F4314-F0CF-4321-AC69-BD86013ACE88} = {903F4314-F0CF-4321-AC69-BD86013ACE88}
+		{547590D9-7011-44E1-8B52-0C15245CA971} = {547590D9-7011-44E1-8B52-0C15245CA971}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -99,7 +99,7 @@ namespace Modulartistic.Core
         {
             if (!File.Exists(file_name))
             {
-                throw new FileNotFoundException("The specified File " + file_name + " does not exist. ");
+                throw new FileNotFoundException($"The specified File {file_name} does not exist. ");
             }
 
             string jsontext = File.ReadAllText(file_name);
@@ -111,7 +111,7 @@ namespace Modulartistic.Core
 
             if (root.ValueKind != JsonValueKind.Array)
             {
-                throw new Exception("Error: Expected ArrayType RootElement in Json File " + file_name);
+                throw new Exception($"Error: Expected ArrayType RootElement in Json File {file_name} but got {root.ValueKind.ToString()}");
             }
 
             var options = new JsonSerializerOptions
@@ -149,7 +149,7 @@ namespace Modulartistic.Core
                     StateTimeline stateTimeLine = JsonSerializer.Deserialize<StateTimeline>(element.GetRawText(), options);
                     Data.Add(stateTimeLine);
                 }
-                else { throw new Exception("Parsing Error in file " + file_name + ": Unrecognized Type"); }
+                else { throw new Exception($"Parsing Error in file {file_name}: Unrecognized Type"); }
             }
         }
         #endregion
