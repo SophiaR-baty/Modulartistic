@@ -357,7 +357,57 @@ namespace Modulartistic.Core
             return path + @".mp4";
         }
         #endregion
-        
+
+        #region multithreaded mp4 creation
+        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args, int max_threads)
+        {
+            // parses GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+
+            // loops through the scenes
+            for (int i = 0; i < Count; i++)
+            {
+                Scene current = Scenes[i];
+                Scene next = Scenes[(i + 1) % Scenes.Count];
+
+                // iterate over all Frames and create the corresponding images
+                int frames = (int)(current.Length * framerate);
+                for (int j = 0; j < frames; j++)
+                {
+                    State frameState = new State(current.State, next.State, current.Easing, j, frames);
+
+                    // Get Bitmap Should only take the generation args, and do the rest itself tbh
+
+                    yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, max_threads));
+                }
+            }
+        }
+
+        public async Task<string> CreateMp4(GenerationArgs args, int max_threads, string path_out)
+        {
+            // Creating filename and path, checking if directory exists
+            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
+            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
+            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
+
+            // Validate and Create the Output Path
+            path = Helper.ValidFileName(path);
+            // parses GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
+            {
+                FrameRate = framerate, //set source frame rate
+            };
+
+            await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(path + @".mp4", false, options => options
+                    .WithVideoCodec(VideoCodec.Png))
+                .ProcessAsynchronously();
+
+            return path + @".mp4";
+        }
+        #endregion
 
         #region Other Methods
         /// <summary>

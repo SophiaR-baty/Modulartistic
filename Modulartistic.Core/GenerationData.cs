@@ -229,7 +229,7 @@ namespace Modulartistic.Core
                     // print Debug Information Post Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Done Generating \"{0}\"\n", filename);
+                        Console.WriteLine($"Done Generating \"{filename}\"\n");
                     }
 
                     // if Show Flag, show Image
@@ -249,23 +249,31 @@ namespace Modulartistic.Core
                     // print Debug Information Pre Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Generating Image for StateTimeline: ");
+                        Console.WriteLine("Generating Image for StateSequence: ");
                         Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
 
                         Console.WriteLine();
                     }
 
-                    // generate Animation, if Faster Flag use Multithreaded 
+                    // generate Animation, if Faster Flag use Multithreaded if MP4 flag use mp4
                     string filename;
-                    if (MP4)
-                    { filename = await SS.CreateMp4(currentArgs, path_out); }
-                    else if (Faster) { filename = SS.GenerateAnimation(currentArgs, -1, path_out); }
-                    else { filename = SS.GenerateAnimation(currentArgs, path_out); }
+                    if (Faster) 
+                    { 
+                        filename = MP4 ? 
+                            await SS.CreateMp4(currentArgs, -1, path_out) : 
+                            SS.GenerateAnimation(currentArgs, -1, path_out); 
+                    }
+                    else
+                    { 
+                        filename = MP4 ?
+                            await SS.CreateMp4(currentArgs, path_out) : 
+                            SS.GenerateAnimation(currentArgs, path_out); 
+                    }
 
                     //print Debug Information Post Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Done Generating \"{0}\"\n", filename);
+                        Console.WriteLine($"Done Generating \"{filename}\"\n");
                     }
 
                     // if Show Flag, show Image
@@ -281,6 +289,7 @@ namespace Modulartistic.Core
                     if (Faster) { Console.Error.WriteLine("Faster Mode not implemented for StateTimeline. Using normal mode. "); } // ADD FASTER HERE
                     if (Debug) { Console.Error.WriteLine("Debug Mode not implemented for StateTimeline. Using normal mode. "); } // ADD DEBUG HERE
                     if (Show) { Console.Error.WriteLine("Show Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
+                    if (MP4) { Console.Error.WriteLine("MP4 Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
 
                     StateTimeline ST = obj as StateTimeline;
                     ST.GenerateAnimation(currentArgs, path_out);

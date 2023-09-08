@@ -8,7 +8,9 @@ namespace Modulartistic
     interface ICommand
     {
         public void ParseArguments(string[] args);
-        
+
+        public void PrintHelp();
+
         public Task<ErrorCode> Execute();
     }
 }

@@ -239,22 +239,12 @@ namespace Modulartistic
         public static void PrintUsage()
         {
             Console.WriteLine("Usage: ");
-            Console.WriteLine("Modulartistic.exe <generationData.json>");
-            Console.WriteLine("Generates all images and animations defined in generationData.json. They will be created at Output folder. \n");
+            Console.WriteLine("Modulartistic.exe generate [<generationData.json>] [output_directory] [<flags>]");
+            Console.WriteLine("Generates all images and animations defined in generationData.json. They will be created in the output directory. \n");
 
-            Console.WriteLine("Modulartistic.exe test <timeline_template.json>");
-            Console.WriteLine("Generates tests for a timeline template defined in timeline_template.json. They will be created at Output folder. \n");
+            Console.WriteLine("Write 'Modulartistic.exe command --help' to get more information about any command. \n");
 
-            Console.WriteLine("Modulartistic.exe <generationData.json> <path to folder>");
-            Console.WriteLine("Generates all images and animations defined in generationData.json. They will be created at the specified folder. \n");
-
-            Console.WriteLine("Modulartistic.exe <midiFile.mid> <timeline_template.json>");
-            Console.WriteLine("Creates an animation for a specified midi File based on a given template. \n");
-
-            Console.WriteLine("Modulartistic.exe <midiFile.mid> <timeline_template.json> <path to folder>");
-            Console.WriteLine("Creates an animation for a specified midi File based on a given template in the specified folder. \n");
-
-            Console.WriteLine("For more information on how to create templates and generationData visit <URL here>");
+            Console.WriteLine("Visit https://github.com/MaxGeo543/Modulartistic for more information. \n");
         }
 
         public static void CreateDirectories()

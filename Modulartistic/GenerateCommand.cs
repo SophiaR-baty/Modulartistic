@@ -14,7 +14,7 @@ namespace Modulartistic
         private bool mp4;
         private bool show;
         private bool debug;
-        private string filename_json;
+        private List<string> filenames_json;
         private string output_dir;
 
         private ErrorCode error_code;
@@ -29,7 +29,7 @@ namespace Modulartistic
             mp4 = false;
             show = false;
             debug = false;
-            filename_json = "demofiles/state_example_1.json";
+            filenames_json = new List<string>();
             output_dir = "output";
 
             error_code = 0;
@@ -45,31 +45,44 @@ namespace Modulartistic
             else if (faster) { flags |= GenerationDataFlags.Faster; }
             else if (mp4) { flags |= GenerationDataFlags.MP4; }
 
-            Console.WriteLine($"Generating Images and Animations for {filename_json} in {output_dir}. ");
+            if (filenames_json.Count == 0)
+            {
+                Helper.CreateDemos();
 
-            GenerationData gd = new GenerationData();
-            try
-            {
-                gd.LoadJson(filename_json);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Error loading the json file {filename_json}. ");
-                Console.Error.WriteLine(e.Message);
-                return ErrorCode.JsonParsingError;
+                string demofolder = AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "demofiles";
+                filenames_json.AddRange(Directory.GetFiles(demofolder));
+
+                Console.WriteLine("Generating images and animations for demofiles. ");
             }
 
-            try
+            foreach (string filename in filenames_json)
             {
-                await gd.GenerateAll(flags, output_dir);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Error while generating. ");
-                Console.Error.WriteLine(e.Message);
-                return ErrorCode.GenerationError;
-            }
+                Console.WriteLine($"Generating Images and Animations for {filename} in {output_dir}. ");
 
+                GenerationData gd = new GenerationData();
+                try
+                {
+                    gd.LoadJson(filename);
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine($"Error loading the json file {filename}. ");
+                    Console.Error.WriteLine(e.Message);
+                    return ErrorCode.JsonParsingError;
+                }
+
+                try
+                {
+                    await gd.GenerateAll(flags, output_dir);
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine($"Error while generating images and animation for {filename}. ");
+                    Console.Error.WriteLine(e.Message);
+                    return ErrorCode.GenerationError;
+                }
+            }
+            
             Console.WriteLine("Done!");
             return error_code;
         }
@@ -82,7 +95,7 @@ namespace Modulartistic
 
             if (args.Contains("--help") || args.Contains("-h") || args.Contains("-?"))
             {
-                Helper.PrintUsage();
+                PrintHelp();
                 error_code = ErrorCode.Help;
                 return;
             }
@@ -92,8 +105,7 @@ namespace Modulartistic
                 string arg = args[i];
                 if (accept_file && File.Exists(arg) && arg.EndsWith(".json"))
                 {
-                    filename_json = arg;
-                    accept_file = false;
+                    filenames_json.Add(arg);
                     continue;
                 }
                 if (accept_dir && Directory.Exists(arg))
@@ -115,8 +127,30 @@ namespace Modulartistic
                         error_code = ErrorCode.UnexpectedArgument;
                         return;
                     }
+
+                    accept_file = false;
+                    accept_dir = false;
                 }
             }
+        }
+
+        public void PrintHelp()
+        {
+            Console.WriteLine("generate [<generationData.json>] [output_directory] [<flags>]");
+            Console.WriteLine("the 'generate' command will generate images and animations from 'generationData.json' files. \n");
+            
+            Console.WriteLine("[<generationData.json>] - 0 or more json files containing generationData");
+            Console.WriteLine("[output_directory]      - a single existing directory to generate images and animations in. If omitted they will be generated in '{app_location}/Output'. ");
+            Console.WriteLine("[<flags>]               - 0 or more flags. ");
+            Console.WriteLine("argument types must be specified in this order! \n");
+
+            Console.WriteLine("flags: ");
+            Console.WriteLine(" --debug   - Print additional information");
+            Console.WriteLine(" --faster  - Use multiple cores");
+            Console.WriteLine(" --show    - Open generated images and animations");
+            Console.WriteLine(" --mp4     - Generate mp4 instead of gif \n");
+
+            Console.WriteLine("Visit https://github.com/MaxGeo543/Modulartistic for more information. \n");
         }
     }
 }
