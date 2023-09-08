@@ -1,36 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Modulartistic</RootNamespace>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="AnimatedGif" Version="1.0.5" />
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
-    <PackageReference Include="FFMpegCore" Version="5.1.0" />
-    <PackageReference Include="FFMpegCore.Extensions.SkiaSharp" Version="5.0.0" />
-    <PackageReference Include="Melanchall.DryWetMidi" Version="6.1.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Gif.Components">
-      <HintPath>..\NGif-master\Components\bin\Debug\Gif.Components.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj" />
-    <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
-    <ProjectReference Include="..\Modulartistic.AddOns\MusicVisualizingFunctions\MusicVisualizingFunctions.csproj" />
-    <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
-  </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="md $(OutDir)\Output&#xD;&#xA;md $(OutDir)\addons&#xD;&#xA;md $(OutDir)\demofiles&#xD;&#xA;&#xD;&#xA;xcopy /s /e /y $(SolutionDir)\demofiles $(OutDir)\demofiles&#xD;&#xA;copy /y $(OutDir)\MathFunctions.dll $(OutDir)\addons&#xD;&#xA;copy /y $(OutDir)\ImageFunctions.dll $(OutDir)\addons" />
-  </Target>
 
 </Project>

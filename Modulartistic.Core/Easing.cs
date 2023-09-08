@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Reflection.Metadata;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class Easing
     {
@@ -13,7 +13,7 @@ namespace Modulartistic
         private Func<double, double, double, double, double> easingFunction;
         private Expression easingExpression;
         private string name;
-        
+
         private static string[] types = new string[]
         {
             "Linear",
@@ -47,7 +47,7 @@ namespace Modulartistic
         public static Easing FromString(string type)
         {
             if (!ImplementedEasingTypes.Contains(type)) { throw new NotImplementedException(); }
-            
+
             if (type == "Linear") { return Linear(); }
 
             if (type == "SineIn") { return SineIn(); }
@@ -82,7 +82,7 @@ namespace Modulartistic
 
         public static Easing SineOut()
         {
-            Func<double, double, double, double, double> f = (start, end, idx, maxIdx) => start + (end - start) * (Math.Sin(Math.PI * idx / maxIdx / 2));
+            Func<double, double, double, double, double> f = (start, end, idx, maxIdx) => start + (end - start) * Math.Sin(Math.PI * idx / maxIdx / 2);
             return new Easing(f, "SineOut");
         }
 
@@ -112,7 +112,7 @@ namespace Modulartistic
 
         public static Easing BounceOut()
         {
-            Func<double, double, double, double, double> f = (start, end, idx, maxIdx) => start + (end - start) * BounceOut_Function(idx/maxIdx);
+            Func<double, double, double, double, double> f = (start, end, idx, maxIdx) => start + (end - start) * BounceOut_Function(idx / maxIdx);
             return new Easing(f, "BounceOut");
         }
 

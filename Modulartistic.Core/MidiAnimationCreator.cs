@@ -7,7 +7,7 @@ using NCalc;
 using System.IO;
 using Melanchall.DryWetMidi.Common;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class MidiAnimationCreator
     {

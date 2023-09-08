@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     internal static class Constants
     {

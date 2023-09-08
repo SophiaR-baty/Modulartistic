@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class Helper
     {

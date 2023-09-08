@@ -3,13 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32901.82
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic", "Modulartistic\Modulartistic.csproj", "{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{25A0DE7C-0EFC-48B5-BF05-D583E9365F92} = {25A0DE7C-0EFC-48B5-BF05-D583E9365F92}
-		{28CC3D2A-3357-40AB-8E3C-DDAB893C3875} = {28CC3D2A-3357-40AB-8E3C-DDAB893C3875}
-		{6165046B-9CEC-4EC2-9422-8A46AAE5CDF3} = {6165046B-9CEC-4EC2-9422-8A46AAE5CDF3}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modulartistic.AddOns", "Modulartistic.AddOns", "{9C528A85-1BF5-4354-B2D2-0704918C73A9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageFunctions", "Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj", "{6165046B-9CEC-4EC2-9422-8A46AAE5CDF3}"
@@ -32,7 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demofiles", "demofiles", "{
 		demofiles\textures_2.json = demofiles\textures_2.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic.Drawing", "Modulartistic.Drawing\Modulartistic.Drawing.csproj", "{903F4314-F0CF-4321-AC69-BD86013ACE88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.Drawing", "Modulartistic.Drawing\Modulartistic.Drawing.csproj", "{903F4314-F0CF-4321-AC69-BD86013ACE88}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.Core", "Modulartistic.Core\Modulartistic.Core.csproj", "{547590D9-7011-44E1-8B52-0C15245CA971}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic", "Modulartistic\Modulartistic.csproj", "{01293691-9589-4075-8DB0-74584EFA4188}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,18 +41,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Debug|x64.Build.0 = Debug|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Debug|x86.Build.0 = Debug|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Release|x64.ActiveCfg = Release|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Release|x64.Build.0 = Release|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Release|x86.ActiveCfg = Release|Any CPU
-		{3D99DA5B-E7C3-4DA2-8C55-82E3AA75C2B7}.Release|x86.Build.0 = Release|Any CPU
 		{6165046B-9CEC-4EC2-9422-8A46AAE5CDF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6165046B-9CEC-4EC2-9422-8A46AAE5CDF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6165046B-9CEC-4EC2-9422-8A46AAE5CDF3}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -104,6 +89,30 @@ Global
 		{903F4314-F0CF-4321-AC69-BD86013ACE88}.Release|x64.Build.0 = Release|Any CPU
 		{903F4314-F0CF-4321-AC69-BD86013ACE88}.Release|x86.ActiveCfg = Release|Any CPU
 		{903F4314-F0CF-4321-AC69-BD86013ACE88}.Release|x86.Build.0 = Release|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Debug|x64.Build.0 = Debug|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Debug|x86.Build.0 = Debug|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Release|Any CPU.Build.0 = Release|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Release|x64.ActiveCfg = Release|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Release|x64.Build.0 = Release|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Release|x86.ActiveCfg = Release|Any CPU
+		{547590D9-7011-44E1-8B52-0C15245CA971}.Release|x86.Build.0 = Release|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Debug|x64.Build.0 = Debug|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Debug|x86.Build.0 = Debug|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Release|x64.ActiveCfg = Release|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Release|x64.Build.0 = Release|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Release|x86.ActiveCfg = Release|Any CPU
+		{01293691-9589-4075-8DB0-74584EFA4188}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

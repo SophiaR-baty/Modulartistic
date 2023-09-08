@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using NCalc;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class StateTimelineTemplate
     {
@@ -47,7 +47,7 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (name == "" ? "timelinetemplate_tests" : name + "_tests");
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
+            path = Helper.ValidFileName(path);
             Directory.CreateDirectory(path);
 
             // Generate the Base State

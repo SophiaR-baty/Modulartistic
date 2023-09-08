@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     /// <summary>
     /// State Class to contain Data about Image States/Frames for Image Generation.

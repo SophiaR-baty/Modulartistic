@@ -14,7 +14,7 @@ using FFMpegCore.Extensions.SkiaSharp;
 using SkiaSharp;
 using System.Threading.Tasks;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     /// <summary>
     /// A Sequence of States (in Scenes) to generate animation or batch images
@@ -154,7 +154,7 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(startState.Name) ? Constants.SCENE_NAME_DEFAULT : startState.Name);
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
+            path = Helper.ValidFileName(path);
             Directory.CreateDirectory(path);
 
             // iterate over all Frames and create the corresponding images
@@ -179,7 +179,7 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATESEQUENCE_NAME_DEFAULT : Name);
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
+            path = Helper.ValidFileName(path);
             Directory.CreateDirectory(path);
 
             // Generate Every Scene
@@ -264,7 +264,7 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(startState.Name) ? Constants.SCENE_NAME_DEFAULT : startState.Name);
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
+            path = Helper.ValidFileName(path);
             Directory.CreateDirectory(path);
 
             // iterate over all Frames and create the corresponding images
@@ -290,7 +290,7 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATESEQUENCE_NAME_DEFAULT : Name);
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
+            path = Helper.ValidFileName(path);
             Directory.CreateDirectory(path);
 
             // Generate Every Scene

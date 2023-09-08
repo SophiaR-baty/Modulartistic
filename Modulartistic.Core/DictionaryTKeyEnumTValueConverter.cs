@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class DictionaryTKeyEnumTValueConverter : JsonConverterFactory
     {
@@ -84,7 +84,7 @@ namespace Modulartistic
                         throw new JsonException();
                     }
 
-                    string? propertyName = reader.GetString();
+                    string propertyName = reader.GetString();
 
                     // For performance, parse with ignoreCase:false first.
                     if (!Enum.TryParse(propertyName, ignoreCase: false, out TKey key) &&

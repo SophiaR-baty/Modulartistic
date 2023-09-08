@@ -3,13 +3,13 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class Function
     {
         private Expression expression;
 
-        public Function(Expression expression) 
+        public Function(Expression expression)
         {
             this.expression = expression;
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
@@ -23,7 +23,7 @@ namespace Modulartistic
 
         public double Evaluate(double x, double y, double[] paras, double mod)
         {
-            
+
             expression.Parameters["x"] = x;
             expression.Parameters["y"] = y;
             expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
@@ -49,7 +49,7 @@ namespace Modulartistic
 
         public void LoadAddOn(string dll_path)
         {
-            
+
             if (!File.Exists(dll_path)) { return; }
 
             Assembly testDLL = Assembly.LoadFile(dll_path);
@@ -61,7 +61,7 @@ namespace Modulartistic
                 // gets all public static methods of the type
                 // -> only methods that should be exposed to the parser should be public static
                 MethodInfo[] methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
-                
+
                 // iterates over all such methods
                 foreach (MethodInfo methodInfo in methodInfos)
                 {
