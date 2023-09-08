@@ -3,7 +3,7 @@ using System.Text.Json;
 
 #nullable enable
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class GenerationArgs
     {
@@ -66,8 +66,8 @@ namespace Modulartistic
         public bool? UseRGB { get; set; }
         #endregion
 
-        public GenerationArgs() 
-        { 
+        public GenerationArgs()
+        {
             Size = new int[] { 500, 500 };
             Framerate = null;
             AddOns = null;
@@ -119,7 +119,7 @@ namespace Modulartistic
         #region Json Serialization
         public static GenerationArgs FromJson(string json_string)
         {
-            JsonSerializerOptions option = new JsonSerializerOptions() 
+            JsonSerializerOptions option = new JsonSerializerOptions()
             {
                 AllowTrailingCommas = true,
             };

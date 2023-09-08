@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     /// <summary>
     /// State Class to contain Data about Image States/Frames for Image Generation.
@@ -593,7 +593,6 @@ namespace Modulartistic
                         // pixel is invalid if its value is not between the bound
                         else if (lowBound < upBound)
                         {
-                            Console.WriteLine("1");
                             if (!(pixel_r_h >= lowBound && pixel_r_h <= upBound)) { pixel_r_h = -1; }
                             if (!(pixel_g_s >= lowBound && pixel_g_s <= upBound)) { pixel_g_s = -1; }
                             if (!(pixel_b_v >= lowBound && pixel_b_v <= upBound)) { pixel_b_v = -1; }
@@ -603,7 +602,6 @@ namespace Modulartistic
                         // pixel is invalid if its value IS between the bounds
                         else if (lowBound > upBound)
                         {
-                            Console.WriteLine("2");
                             if (pixel_r_h <= lowBound && pixel_r_h >= upBound) { pixel_r_h = -1; }
                             if (pixel_g_s <= lowBound && pixel_g_s >= upBound) { pixel_g_s = -1; }
                             if (pixel_b_v <= lowBound && pixel_b_v >= upBound) { pixel_b_v = -1; }
@@ -672,8 +670,6 @@ namespace Modulartistic
                         }
 
                         if (pixel_r_h == -1) {
-                            Console.WriteLine(pixel_r_h);
-                            Console.WriteLine((useRGB ? RedFunc : HueFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)));
                             h = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT); 
                         }
                         else

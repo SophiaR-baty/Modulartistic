@@ -8,7 +8,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     public class GenerationData
     {
@@ -25,13 +25,13 @@ namespace Modulartistic
         #endregion
 
         #region Fields
-        private List<Object> data;
+        private List<object> data;
         #endregion
 
         #region Constructors
-        public GenerationData() 
+        public GenerationData()
         {
-            data = new List<Object>();
+            data = new List<object>();
             Name = "GenerationData";
         }
         #endregion
@@ -70,15 +70,15 @@ namespace Modulartistic
             {
                 IgnoreNullValues = true,
                 WriteIndented = true,
-                Converters = 
-                { 
+                Converters =
+                {
                     new DictionaryTKeyEnumTValueConverter(),
                 },
             };
-            return JsonSerializer.Serialize(this.data, options);
+            return JsonSerializer.Serialize(data, options);
             // return Newtonsoft.Json.JsonConvert.SerializeObject(this.data, Newtonsoft.Json.Formatting.Indented);
         }
-        
+
         public void SaveJson(string path_out = "")
         {
             // Creating filename and path, checking if directory exists
@@ -99,19 +99,19 @@ namespace Modulartistic
         {
             if (!File.Exists(file_name))
             {
-                throw new FileNotFoundException("The specified File " + file_name + " does not exist. ");
+                throw new FileNotFoundException($"The specified File {file_name} does not exist. ");
             }
 
             string jsontext = File.ReadAllText(file_name);
 
             JsonDocument jd = JsonDocument.Parse(jsontext);
-            
-            
+
+
             JsonElement root = jd.RootElement;
 
             if (root.ValueKind != JsonValueKind.Array)
             {
-                throw new Exception("Error: Expected ArrayType RootElement in Json File " + file_name);
+                throw new Exception($"Error: Expected ArrayType RootElement in Json File {file_name} but got {root.ValueKind.ToString()}");
             }
 
             var options = new JsonSerializerOptions
@@ -125,7 +125,7 @@ namespace Modulartistic
             for (int i = 0; i < root.GetArrayLength(); i++)
             {
                 JsonElement element = root[i];
-                
+
                 // This is terrible implementation but it became frustrating trying to find an alternative
                 // what I actually want is the following: 
                 // Try to deserialize the object as (Type) but if the JsonElement has a Property that (Type) has not, the next Type should be tested. if all types fail an Exception should be raised
@@ -149,7 +149,7 @@ namespace Modulartistic
                     StateTimeline stateTimeLine = JsonSerializer.Deserialize<StateTimeline>(element.GetRawText(), options);
                     Data.Add(stateTimeLine);
                 }
-                else { throw new Exception("Parsing Error in file " + file_name + ": Unrecognized Type"); }
+                else { throw new Exception($"Parsing Error in file {file_name}: Unrecognized Type"); }
             }
         }
         #endregion
@@ -176,7 +176,7 @@ namespace Modulartistic
             // initiates a stopwatch for the whole execution and for each iteration
             Stopwatch totalTime = Stopwatch.StartNew();
             Stopwatch iterationTime = new Stopwatch();
-            
+
             // convert the flags to boolean variables
             bool Show = (flags & GenerationDataFlags.Show) == GenerationDataFlags.Show;
             bool Debug = (flags & GenerationDataFlags.Debug) == GenerationDataFlags.Debug;
@@ -198,7 +198,7 @@ namespace Modulartistic
                 if (obj.GetType() == typeof(GenerationArgs))
                 {
                     currentArgs = (GenerationArgs)obj;
-                    
+
                     // Print Debug Information
                     if (Debug)
                     {
@@ -206,18 +206,18 @@ namespace Modulartistic
                         Console.WriteLine();
                     }
                 }
-               
+
                 // else if the object is a state, generate said state
                 else if (obj.GetType() == typeof(State))
                 {
-                    State S = (obj as State);
+                    State S = obj as State;
 
                     // print Debug Information Pre Generating
                     if (Debug)
                     {
                         Console.WriteLine("Generating Image for State: ");
                         Console.WriteLine(S.GetDebugInfo());
-                        
+
                         Console.WriteLine();
                     }
 
@@ -229,7 +229,7 @@ namespace Modulartistic
                     // print Debug Information Post Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Done Generating \"{0}\"\n", filename);
+                        Console.WriteLine($"Done Generating \"{filename}\"\n");
                     }
 
                     // if Show Flag, show Image
@@ -244,28 +244,36 @@ namespace Modulartistic
                 // if the object is a StateSequence, generate that StateSequence
                 else if (obj.GetType() == typeof(StateSequence))
                 {
-                    StateSequence SS = (obj as StateSequence);
+                    StateSequence SS = obj as StateSequence;
 
                     // print Debug Information Pre Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Generating Image for StateTimeline: ");
+                        Console.WriteLine("Generating Image for StateSequence: ");
                         Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
 
                         Console.WriteLine();
                     }
 
-                    // generate Animation, if Faster Flag use Multithreaded 
+                    // generate Animation, if Faster Flag use Multithreaded if MP4 flag use mp4
                     string filename;
-                    if (MP4) 
-                    { filename = await SS.CreateMp4(currentArgs, path_out); }
-                    else if (Faster) { filename = SS.GenerateAnimation(currentArgs, -1, path_out); }
-                    else { filename = SS.GenerateAnimation(currentArgs, path_out); }
+                    if (Faster) 
+                    { 
+                        filename = MP4 ? 
+                            await SS.CreateMp4(currentArgs, -1, path_out) : 
+                            SS.GenerateAnimation(currentArgs, -1, path_out); 
+                    }
+                    else
+                    { 
+                        filename = MP4 ?
+                            await SS.CreateMp4(currentArgs, path_out) : 
+                            SS.GenerateAnimation(currentArgs, path_out); 
+                    }
 
                     //print Debug Information Post Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Done Generating \"{0}\"\n", filename);
+                        Console.WriteLine($"Done Generating \"{filename}\"\n");
                     }
 
                     // if Show Flag, show Image
@@ -281,8 +289,9 @@ namespace Modulartistic
                     if (Faster) { Console.Error.WriteLine("Faster Mode not implemented for StateTimeline. Using normal mode. "); } // ADD FASTER HERE
                     if (Debug) { Console.Error.WriteLine("Debug Mode not implemented for StateTimeline. Using normal mode. "); } // ADD DEBUG HERE
                     if (Show) { Console.Error.WriteLine("Show Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
+                    if (MP4) { Console.Error.WriteLine("MP4 Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
 
-                    StateTimeline ST = (obj as StateTimeline);
+                    StateTimeline ST = obj as StateTimeline;
                     ST.GenerateAnimation(currentArgs, path_out);
                 }
                 else

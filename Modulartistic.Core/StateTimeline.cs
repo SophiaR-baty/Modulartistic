@@ -6,7 +6,7 @@ using AnimatedGif;
 using System.IO;
 using System.Text.Json.Serialization;
 
-namespace Modulartistic
+namespace Modulartistic.Core
 {
     /// <summary>
     /// StateTimeline consisting of a BaseStates and several timed StateEvents
@@ -90,7 +90,7 @@ namespace Modulartistic
             path += Path.DirectorySeparatorChar + (Name == "" ? "Timeline" : Name);
 
             // Validate and Create the Output Path
-            path = Modulartistic.Helper.ValidFileName(path);
+            path = Helper.ValidFileName(path);
             Directory.CreateDirectory(path);
 
             // Order Events
@@ -202,7 +202,7 @@ namespace Modulartistic
         /// </summary>
         [JsonIgnore]
         public Easing AttackEasing { get; set; }
-        public string AttackEasingType { get => AttackEasing.Type; set => AttackEasing = Modulartistic.Easing.FromString(value); }
+        public string AttackEasingType { get => AttackEasing.Type; set => AttackEasing = Easing.FromString(value); }
         /// <summary>
         /// DecayTime in Millisecond
         /// </summary>
@@ -212,7 +212,7 @@ namespace Modulartistic
         /// </summary>
         [JsonIgnore]
         public Easing DecayEasing { get; set; }
-        public string DecayEasingType { get => DecayEasing.Type; set => DecayEasing = Modulartistic.Easing.FromString(value); }
+        public string DecayEasingType { get => DecayEasing.Type; set => DecayEasing = Easing.FromString(value); }
         /// <summary>
         /// ReleaseTime in Milliseconds
         /// </summary>
@@ -222,7 +222,7 @@ namespace Modulartistic
         /// </summary>
         [JsonIgnore]
         public Easing ReleaseEasing { get; set; }
-        public string ReleaseEasingType { get => ReleaseEasing.Type; set => ReleaseEasing = Modulartistic.Easing.FromString(value); }
+        public string ReleaseEasingType { get => ReleaseEasing.Type; set => ReleaseEasing = Easing.FromString(value); }
 
         /// <summary>
         /// Dictionary of Peak Values
