@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
 using AnimatedGif;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -233,8 +231,8 @@ namespace Modulartistic.Core
             {
                 foreach (string file in imgPaths)
                 {
-                    var img = Image.FromFile(file);
-                    gif.AddFrame(img, delay: -1, quality: GifQuality.Bit8);
+                    // var img = Image.FromFile(file);
+                    gif.AddFrame(file, delay: -1, quality: GifQuality.Bit8);
                 }
             }
         }

@@ -1,6 +1,5 @@
 ﻿using System;
 using Modulartistic.Drawing;
-// using System.Drawing;
 using System.Threading;
 using System.IO;
 using MathNet.Numerics;

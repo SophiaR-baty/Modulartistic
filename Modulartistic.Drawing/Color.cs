@@ -24,6 +24,11 @@ namespace Modulartistic.Drawing
         {
             _color = new SKColor((byte)red, (byte)green, (byte)blue, (byte)alpha);
         }
+
+        private Color(SKColor skc)
+        {
+            _color = skc;
+        }
         #endregion
 
         #region Methods
@@ -61,12 +66,41 @@ namespace Modulartistic.Drawing
         {
             return new Color(r, g, b, a);
         }
+        
+        public float GetHue()
+        {
+            return _color.Hue;
+        }
+
+        public float GetBrightness()
+        {
+            _color.ToHsl(out _, out _, out float l);
+            return l;
+        }
+
+        public float GetSaturation()
+        {
+            _color.ToHsl(out _, out float s, out _);
+            return s;
+        }
+
+        public float GetValue()
+        {
+            _color.ToHsv(out _, out _, out float v);
+            return v;
+        }
         #endregion
 
         // Implicit conversion operator from BitmapWrapper to SKBitmap
         public static implicit operator SKColor(Color wrapper)
         {
             return wrapper._color;
+        }
+
+        // Implicit conversion operator from BitmapWrapper to SKBitmap
+        public static implicit operator Color(SKColor skcolor)
+        {
+            return new Color(skcolor);
         }
     }
 }

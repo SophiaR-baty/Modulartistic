@@ -18,6 +18,11 @@ namespace Modulartistic.Drawing
             _bm = new SKBitmap(width, height);
         }
 
+        public Bitmap(string file)
+        {
+            _bm = SKBitmap.Decode(file);
+        }
+
 
         public void SetPixel(int x, int y, Color color)
         {
@@ -40,6 +45,11 @@ namespace Modulartistic.Drawing
             }
 
             return success;
+        }
+
+        public Color GetPixel(int x, int y)
+        {
+            return _bm.GetPixel(x, y);
         }
 
         // Implicit conversion operator from BitmapWrapper to SKBitmap

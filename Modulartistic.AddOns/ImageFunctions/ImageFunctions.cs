@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
+using Modulartistic.Drawing;
 using System.IO;
 using System.Linq;
 
@@ -97,6 +97,33 @@ namespace ImageFunctions
 
             string file = files[idx];
             return ImageSaturation(x, y, file);
+        }
+
+        public static double ImageValue(double x, double y, string abs_path_to_file)
+        {
+            if (!initialized) { Initialize(); }
+            if (!Path.IsPathRooted(abs_path_to_file) || !File.Exists(abs_path_to_file)) { return double.NaN; }
+
+            LoadBitmap(abs_path_to_file, out Bitmap bmp);
+
+            if (x < 0 || x >= bmp.Width || y < 0 || y >= bmp.Height) { return double.NaN; }
+
+            return bmp.GetPixel((int)x, (int)y).GetValue();
+        }
+
+        public static double ImageValue(double x, double y, string abs_path_to_dir, double i)
+        {
+            if (!initialized) { Initialize(); }
+            if (!Path.IsPathRooted(abs_path_to_dir) || !Directory.Exists(abs_path_to_dir)) { return double.NaN; }
+
+            GetDirectoryContents(abs_path_to_dir, out string[] files);
+
+            int idx = (int)i;
+            if (idx >= files.Length || idx < 0) { return double.NaN; }
+
+
+            string file = files[idx];
+            return ImageValue(x, y, file);
         }
 
         public static double ImageXDiff(double x, double y, string abs_path_to_file)
