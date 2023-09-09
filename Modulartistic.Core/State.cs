@@ -18,8 +18,6 @@ namespace Modulartistic.Core
     public class State
     {
         #region Static Constants
-        
-
         private static Dictionary<string, StateProperty> PropertyStrings = new Dictionary<string, StateProperty>();
         private static bool PropStringFilled = false;
         #endregion
@@ -371,40 +369,13 @@ namespace Modulartistic.Core
         }
         #endregion
 
-        #region Methods for Generating Image (synchronous)
+        #region Methods for Generating Image
         /// <summary>
-        /// Generates an Image of this State with a given a Size and a Function for the Color calculation.
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <param name="path_out">The Path to save the image at</param>
-        /// <returns>the filepath to the generated image</returns>
-        /// <exception cref="DirectoryNotFoundException">Thrown if path_out does not exist</exception>
-        public string GenerateImage(GenerationArgs args, string path_out = @"")
-        {
-            // Generate the image
-            Bitmap image = GetBitmap(args);
-
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + "Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATENAME_DEFAULT : Name);
-
-            // Edit the filename so that it's unique
-            path = Helper.ValidFileName(path);
-            
-            // Save the image
-            image.Save(path + @".png");
-
-            // return the filepath
-            return path + @".png";
-        }
-
-        /// <summary>
-        /// Generates the Bitmap object of the state, given a size and Function for Color calculation.
+        /// Generates the Bitmap object of the state, given a size and Function for Color calculation. Uses singlethread generation. 
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
         /// <returns>The Generated Bitmap</returns>
-        public Bitmap GetBitmap(GenerationArgs args)
+        private Bitmap GetBitmap(GenerationArgs args)
         {
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
@@ -413,7 +384,7 @@ namespace Modulartistic.Core
             bool circ = args.Circular.GetValueOrDefault(Constants.CIRCULAR_DEFAULT);
             bool useRGB = args.UseRGB.GetValueOrDefault(Constants.USERGB_DEFAULT);
 
-            
+            // instanciate the functions
             Function? HueFunc = null;
             Function? SatFunc = null;
             Function? ValFunc = null;
@@ -424,6 +395,7 @@ namespace Modulartistic.Core
 
             Function? AlpFunc = null;
 
+            // parse the functions
             if (useRGB)
             {
                 if (!string.IsNullOrEmpty(args.RedFunction))
@@ -462,7 +434,6 @@ namespace Modulartistic.Core
                     if (args.AddOns != null) ValFunc.LoadAddOns(args.AddOns.ToArray());
                 }
             }
-
             if (!string.IsNullOrEmpty(args.AlphaFunction))
             {
                 AlpFunc = new Function(args.AlphaFunction);
@@ -710,85 +681,11 @@ namespace Modulartistic.Core
                         // Update Color
                         color = new Color(r, g, b, (int)(255 * a));
                     }
-                    // Console.WriteLine(color.R.ToString() + " " + color.G.ToString() + " " + color.B.ToString());
-                    // Append the pixel to the image bitmap
+                    
+                    // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
                 }
             }
-            return image;
-        }
-        #endregion
-
-        #region Methods for multi-threaded Generating
-        /// <summary>
-        /// Generates an Image of this State with a given a Size and a Function for the Color calculation. If max_threads = -1 the max number is used
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <param name="max_threads">The maximum number of threads this will use</param>
-        /// <param name="path_out">The Path to save the image at</param>
-        /// <returns>the filepath of the generated image</returns>
-        /// <exception cref="DirectoryNotFoundException">thrown if path_out does not exist</exception>
-        public string GenerateImage(GenerationArgs args, int max_threads, string path_out = @"")
-        {
-            // Generate the image
-            Bitmap image = GetBitmap(args, max_threads);
-
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + "Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATENAME_DEFAULT : Name);
-
-            // Edit the filename so that it's unique
-            path = Helper.ValidFileName(path);
-
-            // Save the image
-            image.Save(path + @".png");
-
-            return path + @".png";
-        }
-
-        /// <summary>
-        /// Generates the Bitmap object of the state, given a size and Function for Color calculation. If max_threads = -1 the max number is used
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <param name="max_threads">The maximum number of threads this will use</param>
-        /// <returns>The generated Bitmap</returns>
-        public Bitmap GetBitmap(GenerationArgs args, int max_threads)
-        {
-            // Parsing GenerationArgs Size
-            Size size = new Size(args.Size[0], args.Size[1]);
-
-            // Set the number 
-            int threads_num = max_threads;
-            if (max_threads == -1 || max_threads > Environment.ProcessorCount) { threads_num = Environment.ProcessorCount; }
-            else if (max_threads < 1) { threads_num = 1; }
-
-            // Create instance of Bitmap for pixel data and array of Bitmaps for Threads to work on
-            Bitmap image = new Bitmap(size.Width, size.Height);
-            Bitmap[] partial_images = new Bitmap[threads_num];
-
-            // Create the Threads
-            Thread[] threads = new Thread[threads_num];
-
-            // Run the threads
-            for (int i = 0; i < threads_num; i++)
-            {
-                // index needs to be made local for the lambda function
-                int local_i = i;
-
-                threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, local_i, threads_num, out partial_images[local_i])));
-                threads[local_i].Start();
-            }
-
-            // Join the Threads and put all partial Bitmaps together
-            Graphics gr = Graphics.FromImage(image);
-            for (int i = 0; i < threads_num; i++)
-            {
-                threads[i].Join();
-                gr.DrawImage(partial_images[i], i * (size.Width / threads_num), 0, partial_images[i].Width, partial_images[i].Height); 
-            }
-
-            // return the Bitmap
             return image;
         }
 
@@ -1111,86 +1008,85 @@ namespace Modulartistic.Core
                 }
             }
         }
+
+        /// <summary>
+        /// Generates an Image of this State with a given a Size and a Function for the Color calculation. If max_threads = -1 the max number is used
+        /// </summary>
+        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <param name="max_threads">The maximum number of threads this will use</param>
+        /// <param name="path_out">The Path to save the image at</param>
+        /// <returns>the filepath of the generated image</returns>
+        /// <exception cref="DirectoryNotFoundException">thrown if path_out does not exist</exception>
+        public string GenerateImage(GenerationArgs args, int max_threads, string out_dir = @"")
+        {
+            // If out-dir is empty set to default, then check if it exists
+            out_dir = out_dir == "" ? Constants.OUTPUTFOLDER : out_dir;
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.STATENAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.ValidFileName(file_path_out);
+
+            // Generate the image
+            Bitmap image = GetBitmap(args, max_threads);
+            // Save the image
+            image.Save(file_path_out + @".png");
+
+            return file_path_out + @".png";
+        }
+
+        /// <summary>
+        /// Generates the Bitmap object of the state, given a size and Function for Color calculation. If max_threads = -1 the max number is used
+        /// </summary>
+        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
+        /// <param name="max_threads">The maximum number of threads this will use</param>
+        /// <returns>The generated Bitmap</returns>
+        public Bitmap GetBitmap(GenerationArgs args, int max_threads)
+        {
+            if (max_threads == 0 || max_threads == 1) { return GetBitmap(args); }
+            else
+            {
+                // Parsing GenerationArgs Size
+                Size size = new Size(args.Size[0], args.Size[1]);
+
+                // Set the number 
+                int threads_num = max_threads;
+                if (max_threads == -1 || max_threads > Environment.ProcessorCount) { threads_num = Environment.ProcessorCount; }
+                else if (max_threads < 1) { threads_num = 1; }
+
+                // Create instance of Bitmap for pixel data and array of Bitmaps for Threads to work on
+                Bitmap image = new Bitmap(size.Width, size.Height);
+                Bitmap[] partial_images = new Bitmap[threads_num];
+
+                // Create the Threads
+                Thread[] threads = new Thread[threads_num];
+
+                // Run the threads
+                for (int i = 0; i < threads_num; i++)
+                {
+                    // index needs to be made local for the lambda function
+                    int local_i = i;
+
+                    threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, local_i, threads_num, out partial_images[local_i])));
+                    threads[local_i].Start();
+                }
+
+                // Join the Threads and put all partial Bitmaps together
+                Graphics gr = Graphics.FromImage(image);
+                for (int i = 0; i < threads_num; i++)
+                {
+                    threads[i].Join();
+                    gr.DrawImage(partial_images[i], i * (size.Width / threads_num), 0, partial_images[i].Width, partial_images[i].Height);
+                }
+
+                // return the Bitmap
+                return image;
+            }
+        }
         #endregion
 
         #region Other Methods
-        /// <summary>
-        /// Serializes the State to Json
-        /// </summary>
-        /// <returns>The Serialized State as string.</returns>
-        public string ToJson()
-        {
-            JsonSerializerOptions options = new JsonSerializerOptions()
-            {
-                IgnoreNullValues = true,
-                WriteIndented = true,
-            };
-            return JsonSerializer.Serialize(this, options);
-        }
-        
-        public static State FromJson(string json_string)
-        {
-            JsonSerializerOptions option = new JsonSerializerOptions()
-            {
-                AllowTrailingCommas = true,
-            };
-            return JsonSerializer.Deserialize<State>(json_string);
-            /*
-            State result = new State();
-            
-            JsonDocument jd = JsonDocument.Parse(json_str);
-            JsonElement root = jd.RootElement;
-
-            if (root.ValueKind != JsonValueKind.Object)
-            {
-                throw new Exception("Error: Expected ObjectType RootElement in JsonText");
-            }
-
-            var options = new JsonSerializerOptions
-            {
-                IgnoreNullValues = true,
-                AllowTrailingCommas = true,
-                Converters =
-                {
-                    new DictionaryTKeyEnumTValueConverter(),
-                },
-            };
-
-            foreach (JsonProperty prop in root.EnumerateObject())
-            {
-                // handle Name seperately
-                if (prop.Name == "Name") { result.Name = prop.Value.GetString(); continue; }
-
-                // handle Parameters
-                if (prop.Name == "Parameters") 
-                { 
-                    int i = 0;
-                    foreach (JsonElement el in prop.Value.EnumerateArray())
-                    {
-                        if (el.TryGetDouble(out double a)) { result.Parameters[i] = a; }
-                        else { throw new Exception("Error: Expected a double but got a " + el.GetType().ToString()); }
-                        i++;
-                    }
-                }
-
-                // handle wrong keys
-                if (!PropertyStrings.ContainsKey(prop.Name))
-                {
-                    throw new Exception("Error: Unexpected property found: " + prop.Name);
-                }
-
-                if (PropertyStrings[prop.Name] >= StateProperty.i0) { throw new Exception("Error: Setting Parameters with i0-i9 is not supported. Use Parameter Array instead."); }
-
-                else
-                {
-                    StateProperty p = PropertyStrings[prop.Name];
-                    if (prop.Value.TryGetDouble(out double a)) { result[p] = a; }
-                    else { throw new Exception("Error: Expected a double but got a " + prop.GetType().ToString()); }
-                }
-            }
-            return result;*/
-        }
-
         /// <summary>
         /// Gets details about this state. Useful for debugging. 
         /// </summary>

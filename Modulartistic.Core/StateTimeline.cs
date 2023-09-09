@@ -139,7 +139,7 @@ namespace Modulartistic.Core
 
                 // Create Image of state
                 FrameState.Name = "Frame_" + i.ToString().PadLeft(frames.ToString().Length, '0');
-                FrameState.GenerateImage(args, path);
+                FrameState.GenerateImage(args, 1, path);
             }
 
             // Generate the gif

@@ -51,7 +51,7 @@ namespace Modulartistic.Core
             Directory.CreateDirectory(path);
 
             // Generate the Base State
-            Base.GenerateImage(Metadata, path);
+            Base.GenerateImage(Metadata, 1, path);
 
             foreach (StateEventType e in Events)
             {
@@ -70,7 +70,7 @@ namespace Modulartistic.Core
                     
                     FrameState[j] = Convert.ToDouble(exp.Evaluate());
                 }
-                FrameState.GenerateImage(Metadata, path);
+                FrameState.GenerateImage(Metadata, 1, path);
 
                 // SustainValues
                 FrameState = new State()
@@ -87,7 +87,7 @@ namespace Modulartistic.Core
 
                     FrameState[j] = Convert.ToDouble(exp.Evaluate());
                 }
-                FrameState.GenerateImage(Metadata, path);
+                FrameState.GenerateImage(Metadata, 1, path);
             }
         }
 

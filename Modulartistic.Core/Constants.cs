@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Modulartistic.Core
 {
-    internal static class Constants
+    public static class Constants
     {
         // For State
         public const string STATENAME_DEFAULT = "State";   // default for state name
@@ -23,13 +24,31 @@ namespace Modulartistic.Core
         public const double ALPHA_DEFAULT = 1;              // default for alpha
 
         // For StateSequence
-        public const string STATESEQUENCE_NAME_DEFAULT = "Animation";   // default for state name
-        public const string SCENE_NAME_DEFAULT = "Scene";   // default for state scene
+        public const string STATESEQUENCE_NAME_DEFAULT = "animation";   // default for state name
+        public const string SCENE_NAME_DEFAULT = "scene";   // default for state scene
+        
+        // For GenerationData
+        public const string GENERATIONDATA_NAME_DEFAULT = "generation_data";   // default for state scene
 
         // For GenerationArgs
         public const uint FRAMERATE_DEFAULT = 12;                    // default for framerate
         public const bool INVALIDCOLORGLOBAL_DEFAULT = false;        // default invalcolglobal
         public const bool CIRCULAR_DEFAULT = true;                   // default circular
         public const bool USERGB_DEFAULT = false;                    // default usergb
+
+        // Folders configuration -> put this in a config file
+        private static string _output_folder = AppDomain.CurrentDomain.BaseDirectory + "output";
+        private static string _input_folder = AppDomain.CurrentDomain.BaseDirectory + "input";
+        private static string _addon_folder = AppDomain.CurrentDomain.BaseDirectory + "addons";
+        private static string _demo_folder = AppDomain.CurrentDomain.BaseDirectory + "demofiles";
+
+        private static string _ffmpeg_folder = ""; // implement this once config files work
+
+        public static string OUTPUTFOLDER { get => _output_folder; set => _output_folder = value; }
+        public static string INPUTFOLDER { get => _input_folder; set => _input_folder = value; }
+        public static string ADDONFOLDER { get => _addon_folder; set => _addon_folder = value; }
+        public static string DEMOFOLDER { get => _demo_folder; set => _demo_folder = value; }
+        public static string FFMPEGFOLDER { get => _ffmpeg_folder; set => _ffmpeg_folder = value; }
+
     }
 }

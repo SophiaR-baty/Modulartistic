@@ -110,28 +110,7 @@ namespace Modulartistic.Core
         }
         #endregion
 
-        #region Serialize and Deserialize
-        public StateSequence FromJson(string jsonstring)
-        {
-            var options = new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-            };
-            return JsonSerializer.Deserialize<StateSequence>(jsonstring, options);
-        }
-
-        public string ToJson()
-        {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                IgnoreNullValues = true,
-            };
-            return JsonSerializer.Serialize(this, options);
-        }
-        #endregion
-
-        #region gif/frame generation
+        #region (deprecated) gif/frame generation
         /// <summary>
         /// Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state
         /// </summary>
@@ -160,7 +139,7 @@ namespace Modulartistic.Core
             for (int i = 0; i < frames; i++)
             {
                 State frameState = new State(startState, endState, Scenes[idx].Easing, i, frames);
-                frameState.GenerateImage(args, path);
+                frameState.GenerateImage(args, 1, path);
             }
         }
 
@@ -240,9 +219,9 @@ namespace Modulartistic.Core
 
         #endregion
 
-        #region multithreaded gif/frame generation
+        #region (deprecated) multithreaded gif/frame generation
         /// <summary>
-        /// Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state. If max_threads = -1 uses the maximum number
+        /// (deprecated) Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state. If max_threads = -1 uses the maximum number
         /// </summary>
         /// <param name="idx">index of the Scene to generate</param>
         /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
@@ -275,7 +254,7 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Generates an Animation for this StateSequence. If max_threads = -1 uses the maximum number
+        /// (Deprecated, only works on windows) Generates an Animation for this StateSequence. If max_threads = -1 uses the maximum number
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
         /// /// <param name="max_threads">The maximum number of Threads to create. If -1 uses the maximum number</param>
@@ -305,58 +284,13 @@ namespace Modulartistic.Core
         }
         #endregion
         
-        #region methods for mp4 creation
-        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args)
-        {
-            // parses GenerationArgs
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-
-            // loops through the scenes
-            for (int i = 0; i < Count; i++)
-            {
-                Scene current = Scenes[i];
-                Scene next = Scenes[(i + 1) % Scenes.Count];
-
-                // iterate over all Frames and create the corresponding images
-                int frames = (int)(current.Length * framerate);
-                for (int j = 0; j < frames; j++)
-                {
-                    State frameState = new State(current.State, next.State, current.Easing, j, frames);
-
-                    // Get Bitmap Should only take the generation args, and do the rest itself tbh
-                    
-                    yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args));
-                }
-            }
-        }
-
-        public async Task<string> CreateMp4(GenerationArgs args, string path_out)
-        {
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
-
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            // parses GenerationArgs
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args))
-            {
-                FrameRate = framerate, //set source frame rate
-            };
-
-            await FFMpegArguments
-                .FromPipeInput(videoFramesSource)
-                .OutputToFile(path + @".mp4", false, options => options
-                    .WithVideoCodec(VideoCodec.Png))
-                .ProcessAsynchronously();
-
-            return path + @".mp4";
-        }
-        #endregion
-
-        #region multithreaded mp4 creation
+        #region Animation Generation
+        /// <summary>
+        /// Enumerates Frames of this StateSequence as IViedeoframes
+        /// </summary>
+        /// <param name="args">The GenerationArgs. </param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <returns></returns>
         private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args, int max_threads)
         {
             // parses GenerationArgs
@@ -373,37 +307,143 @@ namespace Modulartistic.Core
                 for (int j = 0; j < frames; j++)
                 {
                     State frameState = new State(current.State, next.State, current.Easing, j, frames);
-
-                    // Get Bitmap Should only take the generation args, and do the rest itself tbh
-
-                    yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, max_threads));
+                    if (max_threads == 0 || max_threads == 1) { yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, 1)); }
+                    else { yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, max_threads)); }
                 }
             }
         }
 
-        public async Task<string> CreateMp4(GenerationArgs args, int max_threads, string path_out)
+        /// <summary>
+        /// Create Animation for this StateSequence and Saves it to a mp4 file. 
+        /// </summary>
+        /// <param name="args">The GenerationArgs</param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
+        /// <returns></returns>
+        /// <exception cref="Exception">If generation fails</exception>
+        private async Task CreateMp4(GenerationArgs args, int max_threads, string absolute_out_filepath)
         {
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (Name == "" ? "Animation" : Name);
-
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            // parses GenerationArgs
+            // parsing framerate and setting piping source
             uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
             {
-                FrameRate = framerate, //set source frame rate
+                FrameRate = framerate, // set source frame rate
             };
 
-            await FFMpegArguments
-                .FromPipeInput(videoFramesSource)
-                .OutputToFile(path + @".mp4", false, options => options
-                    .WithVideoCodec(VideoCodec.Png))
-                .ProcessAsynchronously();
+            // parsing size
+            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
 
-            return path + @".mp4";
+            // generate the mp4 file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
+                    .WithVideoCodec(VideoCodec.LibX265)
+                    .WithVideoBitrate(16000) // find a balance between quality and file size
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
+        }
+
+
+        /// <summary>
+        /// Create Animation for this StateSequence and Saves it to a gif file. 
+        /// </summary>
+        /// <param name="args">The GenerationArgs</param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
+        /// <returns></returns>
+        /// <exception cref="Exception">If generation fails</exception>
+        private async Task CreateGif(GenerationArgs args, int max_threads, string absolute_out_filepath)
+        {
+            // parsing framerate and setting piping source
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // parsing size
+            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+
+            // generate the gif file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(absolute_out_filepath + @".gif", false, options => options
+                    .WithGifPaletteArgument(0, size, (int)framerate)
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
+
+
+        }
+
+        /// <summary>
+        /// Generates Animation for this StateSequence and Saves it to a file. 
+        /// </summary>
+        /// <param name="args">The GenerationArgs</param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="type">The file type to be saved (mp4 or gif) </param>
+        /// <param name="keepframes">Whether to keep single frames. Otherwise only the animation is saved. Not implemented yet -> must be false. </param>
+        /// <param name="out_dir">Absolute path of a directory where to save the generated file. If this is an empty string the default output is used. </param>
+        /// <returns>The absolute path of the generated file. </returns>
+        /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
+        public async Task<string> GenerateAnimation(GenerationArgs args, int max_threads, AnimationType type, bool keepframes, string out_dir)
+        {
+            // If out-dir is empty set to default, then check if it exists
+            out_dir = out_dir == "" ? Constants.OUTPUTFOLDER : out_dir;
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.ValidFileName(file_path_out);
+            
+            // parse framerate from GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            
+            switch (type)
+            {
+                case AnimationType.None:
+                    {
+                        throw new Exception("No AnimationType was specified. ");
+                    }
+                case AnimationType.Gif:
+                    {
+                        if (keepframes) { throw new NotImplementedException("Keeping frames is not supported yet. "); }
+                        else
+                        {
+                            await CreateGif(args, max_threads, file_path_out);
+                        }
+                        return file_path_out + @".gif";
+                    }
+                case AnimationType.Mp4:
+                    {
+                        if (keepframes) { throw new NotImplementedException("Keeping frames is not supported yet. "); }
+                        else
+                        {
+                            await CreateMp4(args, max_threads, file_path_out);
+                        }
+                        return file_path_out + @".mp4";
+                    }
+                default:
+                    {
+                        throw new Exception("Unrecognized AnimationType");
+                    }
+            }
         }
         #endregion
 

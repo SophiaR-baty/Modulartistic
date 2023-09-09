@@ -64,6 +64,11 @@ namespace Modulartistic.Core
         #endregion
 
         #region Json Serialization Methods
+        
+        /// <summary>
+        /// Serializes the GenerationData object to json
+        /// </summary>
+        /// <returns> the seriealized object as string </returns>
         public string ToJson()
         {
             var options = new JsonSerializerOptions
@@ -76,25 +81,34 @@ namespace Modulartistic.Core
                 },
             };
             return JsonSerializer.Serialize(data, options);
-            // return Newtonsoft.Json.JsonConvert.SerializeObject(this.data, Newtonsoft.Json.Formatting.Indented);
         }
 
-        public void SaveJson(string path_out = "")
+        /// <summary>
+        /// Saves the GenerationData as a json file
+        /// </summary>
+        /// <param name="out_dir"></param>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        public void SaveJson(string out_dir = "")
         {
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "demofiles" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (Name == "" ? "State" : Name);
+            // If out-dir is empty set to default, then check if it exists
+            out_dir = out_dir == "" ? Constants.DEMOFOLDER : out_dir;
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
-            // Edit the filename so that it's unique
-            path = Helper.ValidFileName(path);
-            path += ".json";
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.GENERATIONDATA_NAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.ValidFileName(file_path_out);
 
-            if (File.Exists(path)) { File.Delete(path); }
-
-            File.WriteAllText(path, ToJson());
+            // Write contents and Save the file
+            File.WriteAllText(file_path_out + @".json", ToJson());
         }
 
+        /// <summary>
+        /// Load GenerationData from a json file
+        /// </summary>
+        /// <param name="file_name">the absolute path of the file</param>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="Exception"></exception>
         public void LoadJson(string file_name)
         {
             if (!File.Exists(file_name))
@@ -182,6 +196,7 @@ namespace Modulartistic.Core
             bool Debug = (flags & GenerationDataFlags.Debug) == GenerationDataFlags.Debug;
             bool Faster = (flags & GenerationDataFlags.Faster) == GenerationDataFlags.Faster;
             bool MP4 = (flags & GenerationDataFlags.MP4) == GenerationDataFlags.MP4;
+            bool KeepFrames = (flags & GenerationDataFlags.KeepFrames) == GenerationDataFlags.KeepFrames;
 
             // set initial GenerationArgs
             GenerationArgs currentArgs = new GenerationArgs();
@@ -212,32 +227,50 @@ namespace Modulartistic.Core
                 {
                     State S = obj as State;
 
-                    // print Debug Information Pre Generating
+                    // print Debug Information Pre-Generating
                     if (Debug)
                     {
                         Console.WriteLine("Generating Image for State: ");
                         Console.WriteLine(S.GetDebugInfo());
-
                         Console.WriteLine();
                     }
 
                     // generate Image, if Faster Flag use Multithreaded
-                    string filename;
-                    if (Faster) { filename = S.GenerateImage(currentArgs, -1, path_out); }
-                    else { filename = S.GenerateImage(currentArgs, path_out); }
+                    int max_threads = Faster ? -1 : 1;
 
-                    // print Debug Information Post Generating
-                    if (Debug)
+                    // Generate the Image
+                    try 
                     {
-                        Console.WriteLine($"Done Generating \"{filename}\"\n");
+                        string filename = S.GenerateImage(currentArgs, max_threads, path_out);
+                        
+                        // print Debug Information Post Generating
+                        if (Debug)
+                        {
+                            Console.WriteLine($"Done Generating \"{filename}\"\n");
+                        }
+
+                        // if Show Flag, show Image
+                        if (Show)
+                        {
+                            var p = new Process();
+                            p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
+                            p.Start();
+                        }
                     }
-
-                    // if Show Flag, show Image
-                    if (Show)
+                    catch (Exception e)
                     {
-                        var p = new Process();
-                        p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
-                        p.Start();
+                        Console.WriteLine($"Error Generating \"{S.Name}\"\n");
+                        if (Debug)
+                        {
+                            Console.Error.WriteLine(e.StackTrace);
+                            Exception ex = e;
+                            while (ex != null)
+                            {
+                                Console.Error.WriteLine(e.Message);
+                                e = e.InnerException;
+                            }
+                            continue;
+                        }
                     }
                 }
 
@@ -249,40 +282,50 @@ namespace Modulartistic.Core
                     // print Debug Information Pre Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Generating Image for StateSequence: ");
+                        Console.WriteLine("Generating Animation for StateSequence: ");
                         Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
 
                         Console.WriteLine();
                     }
 
-                    // generate Animation, if Faster Flag use Multithreaded if MP4 flag use mp4
-                    string filename;
-                    if (Faster) 
-                    { 
-                        filename = MP4 ? 
-                            await SS.CreateMp4(currentArgs, -1, path_out) : 
-                            SS.GenerateAnimation(currentArgs, -1, path_out); 
-                    }
-                    else
-                    { 
-                        filename = MP4 ?
-                            await SS.CreateMp4(currentArgs, path_out) : 
-                            SS.GenerateAnimation(currentArgs, path_out); 
-                    }
-
-                    //print Debug Information Post Generating
-                    if (Debug)
+                    AnimationType type = MP4 ? AnimationType.Mp4 : AnimationType.Gif;
+                    int max_threads = Faster ? -1 : 1;
+                    
+                    // generate Animation
+                    try
                     {
-                        Console.WriteLine($"Done Generating \"{filename}\"\n");
-                    }
+                        string filename = await SS.GenerateAnimation(currentArgs, max_threads, type, KeepFrames, path_out);
+                        //print Debug Information Post Generating
+                        if (Debug)
+                        {
+                            Console.WriteLine($"Done Generating \"{filename}\"\n");
+                        }
 
-                    // if Show Flag, show Image
-                    if (Show)
-                    {
-                        var p = new Process();
-                        p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
-                        p.Start();
+                        // if Show Flag, show Image
+                        if (Show)
+                        {
+                            var p = new Process();
+                            p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
+                            p.Start();
+                        }
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error Generating \"{SS.Name}\"\n");
+                        if (Debug)
+                        {
+                            Console.Error.WriteLine(e.StackTrace);
+                            Exception ex = e;
+                            while (ex != null)
+                            {
+                                Console.Error.WriteLine(e.Message);
+                                e = e.InnerException;
+                            }
+                            continue;
+                        }
+                    }
+                    
+                    
                 }
                 else if (obj.GetType() == typeof(StateTimeline))
                 {
@@ -321,5 +364,6 @@ namespace Modulartistic.Core
         Debug = 0b_0000_0010,
         Faster = 0b_0000_0100,
         MP4 = 0b_0000_1000,
+        KeepFrames = 0b_0001_0000,
     }
 }

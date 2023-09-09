@@ -30,7 +30,7 @@ namespace Modulartistic
             show = false;
             debug = false;
             filenames_json = new List<string>();
-            output_dir = "output";
+            output_dir = Constants.OUTPUTFOLDER;
 
             error_code = 0;
         }
@@ -52,7 +52,7 @@ namespace Modulartistic
                 string demofolder = AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "demofiles";
                 filenames_json.AddRange(Directory.GetFiles(demofolder));
 
-                Console.WriteLine("Generating images and animations for demofiles. ");
+                Console.WriteLine("Generating Images and Animations for demofiles. ");
             }
 
             foreach (string filename in filenames_json)
