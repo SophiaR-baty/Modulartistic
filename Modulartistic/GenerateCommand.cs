@@ -41,9 +41,9 @@ namespace Modulartistic
 
             GenerationDataFlags flags = GenerationDataFlags.None;
             if (show) { flags |= GenerationDataFlags.Show; }
-            else if (debug) { flags |= GenerationDataFlags.Debug; }
-            else if (faster) { flags |= GenerationDataFlags.Faster; }
-            else if (mp4) { flags |= GenerationDataFlags.MP4; }
+            if (debug) { flags |= GenerationDataFlags.Debug; }
+            if (faster) { flags |= GenerationDataFlags.Faster; }
+            if (mp4) { flags |= GenerationDataFlags.MP4; }
 
             if (filenames_json.Count == 0)
             {
