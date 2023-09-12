@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CyclesFunctions\CyclesFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
+    <ProjectReference Include="..\Modulartistic.AddOns\MusicVisualizingFunctions\MusicVisualizingFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
     <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
   </ItemGroup>

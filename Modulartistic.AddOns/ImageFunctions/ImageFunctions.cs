@@ -19,7 +19,7 @@ namespace ImageFunctions
         private static ConcurrentDictionary<string, double[,]> img_grad_y_cache;
         #endregion
 
-        #region Function for usage in Function parser
+        #region Functions for usage in Function parser
         public static double ImageHue(double x, double y, string abs_path_to_file)
         {
             if (!initialized) { Initialize(); }

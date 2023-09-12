@@ -25,14 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\ImageFunctions\ImageFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
-    <ProjectReference Include="..\Modulartistic.AddOns\MusicVisualizingFunctions\MusicVisualizingFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="md $(OutDir)\Output&#xD;&#xA;md $(OutDir)\addons&#xD;&#xA;md $(OutDir)\demofiles&#xD;&#xA;&#xD;&#xA;xcopy /s /e /y $(SolutionDir)\demofiles $(OutDir)\demofiles&#xD;&#xA;copy /y $(OutDir)\MathFunctions.dll $(OutDir)\addons&#xD;&#xA;copy /y $(OutDir)\ImageFunctions.dll $(OutDir)\addons" />
-  </Target>
 
 </Project>
