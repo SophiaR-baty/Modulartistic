@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
+    <ProjectReference Include="..\..\Modulartistic.Core\Modulartistic.Core.csproj" />
   </ItemGroup>
 
 </Project>

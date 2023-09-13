@@ -384,6 +384,51 @@ namespace Modulartistic.Core
             bool circ = args.Circular.GetValueOrDefault(Constants.CIRCULAR_DEFAULT);
             bool useRGB = args.UseRGB.GetValueOrDefault(Constants.USERGB_DEFAULT);
 
+            // setting and validating State Properties
+            double mod = Mod.GetValueOrDefault(Constants.NUM_DEFAULT);
+            if (mod <= 0) { mod = double.Epsilon; }
+
+            double xfact = XFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
+            double yfact = YFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
+
+            double xrotc = XRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
+            double yrotc = YRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
+
+            // calculate the rotation in radiants and its cos and sin
+            double rotrad = 2 * Math.PI * Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT) / 360;
+            double sinrot = Math.Sin(rotrad);
+            double cosrot = Math.Cos(rotrad);
+
+            double x0 = X0.GetValueOrDefault(Constants.XY0_DEFAULT);
+            double y0 = Y0.GetValueOrDefault(Constants.XY0_DEFAULT);
+
+            double modliml = ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT);
+            double modlimu = ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT);
+            double lowBound = Helper.inclusiveMod(modliml, Mod.GetValueOrDefault(mod));
+            double upBound = Helper.inclusiveMod(modlimu, Mod.GetValueOrDefault(mod));
+
+            double colr = ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colg = ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colb = ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colh = ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double cols = ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colv = ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double cola = ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT);
+
+            double inv_colr = InvalidColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colg = InvalidColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colb = InvalidColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colh = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_cols = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colv = InvalidColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_cola = InvalidColorAlpha.GetValueOrDefault(Constants.COLOR_DEFAULT);
+
+            double colfactr = ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+            double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+            double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+
+
+
             // instanciate the functions
             Function? HueFunc = null;
             Function? SatFunc = null;
@@ -450,20 +495,19 @@ namespace Modulartistic.Core
                 {
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
-                    double x_1 = XFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT) * x + XRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-                    double y_1 = YFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT) * y + YRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-                    // calculate the rotation in radiants
-                    double rotrad = 2 * Math.PI * Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT) / 360;
-                    double x_ = x_1 * Math.Cos(rotrad) - y_1 * Math.Sin(rotrad)  // Apply rotation
-                        + X0.GetValueOrDefault(Constants.XY0_DEFAULT)                      // Shift X0 to Origin
-                        - size.Width / 2;                                        // Shift Origin to middle of screen
-                    
-                    double y_ = x_1 * Math.Sin(rotrad) + y_1 * Math.Cos(rotrad)  // Apply rotation
-                        + Y0.GetValueOrDefault(Constants.XY0_DEFAULT)                      // Shift Y0 to Origin
-                        - size.Height / 2;                                       // Shift Origin to middle of Screen
+                    double x_1 = -x - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
+                    double y_1 = -y - yrotc;
+                    double x_ = x_1*cosrot - y_1*sinrot           // Apply rotation
+                        - (x0-xrotc)*cosrot + (y0-yrotc)*sinrot;      // Shift Origin to middle of screen
+                    double y_ = x_1*sinrot + y_1*cosrot           // Apply rotation
+                        - (x0-xrotc)*sinrot - (y0-yrotc)*cosrot;      // Shift Origin to middle of Screen
+                    // scale everything
+                    x_ *= xfact;
+                    y_ *= yfact;
+                    // put origin in middle
+                    x_ -= size.Width / 2.0;
+                    y_ -= size.Height / 2.0;
 
-                    // Validating Mod by making it double.Epsilon if it's less or equal to 0
-                    if (Mod <= 0) { Mod = double.Epsilon; }
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
@@ -471,69 +515,37 @@ namespace Modulartistic.Core
                         pixel_b_v = 0,    // blue or value
                         pixel_alp = 0;    // alpha
 
-                    // this whole section feels like terrible bad practice
-                    bool all_inval = invalGlobal;
-                    do
+                    void calculatePixelValue(Function? func, out double pixel_val)
                     {
-                        // just a container variable
                         double n;
-                        
-                        // the try catches possible Errors and sets the value
-                        
-                        // Red or Hue
-                        try
+                        if (func == null) { pixel_val = 0; }
+                        else
                         {
-                            if ((useRGB ? RedFunc : HueFunc) == null) { pixel_r_h = 0; }
-                            else
-                            {
-                                n = (useRGB ? RedFunc : HueFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_r_h = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
+                            // not trying to catch exceptions here anymore! 
+                            // if there is an exception, it has to do with the function and/or addons
+                            // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
+                            n = func.Evaluate(x_, y_, Parameters, mod);
+                            pixel_val = n.IsFinite() ? Helper.mod(n, mod) : -1;
                         }
-                        catch (Exception) { pixel_r_h = -1; }
-                        if (all_inval && (pixel_r_h == -1)) { break; }
+                    }
 
-                        // Green or Saturation
-                        try
-                        {
-                            if ((useRGB ? GreFunc : SatFunc) == null) { pixel_g_s = 0; }
-                            else
-                            {
-                                n = (useRGB ? GreFunc : SatFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_g_s = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
-                        }
-                        catch (Exception) { pixel_g_s = -1; }
-                        if (all_inval && (pixel_g_s == -1)) { break; }
-
-                        // Blue or Value
-                        try
-                        {
-                            if ((useRGB ? BluFunc : ValFunc) == null) { pixel_b_v = 0; }
-                            else
-                            {
-                                n = (useRGB ? BluFunc : ValFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_b_v = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
-                        }
-                        catch (Exception) { pixel_b_v = -1; }
-                        if (all_inval && (pixel_b_v == -1)) { break; }
-
-                        // Alpha
-                        try
-                        {
-                            if (AlpFunc == null) { pixel_alp = 0; }
-                            else
-                            {
-                                n = AlpFunc.Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_alp = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
-                            
-                        }
-                        catch (Exception) { pixel_alp = -1; }
-                        if (all_inval &= (pixel_alp == -1)) { break; }
-                    } while (false);
-
+                    // calculate color values
+                    bool all_inval = invalGlobal;
+                    // Yes, using gotos now (instead of do{}while(false)),
+                    // I think its more readable and shouldn't come with any risks
+                    calculatePixelValue(useRGB ? RedFunc : HueFunc, out pixel_r_h);
+                    if (all_inval && (pixel_r_h == -1)) { goto FinishCalculation; }
+                    calculatePixelValue(useRGB ? GreFunc : SatFunc, out pixel_g_s);
+                    if (all_inval && (pixel_g_s == -1)) { goto FinishCalculation; }
+                    calculatePixelValue(useRGB ? BluFunc : ValFunc, out pixel_b_v);
+                    if (all_inval && (pixel_b_v == -1)) { goto FinishCalculation; }
+                    calculatePixelValue(AlpFunc, out pixel_alp);
+                    if (all_inval &= (pixel_alp == -1)) { goto FinishCalculation; }
+                
+                FinishCalculation:
+                    
+                    // if bounds are equal, all colors are invalid
+                    all_inval |= lowBound == upBound;
                     // if all inval is true set all values to -1
                     if (all_inval)
                     {
@@ -542,26 +554,13 @@ namespace Modulartistic.Core
                         pixel_b_v = -1;
                         pixel_alp = -1;
                     }
-                    
+                    // Setting Pixel to -1 if out of lower and upper bounds
                     // Only check for lower and upper bounds if... 
-                    if (!all_inval && !(ModLimLow == 0 && ModLimUp == Mod))
+                    if (!all_inval && !(modliml == 0 && modlimu == Mod))
                     {
-                        // Setting Pixel to -1 if out of lower and upper bounds
-                        double lowBound = Helper.inclusiveMod(ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT), Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                        double upBound = Helper.inclusiveMod(ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT), Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-
-                        // If Bounds are equal, the pixel is automatically invalid
-                        if (lowBound == upBound)
-                        {
-                            pixel_r_h = -1;
-                            pixel_g_s = -1;
-                            pixel_b_v = -1;
-                            pixel_alp = -1;
-                        }
-
                         // if the lower bound is less than the upper bound,
                         // pixel is invalid if its value is not between the bound
-                        else if (lowBound < upBound)
+                        if (lowBound < upBound)
                         {
                             if (!(pixel_r_h >= lowBound && pixel_r_h <= upBound)) { pixel_r_h = -1; }
                             if (!(pixel_g_s >= lowBound && pixel_g_s <= upBound)) { pixel_g_s = -1; }
@@ -579,47 +578,48 @@ namespace Modulartistic.Core
                         }
                     }
                     
+
                     // Setting col to inval col if pixel == -1
                     Color color;
                     if (useRGB)
                     {
                         int a, r, g, b;
-                        if (pixel_alp == -1) { a = (int)(255 * InvalidColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT)); }
+                        if (pixel_alp == -1) { a = (int)(255 * inv_cola); }
                         else
                         {
                             a = (int)(circ ?
-                            Helper.circ(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(cola + pixel_alp / mod, 1) * 255 :
+                            Helper.inclusiveMod(cola + pixel_alp / mod, 1) * 255);
                         }
 
-                        if (pixel_r_h == -1) { r = (int)(255 * InvalidColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT)); }
+                        if (pixel_r_h == -1) { r = (int)(255 * inv_colr); }
                         else
                         {
                             r = (int)(circ ?
-                            Helper.circ(ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(colr + pixel_r_h / mod, 1) * 255 :
+                            Helper.inclusiveMod(colr + pixel_r_h / mod, 1) * 255);
                         }
 
-                        if (pixel_g_s == -1) { g = (int)(255 * InvalidColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT)); }
+                        if (pixel_g_s == -1) { g = (int)(255 * inv_colg); }
                         else
                         {
                             g = (int)(circ ?
-                            Helper.circ(ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(colg + pixel_g_s / mod, 1) * 255 :
+                            Helper.inclusiveMod(colg + pixel_g_s / mod, 1) * 255);
                         }
                         
-                        if (pixel_b_v == -1) { b = (int)(255 * InvalidColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT)); }
+                        if (pixel_b_v == -1) { b = (int)(255 * inv_colb); }
                         else
                         {
                             b = (int)(circ ?
-                            Helper.circ(ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(colb + pixel_b_v / mod, 1) * 255 :
+                            Helper.inclusiveMod(colb + pixel_b_v / mod, 1) * 255);
                         }
                         
                         // Apply the Color factors
-                        r = (int)(r * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        g = (int)(g * ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        b = (int)(b * ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
+                        r = (int)(r * colfactr);
+                        g = (int)(g * colfactg);
+                        b = (int)(b * colfactb);
 
                         // Validate the Colors (range 0-255)
                         if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
@@ -631,52 +631,48 @@ namespace Modulartistic.Core
                     else
                     {
                         double a, h, s, v;
-                        if (pixel_alp == -1) { a = InvalidColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT); }
+                        if (pixel_alp == -1) { a = inv_cola; }
                         else
                         {
                             a = circ ?
-                            Helper.circ(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) :
-                            Helper.inclusiveMod(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
+                            Helper.circ(cola + pixel_alp / mod, 1) :
+                            Helper.inclusiveMod(cola + pixel_alp / mod, 1);
                         }
 
-                        if (pixel_r_h == -1) {
-                            h = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT); 
-                        }
+                        if (pixel_r_h == -1) { h = inv_colh; }
                         else
                         {
                             // this used inclusive mod before, which caused problems with animations. In case that happens in any other sections refer to this comment :)
-                            h = Helper.mod(ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT) / 360 + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 360;
+                            h = Helper.mod(colh / 360 + pixel_r_h / mod, 1) * 360;
                         }
 
-                        if (pixel_g_s == -1) { s = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT); }
+                        if (pixel_g_s == -1) { s = inv_cols; }
                         else
                         {
                             s = circ ?
-                            Helper.circ(ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) :
-                            Helper.inclusiveMod(ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
+                            Helper.circ(cols + pixel_g_s / mod, 1) :
+                            Helper.inclusiveMod(cols + pixel_g_s / mod, 1);
                         }
 
-                        if (pixel_b_v == -1) { v = InvalidColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT); }
+                        if (pixel_b_v == -1) { v = inv_colv; }
                         else
                         {
                             v = circ ?
-                            Helper.circ(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) :
-                            Helper.inclusiveMod(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
+                            Helper.circ(colv + pixel_b_v / mod, 1) :
+                            Helper.inclusiveMod(colv + pixel_b_v / mod, 1);
                         }
 
                         color = Color.FromHSV((float)h, (float)s, (float)v);
                         int r, g, b;
                         // Apply the Color factors
-                        r = (int)(color.R * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        g = (int)(color.G * ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        b = (int)(color.B * ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
+                        r = (int)(color.R * colfactr);
+                        g = (int)(color.G * colfactg);
+                        b = (int)(color.B * colfactb);
 
                         // Validate the Colors (range 0-255)
                         if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
                         if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
                         if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
-
-                        // Console.WriteLine(r.ToString() + " " + g.ToString() + " " + b.ToString());
 
                         // Update Color
                         color = new Color(r, g, b, (int)(255 * a));
@@ -705,7 +701,52 @@ namespace Modulartistic.Core
             bool circ = args.Circular.GetValueOrDefault(Constants.CIRCULAR_DEFAULT);
             bool useRGB = args.UseRGB.GetValueOrDefault(Constants.USERGB_DEFAULT);
 
+            // setting and validating State Properties
+            double mod = Mod.GetValueOrDefault(Constants.NUM_DEFAULT);
+            if (mod <= 0) { mod = double.Epsilon; }
 
+            double xfact = XFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
+            double yfact = YFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
+
+            double xrotc = XRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
+            double yrotc = YRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
+
+            // calculate the rotation in radiants and its cos and sin
+            double rotrad = 2 * Math.PI * Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT) / 360;
+            double sinrot = Math.Sin(rotrad);
+            double cosrot = Math.Cos(rotrad);
+
+            double x0 = X0.GetValueOrDefault(Constants.XY0_DEFAULT);
+            double y0 = Y0.GetValueOrDefault(Constants.XY0_DEFAULT);
+
+            double modliml = ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT);
+            double modlimu = ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT);
+            double lowBound = Helper.inclusiveMod(modliml, Mod.GetValueOrDefault(mod));
+            double upBound = Helper.inclusiveMod(modlimu, Mod.GetValueOrDefault(mod));
+
+            double colr = ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colg = ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colb = ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colh = ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double cols = ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double colv = ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double cola = ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT);
+
+            double inv_colr = InvalidColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colg = InvalidColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colb = InvalidColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colh = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_cols = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colv = InvalidColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_cola = InvalidColorAlpha.GetValueOrDefault(Constants.COLOR_DEFAULT);
+
+            double colfactr = ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+            double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+            double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+
+
+
+            // instanciate the functions
             Function? HueFunc = null;
             Function? SatFunc = null;
             Function? ValFunc = null;
@@ -716,6 +757,7 @@ namespace Modulartistic.Core
 
             Function? AlpFunc = null;
 
+            // parse the functions
             if (useRGB)
             {
                 if (!string.IsNullOrEmpty(args.RedFunction))
@@ -754,7 +796,6 @@ namespace Modulartistic.Core
                     if (args.AddOns != null) ValFunc.LoadAddOns(args.AddOns.ToArray());
                 }
             }
-
             if (!string.IsNullOrEmpty(args.AlphaFunction))
             {
                 AlpFunc = new Function(args.AlphaFunction);
@@ -765,9 +806,9 @@ namespace Modulartistic.Core
             int partial_width = size.Width / max;
             int first_px = idx * partial_width;
             if (idx == max - 1) { partial_width = size.Width - first_px; }
-            
-            // setting the Bitmap
-            image = new Bitmap(partial_width, size.Height);
+
+            // Create instance of Bitmap for pixel data
+            image = new Bitmap((int)size.Width, (int)size.Height);
 
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
@@ -776,20 +817,19 @@ namespace Modulartistic.Core
                 {
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
-                    double x_1 = XFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT) * (x + first_px) + XRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-                    double y_1 = YFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT) * y + YRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-                    // calculate the rotation in radiants
-                    double rotrad = 2 * Math.PI * Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT) / 360;
-                    double x_ = x_1 * Math.Cos(rotrad) - y_1 * Math.Sin(rotrad)  // Apply rotation
-                        + X0.GetValueOrDefault(Constants.XY0_DEFAULT)                      // Shift X0 to Origin
-                        - size.Width / 2;                                        // Shift Origin to middle of screen
+                    double x_1 = -x - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
+                    double y_1 = -y - yrotc;
+                    double x_ = x_1 * cosrot - y_1 * sinrot           // Apply rotation
+                        - (x0 - xrotc) * cosrot + (y0 - yrotc) * sinrot;      // Shift Origin to middle of screen
+                    double y_ = x_1 * sinrot + y_1 * cosrot           // Apply rotation
+                        - (x0 - xrotc) * sinrot - (y0 - yrotc) * cosrot;      // Shift Origin to middle of Screen
+                    // scale everything
+                    x_ *= xfact;
+                    y_ *= yfact;
+                    // put origin in middle
+                    x_ -= size.Width / 2.0;
+                    y_ -= size.Height / 2.0;
 
-                    double y_ = x_1 * Math.Sin(rotrad) + y_1 * Math.Cos(rotrad)  // Apply rotation
-                        + Y0.GetValueOrDefault(Constants.XY0_DEFAULT)                      // Shift Y0 to Origin
-                        - size.Height / 2;                                       // Shift Origin to middle of Screen
-
-                    // Validating Mod by making it double.Epsilon if it's less or equal to 0
-                    if (Mod <= 0) { Mod = double.Epsilon; }
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
@@ -797,68 +837,37 @@ namespace Modulartistic.Core
                         pixel_b_v = 0,    // blue or value
                         pixel_alp = 0;    // alpha
 
-                    // this whole section feels like terrible bad practice
-                    bool all_inval = invalGlobal;
-                    do
+                    void calculatePixelValue(Function? func, out double pixel_val)
                     {
-                        // just a container variable
                         double n;
-
-                        // the try catches possible Errors and sets the value
-
-                        // Red or Hue
-                        try
+                        if (func == null) { pixel_val = 0; }
+                        else
                         {
-                            if ((useRGB ? RedFunc : HueFunc) == null) { pixel_r_h = 0; }
-                            else
-                            {
-                                n = (useRGB ? RedFunc : HueFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_r_h = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
+                            // not trying to catch exceptions here anymore! 
+                            // if there is an exception, it has to do with the function and/or addons
+                            // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
+                            n = func.Evaluate(x_, y_, Parameters, mod);
+                            pixel_val = n.IsFinite() ? Helper.mod(n, mod) : -1;
                         }
-                        catch (Exception) { pixel_r_h = -1; }
-                        if (all_inval && (pixel_r_h == -1)) { break; }
+                    }
 
-                        // Green or Saturation
-                        try
-                        {
-                            if ((useRGB ? GreFunc : SatFunc) == null) { pixel_g_s = 0; }
-                            else
-                            {
-                                n = (useRGB ? GreFunc : SatFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_g_s = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
-                        }
-                        catch (Exception) { pixel_g_s = -1; }
-                        if (all_inval && (pixel_g_s == -1)) { break; }
+                    // calculate color values
+                    bool all_inval = invalGlobal;
+                    // Yes, using gotos now (instead of do{}while(false)),
+                    // I think its more readable and shouldn't come with any risks
+                    calculatePixelValue(useRGB ? RedFunc : HueFunc, out pixel_r_h);
+                    if (all_inval && (pixel_r_h == -1)) { goto FinishCalculation; }
+                    calculatePixelValue(useRGB ? GreFunc : SatFunc, out pixel_g_s);
+                    if (all_inval && (pixel_g_s == -1)) { goto FinishCalculation; }
+                    calculatePixelValue(useRGB ? BluFunc : ValFunc, out pixel_b_v);
+                    if (all_inval && (pixel_b_v == -1)) { goto FinishCalculation; }
+                    calculatePixelValue(AlpFunc, out pixel_alp);
+                    if (all_inval &= (pixel_alp == -1)) { goto FinishCalculation; }
 
-                        // Blue or Value
-                        try
-                        {
-                            if ((useRGB ? BluFunc : ValFunc) == null) { pixel_b_v = 0; }
-                            else
-                            {
-                                n = (useRGB ? BluFunc : ValFunc).Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_b_v = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
-                        }
-                        catch (Exception) { pixel_b_v = -1; }
-                        if (all_inval && (pixel_b_v == -1)) { break; }
+                FinishCalculation:
 
-                        // Alpha
-                        try
-                        {
-                            if (AlpFunc == null) { pixel_alp = 0; }
-                            else
-                            {
-                                n = AlpFunc.Evaluate(x_, y_, Parameters, Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                                pixel_alp = n.IsFinite() ? Helper.mod(n, Mod.GetValueOrDefault(Constants.NUM_DEFAULT)) : -1;
-                            }
-                        }
-                        catch (Exception) { pixel_alp = -1; }
-                        if (all_inval &= (pixel_alp == -1)) { break; }
-                    } while (false);
-
+                    // if bounds are equal, all colors are invalid
+                    all_inval |= lowBound == upBound;
                     // if all inval is true set all values to -1
                     if (all_inval)
                     {
@@ -867,24 +876,10 @@ namespace Modulartistic.Core
                         pixel_b_v = -1;
                         pixel_alp = -1;
                     }
-
-
+                    // Setting Pixel to -1 if out of lower and upper bounds
                     // Only check for lower and upper bounds if... 
-                    if (!all_inval && !(ModLimLow == 0 && ModLimUp == Mod))
+                    if (!all_inval && !(modliml == 0 && modlimu == Mod))
                     {
-                        // Setting Pixel to -1 if out of lower and upper bounds
-                        double lowBound = Helper.inclusiveMod(ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT), Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-                        double upBound = Helper.inclusiveMod(ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT), Mod.GetValueOrDefault(Constants.NUM_DEFAULT));
-
-                        // If Bounds are equal, the pixel is automatically invalid
-                        if (lowBound == upBound)
-                        {
-                            pixel_r_h = -1;
-                            pixel_g_s = -1;
-                            pixel_b_v = -1;
-                            pixel_alp = -1;
-                        }
-
                         // if the lower bound is less than the upper bound,
                         // pixel is invalid if its value is not between the bound
                         if (lowBound < upBound)
@@ -905,94 +900,96 @@ namespace Modulartistic.Core
                         }
                     }
 
+
                     // Setting col to inval col if pixel == -1
                     Color color;
                     if (useRGB)
                     {
                         int a, r, g, b;
-                        if (pixel_alp == -1) { a = (int)(255 * InvalidColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT)); }
+                        if (pixel_alp == -1) { a = (int)(255 * inv_cola); }
                         else
                         {
                             a = (int)(circ ?
-                            Helper.circ(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(cola + pixel_alp / mod, 1) * 255 :
+                            Helper.inclusiveMod(cola + pixel_alp / mod, 1) * 255);
                         }
 
-                        if (pixel_r_h == -1) { r = (int)(255 * InvalidColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT)); }
+                        if (pixel_r_h == -1) { r = (int)(255 * inv_colr); }
                         else
                         {
                             r = (int)(circ ?
-                            Helper.circ(ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(colr + pixel_r_h / mod, 1) * 255 :
+                            Helper.inclusiveMod(colr + pixel_r_h / mod, 1) * 255);
                         }
 
-                        if (pixel_g_s == -1) { g = (int)(255 * InvalidColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT)); }
+                        if (pixel_g_s == -1) { g = (int)(255 * inv_colg); }
                         else
                         {
                             g = (int)(circ ?
-                            Helper.circ(ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(colg + pixel_g_s / mod, 1) * 255 :
+                            Helper.inclusiveMod(colg + pixel_g_s / mod, 1) * 255);
                         }
 
-                        if (pixel_b_v == -1) { b = (int)(255 * InvalidColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT)); }
+                        if (pixel_b_v == -1) { b = (int)(255 * inv_colb); }
                         else
                         {
                             b = (int)(circ ?
-                            Helper.circ(ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255 :
-                            Helper.inclusiveMod(ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 255);
+                            Helper.circ(colb + pixel_b_v / mod, 1) * 255 :
+                            Helper.inclusiveMod(colb + pixel_b_v / mod, 1) * 255);
                         }
 
                         // Apply the Color factors
-                        r = (int)(r * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        g = (int)(g * ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        b = (int)(b * ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
+                        r = (int)(r * colfactr);
+                        g = (int)(g * colfactg);
+                        b = (int)(b * colfactb);
 
                         // Validate the Colors (range 0-255)
                         if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
                         if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
                         if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
 
-                        color = Color.FromArgb(a, r, g, b);
+                        color = new Color(r, g, b, a);
                     }
                     else
                     {
                         double a, h, s, v;
-                        if (pixel_alp == -1) { a = InvalidColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT); }
+                        if (pixel_alp == -1) { a = inv_cola; }
                         else
                         {
                             a = circ ?
-                            Helper.circ(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) :
-                            Helper.inclusiveMod(ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT) + pixel_alp / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
+                            Helper.circ(cola + pixel_alp / mod, 1) :
+                            Helper.inclusiveMod(cola + pixel_alp / mod, 1);
                         }
 
-                        if (pixel_r_h == -1) { h = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT); }
+                        if (pixel_r_h == -1) { h = inv_colh; }
                         else
                         {
-                            h = Helper.mod(ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT) / 360 + pixel_r_h / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) * 360;
+                            // this used inclusive mod before, which caused problems with animations. In case that happens in any other sections refer to this comment :)
+                            h = Helper.mod(colh / 360 + pixel_r_h / mod, 1) * 360;
                         }
 
-                        if (pixel_g_s == -1) { s = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT); }
+                        if (pixel_g_s == -1) { s = inv_cols; }
                         else
                         {
                             s = circ ?
-                            Helper.circ(ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) :
-                            Helper.inclusiveMod(ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_g_s / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
+                            Helper.circ(cols + pixel_g_s / mod, 1) :
+                            Helper.inclusiveMod(cols + pixel_g_s / mod, 1);
                         }
 
-                        if (pixel_b_v == -1) { v = InvalidColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT); }
+                        if (pixel_b_v == -1) { v = inv_colv; }
                         else
                         {
                             v = circ ?
-                            Helper.circ(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1) :
-                            Helper.inclusiveMod(ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT) + pixel_b_v / Mod.GetValueOrDefault(Constants.NUM_DEFAULT), 1);
+                            Helper.circ(colv + pixel_b_v / mod, 1) :
+                            Helper.inclusiveMod(colv + pixel_b_v / mod, 1);
                         }
 
                         color = Color.FromHSV((float)h, (float)s, (float)v);
                         int r, g, b;
                         // Apply the Color factors
-                        r = (int)(color.R * ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        g = (int)(color.G * ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
-                        b = (int)(color.B * ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT));
+                        r = (int)(color.R * colfactr);
+                        g = (int)(color.G * colfactg);
+                        b = (int)(color.B * colfactb);
 
                         // Validate the Colors (range 0-255)
                         if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
@@ -1000,10 +997,10 @@ namespace Modulartistic.Core
                         if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
 
                         // Update Color
-                        color = Color.FromArgb((int)(255 * a), r, g, b);
+                        color = new Color(r, g, b, (int)(255 * a));
                     }
 
-                    // Append the pixel to the image bitmap
+                    // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
                 }
             }
