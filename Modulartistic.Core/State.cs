@@ -379,11 +379,6 @@ namespace Modulartistic.Core
         /// <returns>The Generated Bitmap</returns>
         private Bitmap GetBitmap(GenerationArgs args)
         {
-            double init_time;
-            // stopwatches
-            Stopwatch stopwatch = new Stopwatch();
-
-            stopwatch.Start();
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
             
@@ -434,17 +429,16 @@ namespace Modulartistic.Core
             double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
             double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
 
-            init_time = stopwatch.Elapsed.TotalSeconds;
-            stopwatch.Restart();
-            Console.WriteLine($"Assigning Values: {init_time}");
-
-
             // instanciate the functions
             Function? Func_R_H = null;
             Function? Func_G_S = null;
             Function? Func_B_V = null;
+            Function? Func_Alp = null;
 
-            Function? AlpFunc = null;
+            bool Func_R_H_null = true;
+            bool Func_G_S_null = true;
+            bool Func_B_V_null = true;
+            bool Func_Alp_null = true;
 
             // parse the functions
             if (useRGB)
@@ -453,16 +447,19 @@ namespace Modulartistic.Core
                 {
                     Func_R_H = new Function(args.RedFunction);
                     if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
+                    Func_R_H_null = false;
                 }
                 if (!string.IsNullOrEmpty(args.GreenFunction))
                 {
                     Func_G_S = new Function(args.GreenFunction);
                     if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
+                    Func_G_S_null = false;
                 }
                 if (!string.IsNullOrEmpty(args.BlueFunction))
                 {
                     Func_B_V = new Function(args.BlueFunction);
                     if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
+                    Func_B_V_null = false;
                 }
             }
             else
@@ -471,36 +468,29 @@ namespace Modulartistic.Core
                 {
                     Func_R_H = new Function(args.HueFunction);
                     if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
+                    Func_R_H_null = false;
                 }
 
                 if (!string.IsNullOrEmpty(args.SaturationFunction))
                 {
                     Func_G_S = new Function(args.SaturationFunction);
                     if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
+                    Func_G_S_null = false;
                 }
 
                 if (!string.IsNullOrEmpty(args.ValueFunction))
                 {
                     Func_B_V = new Function(args.ValueFunction);
                     if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
+                    Func_B_V_null = false;
                 }
             }
             if (!string.IsNullOrEmpty(args.AlphaFunction))
             {
-                AlpFunc = new Function(args.AlphaFunction);
-                if (args.AddOns != null) AlpFunc.LoadAddOns(args.AddOns.ToArray());
+                Func_Alp = new Function(args.AlphaFunction);
+                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray());
+                Func_Alp_null = false;
             }
-
-            init_time = stopwatch.Elapsed.TotalSeconds;
-            Console.WriteLine($"Parsing Functions: {init_time}");
-
-            double calcxy = 0;
-            double calc_all_pv = 0;
-            double calc_one_pv = 0;
-            double check_bounds = 0;
-            double calc_color = 0;
-            double calc_hue = 0;
-            double set_pixel = 0;
 
             // Create instance of Bitmap for pixel data
             Bitmap image = new Bitmap((int)size.Width, (int)size.Height);
@@ -509,8 +499,6 @@ namespace Modulartistic.Core
             {
                 for (int x = 0; x < size.Width; x++)
                 {
-                    stopwatch.Restart();
-
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
                     double x_1 = -x - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
@@ -526,9 +514,6 @@ namespace Modulartistic.Core
                     x_ -= size.Width / 2.0;
                     y_ -= size.Height / 2.0;
 
-                    calcxy += stopwatch.Elapsed.TotalSeconds;
-                    stopwatch.Restart();
-
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
                         pixel_g_s = 0,    // green or saturation
@@ -538,37 +523,31 @@ namespace Modulartistic.Core
                     void calculatePixelValue(Function? func, out double pixel_val)
                     {
                         double n;
-                        if (func == null) { pixel_val = 0; }
-                        else
-                        {
-                            // not trying to catch exceptions here anymore! 
-                            // if there is an exception, it has to do with the function and/or addons
-                            // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
-                            n = func.Evaluate(x_, y_, Parameters, mod);
-                            pixel_val = n.IsFinite() ? Helper.mod(n, mod) : -1;
-                        }
+                        // not trying to catch exceptions here anymore! 
+                        // if there is an exception, it has to do with the function and/or addons
+                        // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
+                        n = func.Evaluate(x_, y_, Parameters, mod);
+                        pixel_val = n.IsFinite() ? Helper.mod(n, mod) : -1;
                     }
 
                     // calculate color values
                     bool all_inval = invalGlobal;
                     // Yes, using gotos now (instead of do{}while(false)),
                     // I think its more readable and shouldn't come with any risks
-                    calculatePixelValue(Func_R_H, out pixel_r_h);
+
+                    if (!Func_R_H_null) { calculatePixelValue(Func_R_H, out pixel_r_h); }
                     if (all_inval && (pixel_r_h == -1)) { goto FinishCalculation; }
 
-                    calc_one_pv += stopwatch.Elapsed.TotalSeconds;
-
-                    calculatePixelValue(Func_G_S, out pixel_g_s);
+                    if (!Func_G_S_null) { calculatePixelValue(Func_G_S, out pixel_g_s); }
                     if (all_inval && (pixel_g_s == -1)) { goto FinishCalculation; }
-                    calculatePixelValue(Func_B_V, out pixel_b_v);
+
+                    if (!Func_B_V_null) { calculatePixelValue(Func_B_V, out pixel_b_v);  }
                     if (all_inval && (pixel_b_v == -1)) { goto FinishCalculation; }
-                    calculatePixelValue(AlpFunc, out pixel_alp);
+
+                    if (!Func_Alp_null) { calculatePixelValue(Func_Alp, out pixel_alp); }
                     if (all_inval &= (pixel_alp == -1)) { goto FinishCalculation; }
 
                 FinishCalculation:
-
-                    calc_all_pv += stopwatch.Elapsed.TotalSeconds;
-                    stopwatch.Restart();
 
                     // if bounds are equal, all colors are invalid
                     all_inval |= lowBound == upBound;
@@ -588,24 +567,21 @@ namespace Modulartistic.Core
                         // pixel is invalid if its value is not between the bound
                         if (lowBound < upBound)
                         {
-                            if (!(pixel_r_h >= lowBound && pixel_r_h <= upBound)) { pixel_r_h = -1; }
-                            if (!(pixel_g_s >= lowBound && pixel_g_s <= upBound)) { pixel_g_s = -1; }
-                            if (!(pixel_b_v >= lowBound && pixel_b_v <= upBound)) { pixel_b_v = -1; }
-                            if (!(pixel_alp >= lowBound && pixel_alp <= upBound)) { pixel_alp = -1; }
+                            if (!Func_R_H_null && !(pixel_r_h >= lowBound && pixel_r_h <= upBound)) { pixel_r_h = -1; }
+                            if (!Func_G_S_null && !(pixel_g_s >= lowBound && pixel_g_s <= upBound)) { pixel_g_s = -1; }
+                            if (!Func_B_V_null && !(pixel_b_v >= lowBound && pixel_b_v <= upBound)) { pixel_b_v = -1; }
+                            if (!Func_Alp_null && !(pixel_alp >= lowBound && pixel_alp <= upBound)) { pixel_alp = -1; }
                         }
                         // if the lower bound is greater than the upper bound,
                         // pixel is invalid if its value IS between the bounds
                         else if (lowBound > upBound)
                         {
-                            if (pixel_r_h <= lowBound && pixel_r_h >= upBound) { pixel_r_h = -1; }
-                            if (pixel_g_s <= lowBound && pixel_g_s >= upBound) { pixel_g_s = -1; }
-                            if (pixel_b_v <= lowBound && pixel_b_v >= upBound) { pixel_b_v = -1; }
-                            if (pixel_alp <= lowBound && pixel_alp >= upBound) { pixel_alp = -1; }
+                            if (!Func_R_H_null && pixel_r_h <= lowBound && pixel_r_h >= upBound) { pixel_r_h = -1; }
+                            if (!Func_G_S_null && pixel_g_s <= lowBound && pixel_g_s >= upBound) { pixel_g_s = -1; }
+                            if (!Func_B_V_null && pixel_b_v <= lowBound && pixel_b_v >= upBound) { pixel_b_v = -1; }
+                            if (!Func_Alp_null && pixel_alp <= lowBound && pixel_alp >= upBound) { pixel_alp = -1; }
                         }
                     }
-
-                    check_bounds += stopwatch.Elapsed.TotalSeconds;
-                    stopwatch.Restart();
 
                     // Setting col to inval col if pixel == -1
                     Color color;
@@ -674,8 +650,6 @@ namespace Modulartistic.Core
                             h = Helper.mod(colh / 360 + pixel_r_h / mod, 1) * 360;
                         }
 
-                        calc_hue += stopwatch.Elapsed.TotalSeconds;
-
                         if (pixel_g_s == -1) { s = inv_cols; }
                         else
                         {
@@ -708,25 +682,11 @@ namespace Modulartistic.Core
                         color = new Color(r, g, b, (int)(255 * a));
                     }
 
-                    calc_color += stopwatch.Elapsed.TotalSeconds;
-                    stopwatch.Restart();
-
                     // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
 
-                    set_pixel += stopwatch.Elapsed.TotalSeconds;
-                    stopwatch.Restart();
                 }
             }
-
-            Console.WriteLine($"Calculating x,y coords: {calcxy}");
-            Console.WriteLine($"Calculating single pixel_value: {calc_one_pv}");
-            Console.WriteLine($"Calculating all pixel_values: {calc_all_pv}");
-            Console.WriteLine($"Checking bounds: {check_bounds}");
-            Console.WriteLine($"Calculating color: {calc_color}");
-            Console.WriteLine($"Calculating hue: {calc_hue}");
-            Console.WriteLine($"Setting pixel: {set_pixel}");
-
             return image;
         }
 
