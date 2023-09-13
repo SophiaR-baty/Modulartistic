@@ -90,7 +90,7 @@ namespace Modulartistic
                     ColorRed = 0,
                     ColorGreen = 0,
                     ColorBlue = 0,
-                    ColorAlpha = 0.99,
+                    ColorAlpha = 1,
                 };
                 GD.Add(S);
 
@@ -129,7 +129,7 @@ namespace Modulartistic
                     ColorRed = 0,
                     ColorGreen = 0,
                     ColorBlue = 0,
-                    ColorAlpha = 0.99,
+                    ColorAlpha = 1,
                 };
                 GD.Add(S);
 
@@ -168,12 +168,12 @@ namespace Modulartistic
                     Mod = 1,
                     ModLimLow = 0,
                     ModLimUp = 1,
-                    ColorRed = 0.99,
-                    ColorGreen = 0.99,
-                    ColorBlue = 0.99,
+                    ColorRed = 1,
+                    ColorGreen = 1,
+                    ColorBlue = 1,
 
-                    InvalidColorRed = 0.99,
-                    InvalidColorAlpha = 0.99,
+                    InvalidColorRed = 1,
+                    InvalidColorAlpha = 1,
 
                 };
                 GD.Add(S);

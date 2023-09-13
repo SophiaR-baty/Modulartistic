@@ -339,7 +339,7 @@ namespace Modulartistic.Core
         public bool IsActive(uint currentTime)
         {
             long t_active = currentTime - StartTime;
-            if (t_active < 0) { throw new Exception(); }
+            if (t_active < 0) { return false; }
 
             if (t_active >= AttackTime + Length + DecayTime + ReleaseTime) { return false; }
             else { return true; }

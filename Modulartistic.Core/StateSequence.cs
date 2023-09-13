@@ -110,180 +110,6 @@ namespace Modulartistic.Core
         }
         #endregion
 
-        #region (deprecated) gif/frame generation
-        /// <summary>
-        /// Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state
-        /// </summary>
-        /// <param name="idx">index of the Scene to generate</param>
-        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
-        /// <param name="path_out">Where to create the images, if nothing specified it will be set to Output, will throw a DirectoryNotFoundException if directory does not exist.</param>
-        public void GenerateScene(int idx, GenerationArgs args, string path_out)
-        {
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            
-            // Defining the start and endstates
-            State startState = Scenes[idx].State;
-            State endState = Scenes[(idx + 1)%Scenes.Count].State;
-
-            // Make path
-            if (path_out == "") { throw new ArgumentException("path_out must not be empty!"); }
-            string path = path_out;
-            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(startState.Name) ? Constants.SCENE_NAME_DEFAULT : startState.Name);
-
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            Directory.CreateDirectory(path);
-
-            // iterate over all Frames and create the corresponding images
-            int frames = (int)(Scenes[idx].Length * framerate);
-            for (int i = 0; i < frames; i++)
-            {
-                State frameState = new State(startState, endState, Scenes[idx].Easing, i, frames);
-                frameState.GenerateImage(args, 1, path);
-            }
-        }
-
-        /// <summary>
-        /// Generates an Animation for this StateSequence
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
-        /// <param name="path_out">the path where to create the animation, if not specified it will be set to Output, if not found an DirectoryNotFoundException is Thrown</param>
-        public string GenerateAnimation(GenerationArgs args, string path_out = @"")
-        {
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATESEQUENCE_NAME_DEFAULT : Name);
-
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            Directory.CreateDirectory(path);
-
-            // Generate Every Scene
-            for (int i = 0; i < Count; i++)
-            {
-                GenerateScene(i, args, path);
-            }
-
-            // Generate the gif
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            CreateGif(framerate, path);
-
-            return path + @".gif";
-        }
-
-        /// <summary>
-        /// Creates the Gif of this state Sequence
-        /// </summary>
-        /// <param name="framerate">The framerate to generate with</param>
-        /// <param name="folder">The folder that contains all Scenes/Frames, this will also be the filename</param>
-        private void CreateGif(double framerate, string folder)
-        {
-            // Creating the image list
-            List<string> imgPaths = new List<string>();
-            List<string> sceneDirs = new List<string>();
-
-            // loop through all Scenes to get all images in the correct order
-            for (int i = 0; i < Count; i++)
-            {
-                // Define the scenDir of the current scene
-                string sceneDir = folder + Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Scenes[i].State.Name) ? Constants.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
-
-                // In case of identically named Scenes convert Name to Name_n
-                if (sceneDirs.Contains(sceneDir))
-                {
-                    int j;
-                    for (j = 1; sceneDirs.Contains(sceneDir + "_" + j); j++) { }
-                    sceneDir = sceneDir + "_" + j;
-                }
-
-                // Add sceneDir to the List and Get Images from sceneDir
-                sceneDirs.Add(sceneDir);
-                imgPaths.AddRange(Directory.GetFiles(sceneDir));
-            }
-
-            // Convert Framerate to delay
-            int delay = (int)(1000.0 / framerate);
-
-            // Create the gif
-            using (var gif = AnimatedGif.AnimatedGif.Create(folder + ".gif", delay))
-            {
-                foreach (string file in imgPaths)
-                {
-                    // var img = Image.FromFile(file);
-                    gif.AddFrame(file, delay: -1, quality: GifQuality.Bit8);
-                }
-            }
-        }
-
-
-        #endregion
-
-        #region (deprecated) multithreaded gif/frame generation
-        /// <summary>
-        /// (deprecated) Generates all images/frames for the scene at a specified index, e.g. Animation from this scenes state to the next scenes state. If max_threads = -1 uses the maximum number
-        /// </summary>
-        /// <param name="idx">index of the Scene to generate</param>
-        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
-        /// <param name="max_threads">The maximum number of Threads to create. If -1 uses the maximum number</param>
-        /// <param name="path_out">Where to create the images, if nothing specified it will be set to Output, will throw a DirectoryNotFoundException if directory does not exist.</param>
-        public void GenerateScene(int idx, GenerationArgs args, int max_threads, string path_out)
-        {
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-
-            // Defining the start and endstates
-            State startState = Scenes[idx].State;
-            State endState = Scenes[(idx + 1) % Scenes.Count].State;
-
-            // Make path
-            if (path_out == "") { throw new ArgumentException("path_out must not be empty!"); }
-            string path = path_out;
-            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(startState.Name) ? Constants.SCENE_NAME_DEFAULT : startState.Name);
-
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            Directory.CreateDirectory(path);
-
-            // iterate over all Frames and create the corresponding images
-            int frames = (int)(Scenes[idx].Length * framerate);
-            for (int i = 0; i < frames; i++)
-            {
-                State frameState = new State(startState, endState, Scenes[idx].Easing, i, frames);
-                frameState.GenerateImage(args, max_threads, path);
-            }
-        }
-
-        /// <summary>
-        /// (Deprecated, only works on windows) Generates an Animation for this StateSequence. If max_threads = -1 uses the maximum number
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
-        /// /// <param name="max_threads">The maximum number of Threads to create. If -1 uses the maximum number</param>
-        /// <param name="path_out">the path where to create the animation, if not specified it will be set to Output, if not found an DirectoryNotFoundException is Thrown</param>
-        public string GenerateAnimation(GenerationArgs args, int max_threads, string path_out = @"")
-        {
-            // Creating filename and path, checking if directory exists
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (string.IsNullOrEmpty(Name) ? Constants.STATESEQUENCE_NAME_DEFAULT : Name);
-
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            Directory.CreateDirectory(path);
-
-            // Generate Every Scene
-            for (int i = 0; i < Count; i++)
-            {
-                GenerateScene(i, args, max_threads, path);
-            }
-
-            // Generate the gif
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            CreateGif(framerate, path);
-
-            return path + @".gif";
-        }
-        #endregion
-        
         #region Animation Generation
         /// <summary>
         /// Enumerates Frames of this StateSequence as IViedeoframes
@@ -423,7 +249,11 @@ namespace Modulartistic.Core
                     }
                 case AnimationType.Gif:
                     {
-                        if (keepframes) { throw new NotImplementedException("Keeping frames is not supported yet. "); }
+                        if (keepframes)
+                        {
+                            string folder = GenerateFrames(args, max_threads, file_path_out);
+                            CreateGif(framerate, folder);
+                        }
                         else
                         {
                             await CreateGif(args, max_threads, file_path_out);
@@ -432,7 +262,11 @@ namespace Modulartistic.Core
                     }
                 case AnimationType.Mp4:
                     {
-                        if (keepframes) { throw new NotImplementedException("Keeping frames is not supported yet. "); }
+                        if (keepframes) 
+                        {
+                            string folder = GenerateFrames(args, max_threads, file_path_out);
+                            CreateMp4(framerate, folder);
+                        }
                         else
                         {
                             await CreateMp4(args, max_threads, file_path_out);
@@ -444,6 +278,111 @@ namespace Modulartistic.Core
                         throw new Exception("Unrecognized AnimationType");
                     }
             }
+        }
+
+        /// <summary>
+        /// Generate all frames and save them in the specified out_dir
+        /// </summary>
+        /// <param name="args">GenerationArgs</param>
+        /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="out_dir">the output directory</param>
+        /// <returns>returns outdir</returns>
+        private string GenerateFrames(GenerationArgs args, int max_threads, string out_dir)
+        {
+            // parses GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+
+            // create Directory for frames if not exist
+            if (!Directory.Exists(out_dir)) { Directory.CreateDirectory(out_dir); }
+
+            // loops through the scenes
+            for (int i = 0; i < Count; i++)
+            {
+                Scene current = Scenes[i];
+                Scene next = Scenes[(i + 1) % Scenes.Count];
+
+                // creates the directory for the scene
+                string scene_out_dir = Helper.ValidFileName(Path.Combine(out_dir, current.State.Name == "" ? Constants.SCENE_NAME_DEFAULT : current.State.Name));
+                if (!Directory.Exists(scene_out_dir)) { Directory.CreateDirectory(scene_out_dir); }
+
+                // iterate over all Frames and create the corresponding images
+                int frames = (int)(current.Length * framerate);
+                for (int j = 0; j < frames; j++)
+                {
+                    State frameState = new State(current.State, next.State, current.Easing, j, frames);
+                    frameState.Name = $"Frame_" + j.ToString().PadLeft((TotalFrameCount(framerate) - 1).ToString().Length, '0');
+                    if (max_threads == 0 || max_threads == 1) { frameState.GenerateImage(args, 1, scene_out_dir); }
+                    else { frameState.GenerateImage(args, max_threads, scene_out_dir); }
+                }
+            }
+
+            return out_dir;
+        }
+
+        /// <summary>
+        /// Create Animation after having generated all frames beforehand and save as gif
+        /// </summary>
+        /// <param name="framerate">The framerate</param>
+        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
+        private void CreateGif(double framerate, string folder)
+        {
+            // Creating the image list
+            List<string> imgPaths = new List<string>();
+            List<string> sceneDirs = new List<string>();
+
+            // loop through all Scenes to get all images in the correct order
+            for (int i = 0; i < Count; i++)
+            {
+                // Define the scenDir of the current scene
+                string sceneDir = Path.Combine(folder, Scenes[i].State.Name == "" ? Constants.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
+
+                // In case of identically named Scenes convert Name to Name_n
+                if (sceneDirs.Contains(sceneDir))
+                {
+                    int j;
+                    for (j = 1; sceneDirs.Contains(sceneDir + "_" + j); j++) { }
+                    sceneDir = sceneDir + "_" + j;
+                }
+
+                // Add sceneDir to the List and Get Images from sceneDir
+                sceneDirs.Add(sceneDir);
+                imgPaths.AddRange(Directory.GetFiles(sceneDir));
+            }
+
+            FFMpeg.JoinImageSequence(folder + @".gif", frameRate: framerate, imgPaths.ToArray());
+        }
+
+        /// <summary>
+        /// Create Animation after having generated all frames beforehand and save as mp4
+        /// </summary>
+        /// <param name="framerate">The framerate</param>
+        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
+        private void CreateMp4(double framerate, string folder)
+        {
+            // Creating the image list
+            List<string> imgPaths = new List<string>();
+            List<string> sceneDirs = new List<string>();
+
+            // loop through all Scenes to get all images in the correct order
+            for (int i = 0; i < Count; i++)
+            {
+                // Define the scenDir of the current scene
+                string sceneDir = Path.Combine(folder, Scenes[i].State.Name == "" ? Constants.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
+
+                // In case of identically named Scenes convert Name to Name_n
+                if (sceneDirs.Contains(sceneDir))
+                {
+                    int j;
+                    for (j = 1; sceneDirs.Contains(sceneDir + "_" + j); j++) { }
+                    sceneDir = sceneDir + "_" + j;
+                }
+
+                // Add sceneDir to the List and Get Images from sceneDir
+                sceneDirs.Add(sceneDir);
+                imgPaths.AddRange(Directory.GetFiles(sceneDir));
+            }
+
+            FFMpeg.JoinImageSequence(folder + @".mp4", frameRate: framerate, imgPaths.ToArray());
         }
         #endregion
 

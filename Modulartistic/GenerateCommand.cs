@@ -14,6 +14,7 @@ namespace Modulartistic
         private bool mp4;
         private bool show;
         private bool debug;
+        private bool keepframes;
         private List<string> filenames_json;
         private string output_dir;
 
@@ -44,6 +45,7 @@ namespace Modulartistic
             if (debug) { flags |= GenerationDataFlags.Debug; }
             if (faster) { flags |= GenerationDataFlags.Faster; }
             if (mp4) { flags |= GenerationDataFlags.MP4; }
+            if (keepframes) { flags |= GenerationDataFlags.KeepFrames; }
 
             if (filenames_json.Count == 0)
             {
@@ -121,6 +123,7 @@ namespace Modulartistic
                     else if (arg == "--faster") { faster = true; }
                     else if (arg == "--show") { show = true; }
                     else if (arg == "--mp4") { mp4 = true; }
+                    else if (arg == "--keepframes") { keepframes = true; }
                     else
                     {
                         Console.Error.WriteLine($"Unexpected Flag or Argument: {arg} \nUse -? for help. ");

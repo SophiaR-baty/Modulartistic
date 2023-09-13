@@ -79,6 +79,7 @@ namespace Modulartistic.Core
                 {
                     new DictionaryTKeyEnumTValueConverter(),
                 },
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
             return JsonSerializer.Serialize(data, options);
         }
