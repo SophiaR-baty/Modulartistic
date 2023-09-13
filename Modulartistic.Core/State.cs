@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -377,9 +379,14 @@ namespace Modulartistic.Core
         /// <returns>The Generated Bitmap</returns>
         private Bitmap GetBitmap(GenerationArgs args)
         {
+            double init_time;
+            // stopwatches
+            Stopwatch stopwatch = new Stopwatch();
+
+            stopwatch.Start();
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
-
+            
             bool invalGlobal = args.InvalidColorGlobal.GetValueOrDefault(Constants.INVALIDCOLORGLOBAL_DEFAULT);
             bool circ = args.Circular.GetValueOrDefault(Constants.CIRCULAR_DEFAULT);
             bool useRGB = args.UseRGB.GetValueOrDefault(Constants.USERGB_DEFAULT);
@@ -427,16 +434,15 @@ namespace Modulartistic.Core
             double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
             double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
 
+            init_time = stopwatch.Elapsed.TotalSeconds;
+            stopwatch.Restart();
+            Console.WriteLine($"Assigning Values: {init_time}");
 
 
             // instanciate the functions
-            Function? HueFunc = null;
-            Function? SatFunc = null;
-            Function? ValFunc = null;
-
-            Function? RedFunc = null;
-            Function? GreFunc = null;
-            Function? BluFunc = null;
+            Function? Func_R_H = null;
+            Function? Func_G_S = null;
+            Function? Func_B_V = null;
 
             Function? AlpFunc = null;
 
@@ -445,38 +451,38 @@ namespace Modulartistic.Core
             {
                 if (!string.IsNullOrEmpty(args.RedFunction))
                 {
-                    RedFunc = new Function(args.RedFunction);
-                    if (args.AddOns != null) RedFunc.LoadAddOns(args.AddOns.ToArray());
+                    Func_R_H = new Function(args.RedFunction);
+                    if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
                 }
                 if (!string.IsNullOrEmpty(args.GreenFunction))
                 {
-                    GreFunc = new Function(args.GreenFunction);
-                    if (args.AddOns != null) GreFunc.LoadAddOns(args.AddOns.ToArray());
+                    Func_G_S = new Function(args.GreenFunction);
+                    if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
                 }
                 if (!string.IsNullOrEmpty(args.BlueFunction))
                 {
-                    BluFunc = new Function(args.BlueFunction);
-                    if (args.AddOns != null) BluFunc.LoadAddOns(args.AddOns.ToArray());
+                    Func_B_V = new Function(args.BlueFunction);
+                    if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
                 }
             }
             else
             {
                 if (!string.IsNullOrEmpty(args.HueFunction))
                 {
-                    HueFunc = new Function(args.HueFunction);
-                    if (args.AddOns != null) HueFunc.LoadAddOns(args.AddOns.ToArray());
+                    Func_R_H = new Function(args.HueFunction);
+                    if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
                 }
 
                 if (!string.IsNullOrEmpty(args.SaturationFunction))
                 {
-                    SatFunc = new Function(args.SaturationFunction);
-                    if (args.AddOns != null) SatFunc.LoadAddOns(args.AddOns.ToArray());
+                    Func_G_S = new Function(args.SaturationFunction);
+                    if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
                 }
 
                 if (!string.IsNullOrEmpty(args.ValueFunction))
                 {
-                    ValFunc = new Function(args.ValueFunction);
-                    if (args.AddOns != null) ValFunc.LoadAddOns(args.AddOns.ToArray());
+                    Func_B_V = new Function(args.ValueFunction);
+                    if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
                 }
             }
             if (!string.IsNullOrEmpty(args.AlphaFunction))
@@ -485,14 +491,26 @@ namespace Modulartistic.Core
                 if (args.AddOns != null) AlpFunc.LoadAddOns(args.AddOns.ToArray());
             }
 
+            init_time = stopwatch.Elapsed.TotalSeconds;
+            Console.WriteLine($"Parsing Functions: {init_time}");
+
+            double calcxy = 0;
+            double calc_all_pv = 0;
+            double calc_one_pv = 0;
+            double check_bounds = 0;
+            double calc_color = 0;
+            double calc_hue = 0;
+            double set_pixel = 0;
+
             // Create instance of Bitmap for pixel data
             Bitmap image = new Bitmap((int)size.Width, (int)size.Height);
-
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
             {
                 for (int x = 0; x < size.Width; x++)
                 {
+                    stopwatch.Restart();
+
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
                     double x_1 = -x - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
@@ -508,6 +526,8 @@ namespace Modulartistic.Core
                     x_ -= size.Width / 2.0;
                     y_ -= size.Height / 2.0;
 
+                    calcxy += stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
@@ -533,17 +553,23 @@ namespace Modulartistic.Core
                     bool all_inval = invalGlobal;
                     // Yes, using gotos now (instead of do{}while(false)),
                     // I think its more readable and shouldn't come with any risks
-                    calculatePixelValue(useRGB ? RedFunc : HueFunc, out pixel_r_h);
+                    calculatePixelValue(Func_R_H, out pixel_r_h);
                     if (all_inval && (pixel_r_h == -1)) { goto FinishCalculation; }
-                    calculatePixelValue(useRGB ? GreFunc : SatFunc, out pixel_g_s);
+
+                    calc_one_pv += stopwatch.Elapsed.TotalSeconds;
+
+                    calculatePixelValue(Func_G_S, out pixel_g_s);
                     if (all_inval && (pixel_g_s == -1)) { goto FinishCalculation; }
-                    calculatePixelValue(useRGB ? BluFunc : ValFunc, out pixel_b_v);
+                    calculatePixelValue(Func_B_V, out pixel_b_v);
                     if (all_inval && (pixel_b_v == -1)) { goto FinishCalculation; }
                     calculatePixelValue(AlpFunc, out pixel_alp);
                     if (all_inval &= (pixel_alp == -1)) { goto FinishCalculation; }
-                
+
                 FinishCalculation:
-                    
+
+                    calc_all_pv += stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
+
                     // if bounds are equal, all colors are invalid
                     all_inval |= lowBound == upBound;
                     // if all inval is true set all values to -1
@@ -577,7 +603,9 @@ namespace Modulartistic.Core
                             if (pixel_alp <= lowBound && pixel_alp >= upBound) { pixel_alp = -1; }
                         }
                     }
-                    
+
+                    check_bounds += stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
 
                     // Setting col to inval col if pixel == -1
                     Color color;
@@ -646,6 +674,8 @@ namespace Modulartistic.Core
                             h = Helper.mod(colh / 360 + pixel_r_h / mod, 1) * 360;
                         }
 
+                        calc_hue += stopwatch.Elapsed.TotalSeconds;
+
                         if (pixel_g_s == -1) { s = inv_cols; }
                         else
                         {
@@ -677,11 +707,26 @@ namespace Modulartistic.Core
                         // Update Color
                         color = new Color(r, g, b, (int)(255 * a));
                     }
-                    
+
+                    calc_color += stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
+
                     // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
+
+                    set_pixel += stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
                 }
             }
+
+            Console.WriteLine($"Calculating x,y coords: {calcxy}");
+            Console.WriteLine($"Calculating single pixel_value: {calc_one_pv}");
+            Console.WriteLine($"Calculating all pixel_values: {calc_all_pv}");
+            Console.WriteLine($"Checking bounds: {check_bounds}");
+            Console.WriteLine($"Calculating color: {calc_color}");
+            Console.WriteLine($"Calculating hue: {calc_hue}");
+            Console.WriteLine($"Setting pixel: {set_pixel}");
+
             return image;
         }
 
@@ -806,6 +851,7 @@ namespace Modulartistic.Core
             int partial_width = size.Width / max;
             int first_px = idx * partial_width;
             if (idx == max - 1) { partial_width = size.Width - first_px; }
+            int max_pixel = first_px + partial_width;
 
             // Create instance of Bitmap for pixel data
             image = new Bitmap((int)size.Width, (int)size.Height);
@@ -813,7 +859,7 @@ namespace Modulartistic.Core
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
             {
-                for (int x = 0; x < partial_width; x++)
+                for (int x = first_px; x < max_pixel; x++)
                 {
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
@@ -1076,6 +1122,9 @@ namespace Modulartistic.Core
                     threads[i].Join();
                     gr.DrawImage(partial_images[i], i * (size.Width / threads_num), 0, partial_images[i].Width, partial_images[i].Height);
                 }
+
+                // return the Bitmap
+                return image;
 
                 // return the Bitmap
                 return image;
