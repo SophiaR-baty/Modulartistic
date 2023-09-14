@@ -98,7 +98,7 @@ namespace Modulartistic.Core
             StateTimeline timeline = CreateStateTimeline(midi_path, template);
             timeline.Name = Path.GetFileNameWithoutExtension(midi_path);
             Console.WriteLine("Creating Animation with " + timeline.TotalFrameCount(template.Metadata.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)) + " Frames");
-            timeline.GenerateAnimation(template.Metadata, path_out);
+            timeline.GenerateAnimation(template.Metadata, 1, AnimationType.Gif, true, path_out);
         }
 
         public static void GenerateJson(string midi_path, StateTimelineTemplate template, string path_out = "")

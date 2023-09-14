@@ -325,18 +325,56 @@ namespace Modulartistic.Core
                             continue;
                         }
                     }
-                    
-                    
                 }
                 else if (obj.GetType() == typeof(StateTimeline))
                 {
-                    if (Faster) { Console.Error.WriteLine("Faster Mode not implemented for StateTimeline. Using normal mode. "); } // ADD FASTER HERE
-                    if (Debug) { Console.Error.WriteLine("Debug Mode not implemented for StateTimeline. Using normal mode. "); } // ADD DEBUG HERE
-                    if (Show) { Console.Error.WriteLine("Show Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
-                    if (MP4) { Console.Error.WriteLine("MP4 Mode not implemented for StateTimeline. Using normal mode. "); } // ADD SHOW HERE
-
                     StateTimeline ST = obj as StateTimeline;
-                    ST.GenerateAnimation(currentArgs, path_out);
+
+                    // print Debug Information Pre Generating
+                    if (Debug)
+                    {
+                        Console.WriteLine("Generating Animation for StateSequence: ");
+                        // Console.WriteLine(ST.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
+
+                        Console.WriteLine();
+                    }
+
+                    AnimationType type = MP4 ? AnimationType.Mp4 : AnimationType.Gif;
+                    int max_threads = Faster ? -1 : 1;
+
+                    // generate Animation
+                    try
+                    {
+                        string filename = await ST.GenerateAnimation(currentArgs, max_threads, type, KeepFrames, path_out);
+                        //print Debug Information Post Generating
+                        if (Debug)
+                        {
+                            Console.WriteLine($"Done Generating \"{filename}\"\n");
+                        }
+
+                        // if Show Flag, show Image
+                        if (Show)
+                        {
+                            var p = new Process();
+                            p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
+                            p.Start();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error Generating \"{ST.Name}\"\n");
+                        if (Debug)
+                        {
+                            Console.Error.WriteLine(e.StackTrace);
+                            Exception ex = e;
+                            while (ex != null)
+                            {
+                                Console.Error.WriteLine(e.Message);
+                                e = e.InnerException;
+                            }
+                            continue;
+                        }
+                    }
                 }
                 else
                 {

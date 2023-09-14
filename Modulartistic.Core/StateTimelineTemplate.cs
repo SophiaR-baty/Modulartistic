@@ -219,7 +219,7 @@ namespace Modulartistic.Core
          *  - StartTime
          *  - EndTime
          * And valid Function Names are those defined in NCalc plus eventually AddOns!
-         * 
+         * These are usable in PeakValueMappings and SustainValueMappings
          * 
          */
 

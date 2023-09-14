@@ -208,45 +208,45 @@ namespace Modulartistic.Core
         /// <param name="p">StateProperty indexer Enum</param>
         /// <returns></returns>
         [JsonIgnore]
-        public double? this[StateProperty p]
+        public double this[StateProperty p]
         {
             get
             {
                 switch (p)
                 {
                     // default is parameters
-                    case StateProperty.X0: return X0;
-                    case StateProperty.Y0: return Y0;
-                    case StateProperty.XRotationCenter: return XRotationCenter;
-                    case StateProperty.YRotationCenter: return YRotationCenter;
-                    case StateProperty.XFactor: return XFactor;
-                    case StateProperty.YFactor: return YFactor;
-                    case StateProperty.Rotation: return Rotation;
+                    case StateProperty.X0: return X0 ?? Constants.XY0_DEFAULT;
+                    case StateProperty.Y0: return Y0 ?? Constants.XY0_DEFAULT;
+                    case StateProperty.XRotationCenter: return XRotationCenter ?? Constants.XYROTCENTER_DEFAULT;
+                    case StateProperty.YRotationCenter: return YRotationCenter ?? Constants.XYROTCENTER_DEFAULT;
+                    case StateProperty.XFactor: return XFactor ?? Constants.XYFACTOR_DEFAULT;
+                    case StateProperty.YFactor: return YFactor ?? Constants.XYFACTOR_DEFAULT;
+                    case StateProperty.Rotation: return Rotation ?? Constants.ROTATION_DEFAULT;
 
-                    case StateProperty.Mod: return Mod;
-                    case StateProperty.ModLimLow: return ModLimLow; 
-                    case StateProperty.ModLimHigh: return ModLimUp;
+                    case StateProperty.Mod: return Mod ?? Constants.NUM_DEFAULT;
+                    case StateProperty.ModLimLow: return ModLimLow ?? Constants.LIMLOW_DEFAULT; 
+                    case StateProperty.ModLimHigh: return ModLimUp ?? Constants.LIMHIGH_DEFAULT;
                     
-                    case StateProperty.ColorHue: return ColorHue;
-                    case StateProperty.ColorSaturation: return ColorSaturation;
-                    case StateProperty.ColorValue: return ColorValue;
-                    case StateProperty.InvalidColorHue: return InvalidColorHue;
-                    case StateProperty.InvalidColorSaturation: return InvalidColorSaturation;
-                    case StateProperty.InvalidColorValue: return InvalidColorValue;
+                    case StateProperty.ColorHue: return ColorHue ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.ColorSaturation: return ColorSaturation ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.ColorValue: return ColorValue ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.InvalidColorHue: return InvalidColorHue ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.InvalidColorSaturation: return InvalidColorSaturation ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.InvalidColorValue: return InvalidColorValue ?? Constants.COLOR_DEFAULT;
 
-                    case StateProperty.ColorRed: return ColorRed;
-                    case StateProperty.ColorGreen: return ColorGreen;
-                    case StateProperty.ColorBlue: return ColorBlue;
-                    case StateProperty.InvalidColorRed: return InvalidColorRed;
-                    case StateProperty.InvalidColorGreen: return InvalidColorGreen;
-                    case StateProperty.InvalidColorBlue: return InvalidColorBlue;
+                    case StateProperty.ColorRed: return ColorRed ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.ColorGreen: return ColorGreen ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.ColorBlue: return ColorBlue ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.InvalidColorRed: return InvalidColorRed ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.InvalidColorGreen: return InvalidColorGreen ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.InvalidColorBlue: return InvalidColorBlue ?? Constants.COLOR_DEFAULT;
 
-                    case StateProperty.ColorFactorR: return ColorFactorR;
-                    case StateProperty.ColorFactorG: return ColorFactorG;
-                    case StateProperty.ColorFactorB: return ColorFactorB;
+                    case StateProperty.ColorFactorR: return ColorFactorR ?? Constants.COLORFACT_DEFAULT;
+                    case StateProperty.ColorFactorG: return ColorFactorG ?? Constants.COLORFACT_DEFAULT;
+                    case StateProperty.ColorFactorB: return ColorFactorB ?? Constants.COLORFACT_DEFAULT;
 
-                    case StateProperty.ColorAlpha: return ColorAlpha;
-                    case StateProperty.InvalidColorAlpha: return InvalidColorAlpha;
+                    case StateProperty.ColorAlpha: return ColorAlpha ?? Constants.ALPHA_DEFAULT;
+                    case StateProperty.InvalidColorAlpha: return InvalidColorAlpha ?? Constants.ALPHA_DEFAULT;
 
                     default: return Parameters[(int)p - (int)StateProperty.i0];
                 }
@@ -290,7 +290,7 @@ namespace Modulartistic.Core
                     case StateProperty.ColorAlpha: ColorAlpha = value; break;
                     case StateProperty.InvalidColorAlpha: InvalidColorAlpha = value; break;
 
-                    default: Parameters[(int)p - (int)StateProperty.i0] = value.GetValueOrDefault(0); break;
+                    default: Parameters[(int)p - (int)StateProperty.i0] = value; break;
                 }
             }
         }
@@ -363,8 +363,8 @@ namespace Modulartistic.Core
             for (StateProperty prop = StateProperty.Mod; prop <= StateProperty.i9; prop++)
             {
                 this[prop] = easing.Ease(
-                    startState[prop].GetValueOrDefault(GetDefaultValue(prop)), 
-                    endState[prop].GetValueOrDefault(GetDefaultValue(prop)), 
+                    startState[prop], 
+                    endState[prop], 
                     idx, 
                     maxidx);
             }

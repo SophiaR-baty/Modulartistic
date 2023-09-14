@@ -24,17 +24,20 @@ namespace Modulartistic.Core
         public const double ALPHA_DEFAULT = 1;              // default for alpha
 
         // For StateSequence
-        public const string STATESEQUENCE_NAME_DEFAULT = "animation";   // default for state name
+        public const string STATESEQUENCE_NAME_DEFAULT = "animation";   // default for statesequence name
         public const string SCENE_NAME_DEFAULT = "scene";   // default for state scene
         
         // For GenerationData
-        public const string GENERATIONDATA_NAME_DEFAULT = "generation_data";   // default for state scene
+        public const string GENERATIONDATA_NAME_DEFAULT = "generation_data";   // default for generationdata
 
         // For GenerationArgs
         public const uint FRAMERATE_DEFAULT = 12;                    // default for framerate
         public const bool INVALIDCOLORGLOBAL_DEFAULT = false;        // default invalcolglobal
         public const bool CIRCULAR_DEFAULT = true;                   // default circular
         public const bool USERGB_DEFAULT = false;                    // default usergb
+
+        // For StateTimeline
+        public const string STATETIMELINE_NAME_DEFAULT = "timeline";   // default for statetimeline name
 
         // Folders configuration -> put this in a config file
         private static string _output_folder = AppDomain.CurrentDomain.BaseDirectory + "output";

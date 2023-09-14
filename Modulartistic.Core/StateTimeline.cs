@@ -4,6 +4,11 @@ using System.Linq;
 using AnimatedGif;
 using System.IO;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using FFMpegCore.Extensions.SkiaSharp;
+using FFMpegCore.Pipes;
+using FFMpegCore;
+using FFMpegCore.Enums;
 
 namespace Modulartistic.Core
 {
@@ -72,25 +77,178 @@ namespace Modulartistic.Core
         #endregion
 
         #region Methods for animation Creation
-        /// <summary>
-        /// Creates an Animation for this StateTimeline
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function and Framerate Data</param>
-        /// <param name="path_out">The directory to generate in, if empty or not specified wwill be set to Output, if not found DirectoryNotFoundException will be thrown</param>
-        /// <exception cref="DirectoryNotFoundException">If path_out is not found</exception>
-        public string GenerateAnimation(GenerationArgs args, string path_out)
+        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args, int max_threads)
         {
+            // parses GenerationArgs
             uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
 
-            // Creating filename and path
-            // Make path
-            string path = path_out == "" ? AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + @"Output" : path_out;
-            if (!Directory.Exists(path)) { throw new DirectoryNotFoundException("The Directory " + path + " was not found."); }
-            path += Path.DirectorySeparatorChar + (Name == "" ? "Timeline" : Name);
+            // loops through the frames
+            List<StateEvent> activeEvents = new List<StateEvent>();
+            ulong frames = framerate * Length / 1000;
+            for (uint i = 0; i < frames; i++)
+            {
+                // Get Time in Seconds and milliseconds
+                double second = Convert.ToDouble(i) / Convert.ToDouble(framerate);
+                uint time = Convert.ToUInt32(second * 1000);
 
-            // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
-            Directory.CreateDirectory(path);
+                // Add events triggered on this tick to active events
+                while (Events.Count > 0 && Events[0].StartTime <= time)
+                {
+                    activeEvents.Add(Events[0]);
+                    Events.RemoveAt(0);
+                }
+
+                // Make a list with all current states of the active events
+                List<State> states = new List<State>();
+                for (int j = 0; j < activeEvents.Count; j++)
+                {
+                    StateEvent se = activeEvents[j];
+                    uint activationTime = se.StartTime;
+
+                    if (!se.IsActive(time)) { activeEvents.RemoveAt(j); }
+                    states.Add(se.CurrentState(time, Base));
+                }
+
+                // Somehow combine all states into one single state
+                State FrameState = new State();
+                for (StateProperty j = 0; j <= StateProperty.i9; j++)
+                {
+                    FrameState[j] = (Base[j] + states.Sum(state => state[j])) / (states.Count + 1);
+                }
+
+                // Create Image of state
+                FrameState.Name = "Frame_" + i.ToString().PadLeft(frames.ToString().Length, '0');
+                if (max_threads == 0 || max_threads == 1) { yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, 1)); }
+                else { yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, max_threads)); }
+            }
+        }
+        
+        public async Task<string> GenerateAnimation(GenerationArgs args, int max_threads, AnimationType type, bool keepframes, string out_dir)
+        {
+            // If out-dir is empty set to default, then check if it exists
+            out_dir = out_dir == "" ? Constants.OUTPUTFOLDER : out_dir;
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.STATETIMELINE_NAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.ValidFileName(file_path_out);
+
+            // parse framerate from GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+
+            // Order Events
+            Events = Events.OrderBy((a) => a.StartTime).ToList();
+
+            // set Length if Length == 0
+            if (Length == 0)
+            {
+                Length = Events.Max(x => x.StartTime + x.Length + x.ReleaseTime) + 500;
+            }
+
+            switch (type)
+            {
+                case AnimationType.None:
+                    {
+                        throw new Exception("No AnimationType was specified. ");
+                    }
+                case AnimationType.Gif:
+                    {
+                        if (keepframes)
+                        {
+                            string folder = GenerateFrames(args, max_threads, file_path_out);
+                            CreateGif(framerate, folder);
+                        }
+                        else
+                        {
+                            await CreateGif(args, max_threads, file_path_out);
+                        }
+                        return file_path_out + @".gif";
+                    }
+                case AnimationType.Mp4:
+                    {
+                        if (keepframes)
+                        {
+                            string folder = GenerateFrames(args, max_threads, file_path_out);
+                            CreateMp4(framerate, folder);
+                        }
+                        else
+                        {
+                            await CreateMp4(args, max_threads, file_path_out);
+                        }
+                        return file_path_out + @".mp4";
+                    }
+                default:
+                    {
+                        throw new Exception("Unrecognized AnimationType");
+                    }
+            }
+        }
+
+        private async Task CreateMp4(GenerationArgs args, int max_threads, string absolute_out_filepath)
+        {
+            // parsing framerate and setting piping source
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // parsing size
+            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+
+            // generate the mp4 file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
+                    .WithVideoCodec(VideoCodec.LibX265)
+                    .WithVideoBitrate(16000) // find a balance between quality and file size
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
+        }
+
+        private async Task CreateGif(GenerationArgs args, int max_threads, string absolute_out_filepath)
+        {
+            // parsing framerate and setting piping source
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // parsing size
+            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+
+            // generate the gif file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(absolute_out_filepath + @".gif", false, options => options
+                    .WithGifPaletteArgument(0, size, (int)framerate)
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
+        }
+
+        private string GenerateFrames(GenerationArgs args, int max_threads, string out_dir)
+        {
+            // parses GenerationArgs
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+
+            // create Directory for frames if not exist
+            if (!Directory.Exists(out_dir)) { Directory.CreateDirectory(out_dir); }
 
             // Order Events
             Events = Events.OrderBy((a) => a.StartTime).ToList();
@@ -139,37 +297,36 @@ namespace Modulartistic.Core
 
                 // Create Image of state
                 FrameState.Name = "Frame_" + i.ToString().PadLeft(frames.ToString().Length, '0');
-                FrameState.GenerateImage(args, 1, path);
+                FrameState.GenerateImage(args, max_threads, out_dir);
             }
 
-            // Generate the gif
-            CreateGif(framerate, path);
-
-            return path + @".gif";
+            return out_dir;
         }
 
         /// <summary>
-        /// Generates the GIF
+        /// Create Animation after having generated all frames beforehand and save as gif
         /// </summary>
-        /// <param name="framerate">The framerate in frames per second</param>
-        /// <param name="folder">The folder where th images are, Will also be the name of the animation</param>
+        /// <param name="framerate">The framerate</param>
+        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
         private void CreateGif(double framerate, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
+            // create gif
+            FFMpeg.JoinImageSequence(folder + @".gif", frameRate: framerate, imgPaths.ToArray());
+        }
 
-            // Convert Framerate to delay
-            int delay = (int)(1000.0 / framerate);
-
-            // Create the gif
-            using (var gif = AnimatedGif.AnimatedGif.Create(folder + ".gif", delay))
-            {
-                foreach (string file in imgPaths)
-                {
-                    // var img = Image.FromFile(file);
-                    gif.AddFrame(file, delay: -1, quality: GifQuality.Bit8);
-                }
-            }
+        /// <summary>
+        /// Create Animation after having generated all frames beforehand and save as mp4
+        /// </summary>
+        /// <param name="framerate">The framerate</param>
+        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
+        private void CreateMp4(double framerate, string folder)
+        {
+            // Creating the image list
+            List<string> imgPaths = Directory.GetFiles(folder).ToList();
+            // create mp4
+            FFMpeg.JoinImageSequence(folder + @".mp4", frameRate: framerate, imgPaths.ToArray());
         }
         #endregion
     }
@@ -271,7 +428,7 @@ namespace Modulartistic.Core
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     if (!PeakValues.ContainsKey(i)) { result[i] = BaseState[i]; }
-                    else { result[i] = easing.Ease(BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)), PeakValues[i], Convert.ToInt32(t_active / 2), Convert.ToInt32(AttackTime / 2)); }
+                    else { result[i] = easing.Ease(BaseState[i], PeakValues[i], Convert.ToInt32(t_active / 2), Convert.ToInt32(AttackTime / 2)); }
                 }
             }
             // Decay
@@ -287,8 +444,8 @@ namespace Modulartistic.Core
                     else
                     {
                         result[i] = easing.Ease(
-                            PeakValues.ContainsKey(i) ? PeakValues[i] : BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)),
-                            SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)),
+                            PeakValues.ContainsKey(i) ? PeakValues[i] : BaseState[i],
+                            SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i],
                             Convert.ToInt32((t_active - AttackTime) / 2),
                             Convert.ToInt32(DecayTime / 2));
                     }
@@ -313,7 +470,7 @@ namespace Modulartistic.Core
                     {
                         result[i] = easing.Ease(
                             SustainValues.ContainsKey(i) ? SustainValues[i] : PeakValues[i],
-                            BaseState[i].GetValueOrDefault(State.GetDefaultValue(i)),
+                            BaseState[i],
                             Convert.ToInt32((t_active - AttackTime - Length - DecayTime) / 2),
                             Convert.ToInt32(ReleaseTime / 2));
                     }

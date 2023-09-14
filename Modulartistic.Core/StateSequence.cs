@@ -211,8 +211,6 @@ namespace Modulartistic.Core
             {
                 throw new Exception("Error generating animation. ", e);
             }
-
-
         }
 
         /// <summary>
