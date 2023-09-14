@@ -24,16 +24,16 @@ namespace Modulartistic
                 return (int)(await command.Execute());
             }
 
+            // if first argument is generate
             if (argv[0] == "generate")
             {
                 command = new GenerateCommand(argv[1..]);
             }
 
-            return (int)(await command.Execute());
-
             // if the first argument is midi-animation
             if (argv[0] == "midi-animation")
             {
+                command = new MidiAnimationCommand();
                 //if (argv[0].EndsWith(".mid") && File.Exists(argv[0]) && argv[1].EndsWith(".json") && File.Exists(argv[1]))
                 //{
                 //    StateTimelineTemplate template = StateTimelineTemplate.LoadJson(argv[1]);
@@ -72,7 +72,7 @@ namespace Modulartistic
                 return 1;
             }
 
-            return 0;
+            return (int)(await command.Execute());
         }
     }
 }

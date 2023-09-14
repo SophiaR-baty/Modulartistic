@@ -30,6 +30,7 @@ namespace Modulartistic
             mp4 = false;
             show = false;
             debug = false;
+            keepframes = false;
             filenames_json = new List<string>();
             output_dir = Constants.OUTPUTFOLDER;
 
@@ -134,6 +135,10 @@ namespace Modulartistic
                     accept_file = false;
                     accept_dir = false;
                 }
+
+                Console.Error.WriteLine($"Unexpected Flag or Argument: {arg} \nUse -? for help. ");
+                error_code = ErrorCode.UnexpectedArgument;
+                return;
             }
         }
 

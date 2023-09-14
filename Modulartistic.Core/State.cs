@@ -304,7 +304,7 @@ namespace Modulartistic.Core
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
 
-            Name = null;
+            Name = Constants.STATENAME_DEFAULT;
 
             X0 = null;
             Y0 = null;

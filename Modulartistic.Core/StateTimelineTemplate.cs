@@ -10,6 +10,7 @@ namespace Modulartistic.Core
     public class StateTimelineTemplate
     {
         #region Properties
+        public string Name { get; set; }
         public GenerationArgs Metadata { get; set; }
         public State Base { get; set; }
         public List<StateEventType> Events { get; set; }
@@ -28,7 +29,8 @@ namespace Modulartistic.Core
 
         #region Constructors
         public StateTimelineTemplate() 
-        { 
+        {
+            Name = Constants.STATETIMELINE_NAME_DEFAULT;
             Metadata = new GenerationArgs();
             Base = new State();
             Events = new List<StateEventType>();
@@ -158,7 +160,46 @@ namespace Modulartistic.Core
         }
         #endregion
 
+        public static StateTimelineTemplate GetDefaultTemplate()
+        {
+            StateTimelineTemplate STT = new StateTimelineTemplate();
+            STT.Name = "default_template";
+            STT.Metadata = new GenerationArgs()
+            {
+                HueFunction = "x*y",
+                Size = new int[]{ 640, 360 },
+                Framerate = 12,
+                Circular = true,
+                InvalidColorGlobal = true,
+            };
+            STT.Base = new State()
+            {
+                Name = "Base",
+                Mod = 960,
+                ModLimUp = 50,
+                ColorSaturation = 0,
+                InvalidColorAlpha = 1,
+                InvalidColorHue = 0,
+                InvalidColorSaturation = 0,
+                InvalidColorValue = 0,
+            };
+            
+            StateEventType SET = new StateEventType();
+            SET.Channel = 0;
+            SET.AttackTime = 10;
+            SET.AttackEasingType = "Linear";
+            SET.DecayTime = 3500;
+            SET.DecayEasingType = "Linear";
+            SET.ReleaseTime = 100;
+            SET.ReleaseEasingType = "Linear";
+            SET.PeakValueMappings.Add(StateProperty.ModLimLow, "4*Velocity");
+            SET.PeakValueMappings.Add(StateProperty.ModLimHigh, "4*Velocity+50");
+            SET.PeakValueMappings.Add(StateProperty.ColorSaturation, "1");
 
+            STT.Events.Add(SET);
+
+            return STT;
+        }
     }
 
     public class StateEventType

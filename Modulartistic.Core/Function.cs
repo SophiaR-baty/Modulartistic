@@ -13,6 +13,7 @@ namespace Modulartistic.Core
         {
             this.expression = expression;
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            expression.Options = 
         }
 
         public Function(string expression)
@@ -81,7 +82,9 @@ namespace Modulartistic.Core
                                 for (int i = 0; i < paraInf.Length; i++)
                                 {
                                     if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
-                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
+                                    // this should have fixed the bug of ints not being able to be interpreted as doubles
+                                    // was simply comparing the types before
+                                    if (!paraInf[i].ParameterType.IsAssignableFrom(parameters[i].GetType())) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
                                 }
 
                                 // Console.WriteLine((double)methodInfo.Invoke(null, parameters));

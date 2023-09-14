@@ -47,7 +47,7 @@ namespace Modulartistic.Core
         public StateSequence()
         {
             Scenes = new List<Scene>();
-            Name = "Sequence";
+            Name = Constants.STATESEQUENCE_NAME_DEFAULT;
         }
 
         /// <summary>
