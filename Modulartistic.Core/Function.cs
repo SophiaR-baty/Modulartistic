@@ -13,7 +13,6 @@ namespace Modulartistic.Core
         {
             this.expression = expression;
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-            expression.Options = 
         }
 
         public Function(string expression)
@@ -78,16 +77,6 @@ namespace Modulartistic.Core
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
 
-                                // checks if the function args are of correct value, otherwise returns (error)
-                                for (int i = 0; i < paraInf.Length; i++)
-                                {
-                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
-                                    // this should have fixed the bug of ints not being able to be interpreted as doubles
-                                    // was simply comparing the types before
-                                    if (!paraInf[i].ParameterType.IsAssignableFrom(parameters[i].GetType())) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
-                                }
-
-                                // Console.WriteLine((double)methodInfo.Invoke(null, parameters));
                                 args.Result = (double)methodInfo.Invoke(null, parameters);
                             }
                         };
@@ -104,14 +93,6 @@ namespace Modulartistic.Core
 
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-
-                                // checks if the function args are of correct value, otherwise returns (error)
-                                for (int i = 0; i < paraInf.Length; i++)
-                                {
-                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
-                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
-                                }
 
                                 args.Result = (int)methodInfo.Invoke(null, parameters);
                             }
@@ -130,14 +111,6 @@ namespace Modulartistic.Core
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
 
-
-                                // checks if the function args are of correct value, otherwise returns (error)
-                                for (int i = 0; i < paraInf.Length; i++)
-                                {
-                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
-                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
-                                }
-
                                 args.Result = (string)methodInfo.Invoke(null, parameters);
                             }
                         };
@@ -154,14 +127,6 @@ namespace Modulartistic.Core
 
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-
-                                // checks if the function args are of correct value, otherwise returns (error)
-                                for (int i = 0; i < paraInf.Length; i++)
-                                {
-                                    if (i >= parameters.Length && paraInf[i].IsOptional) { break; }
-                                    if (parameters[i].GetType() != paraInf[i].ParameterType) { throw new ArgumentException("Wrong argument type for " + methodInfo.Name + " at argument " + i + ". Expected a " + paraInf[i].GetType().ToString() + " and got a " + parameters[i].GetType().ToString()); }
-                                }
 
                                 args.Result = (bool)methodInfo.Invoke(null, parameters);
                             }

@@ -495,10 +495,10 @@ namespace Modulartistic.Core
                 {
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
-                    double x_1 = -x - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
-                    double y_1 = -y - yrotc;
+                    double x_1 = x - xrotc; // im not sure about signs of translations...
+                    double y_1 = -y + yrotc;
                     double x_ = x_1*cosrot - y_1*sinrot           // Apply rotation
-                        - (x0-xrotc)*cosrot + (y0-yrotc)*sinrot;      // Shift Origin to middle of screen
+                        + (x0-xrotc)*cosrot - (y0-yrotc)*sinrot;      // Shift Origin to middle of screen
                     double y_ = x_1*sinrot + y_1*cosrot           // Apply rotation
                         - (x0-xrotc)*sinrot - (y0-yrotc)*cosrot;      // Shift Origin to middle of Screen
                     // scale everything
@@ -506,7 +506,7 @@ namespace Modulartistic.Core
                     y_ *= yfact;
                     // put origin in middle
                     x_ -= size.Width / 2.0;
-                    y_ -= size.Height / 2.0;
+                    y_ += size.Height / 2.0;
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue

@@ -134,6 +134,7 @@ namespace Modulartistic
 
                     accept_file = false;
                     accept_dir = false;
+                    continue;
                 }
 
                 Console.Error.WriteLine($"Unexpected Flag or Argument: {arg} \nUse -? for help. ");
