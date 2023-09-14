@@ -17,16 +17,13 @@ namespace Modulartistic
             
             
             Helper.CreateDirectories();
-            ICommand command = new GenerateCommand(); ;
-
-            // If no arguments were given
+            ICommand command = new HelpCommand(); ;
+            
             if (argv.Length == 0)
             {
-                Helper.CreateDemos();
-                Helper.PrintUsage();
-                return 1;
+                return (int)(await command.Execute());
             }
-            
+
             if (argv[0] == "generate")
             {
                 command = new GenerateCommand(argv[1..]);

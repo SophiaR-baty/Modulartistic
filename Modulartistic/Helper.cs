@@ -250,7 +250,7 @@ namespace Modulartistic
         public static void CreateDirectories()
         {
             string basefolder = AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar;
-            foreach (string folder in new string[] { "demofiles", "Output", "addons", "Input" })
+            foreach (string folder in new string[] { "demofiles", "output", "addons", "input" })
             {
                 if (!Directory.Exists(basefolder + folder)) { Directory.CreateDirectory(basefolder + folder); }
             }
