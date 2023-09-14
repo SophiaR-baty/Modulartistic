@@ -55,24 +55,6 @@ namespace MathFunctions
             return Complex.Abs(z);
         }
 
-        public static double Ngon(double x, double y, double n)
-        {
-            double result = Math.Sqrt(Circle(x, y));
-
-            double numerator = Math.Sin((n - 2) / (2 * n) * Math.PI);
-            double denominator = Math.Sin(
-                Math.PI - (
-                2 * Math.PI / n * Math.Atan(
-                Math.Tan(
-                n / (2 * Math.PI) * ((
-                Math.Pow(Math.Sqrt(x * x) / x, 2) * Math.Atan(y / x) +
-                (1 - (Math.Sqrt(x * x) / x)) / 2 *
-                (1 + Math.Sqrt(y * y) / y - Math.Pow(Math.Sqrt(y * y) / y, 2)) * Math.PI) 
-                + Math.PI / n) * Math.PI))/Math.PI + Math.PI/n) - Math.PI*(n-2)/(2*n));
-            result -= numerator/denominator; 
-            return result;
-        }
-
         public static double Gamma(double a)
         {
             return MathNet.Numerics.SpecialFunctions.Gamma(a);
@@ -95,7 +77,7 @@ namespace MathFunctions
 
         public static double GeneralHarmonic(double a, double b)
         {
-            return MathNet.Numerics.SpecialFunctions.GeneralHarmonic((int)a, (int)b);
+            return MathNet.Numerics.SpecialFunctions.GeneralHarmonic((int)a, b);
         }
 
         public static double BesselI0(double a)
@@ -162,7 +144,7 @@ namespace MathFunctions
         public static double Mod(double d1, double d2)
         {
             if (d2 <= 0)
-                throw new DivideByZeroException();
+                return double.NaN;
             else
                 return d1 - d2 * Math.Floor(d1 / d2);
         }

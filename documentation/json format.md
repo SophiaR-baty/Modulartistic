@@ -78,8 +78,10 @@ State objects support the following Property names:
 | ```InvalidColorBlue```       | ```double``` | ```0```                              | The Invalid Blue                                                                                                              |
 | ```ColorAlpha```             | ```double``` | ```0```                              | The Constant Alpha or offset                                                                                                              |
 | ```InvalidColorAlpha```      | ```double``` | ```1```                              | The Invalid Alpha                                                                                                              |
-| ```Parameters```                   | ```list```   | ```[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]``` | The parameters i0-i9 (i0=i, i1=j)                                                                                                              |
+| ```Parameters```                   | ```list```   | ```[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]``` | The parameters i_0-i_9    |
 
+> [!tip]
+> When specifying functions in GenerationArgs you can use `i` instead of `i_0` and `j` instead of `i_1`
 ## StateSequence
 A **StateSequence** object is one strategy to create animations. It contains a list of ```Sequence``` objects that are simply a State, an Easing Function and a length. It then creates an animation easing between consecutive Scenes (or rather their states) for the specified length. 
 The StateSequence object therefore is relatively simple: 
@@ -104,15 +106,20 @@ But as you can see there is another object used here called ```scene```. Scenes 
 |   ```Length```   | ```double```       | ```3```                       | The length of animating between this and the next scene       |
 | ```EasingType``` | ```string```       | ```"Linear"```                | The easing function of the animation                          |
 
-Currently supported EasingTypes are: 
-- Linear
-- SineIn
-- SineOut
-- SineInOut
-- ElasticIn
-- ElasticOut
-- ElasticInOut
-- BounceOut
+> [!example]- Currently supported EasingTypes
+> Currently supported EasingTypes are: 
+> - Linear
+> - SineIn
+> - SineOut
+> - SineInOut
+> - ElasticIn
+> - ElasticOut
+> - ElasticInOut
+> - BounceOut
+>   
+>   More are planned for the future. 
+>   For more information about these easing types, see https://easings.net/
 
-For more information about these easing types, see https://easings.net/
+
+
 

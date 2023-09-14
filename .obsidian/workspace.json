@@ -4,15 +4,19 @@
     "type": "split",
     "children": [
       {
-        "id": "8b2deb19c843b62f",
+        "id": "5fcd01c0bb678b6c",
         "type": "tabs",
         "children": [
           {
-            "id": "7b41551ff242bfc8",
+            "id": "6f6d8024cb4c8c6d",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "documentation/examples.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -81,8 +85,9 @@
             "state": {
               "type": "backlink",
               "state": {
-                "collapseAll": false,
-                "extraContext": false,
+                "file": "documentation/examples.md",
+                "collapseAll": true,
+                "extraContext": true,
                 "sortOrder": "alphabetical",
                 "showSearch": false,
                 "searchQuery": "",
@@ -97,6 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "documentation/examples.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,15 +124,17 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "documentation/examples.md"
+              }
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -138,21 +146,32 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "7b41551ff242bfc8",
+  "active": "6f6d8024cb4c8c6d",
   "lastOpenFiles": [
+    "documentation/modulartistic addons.md",
+    "documentation/img/state_example_1.png",
+    "documentation/json format.md",
+    "documentation/function definition.md",
+    "documentation/examples.md",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_4.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_3.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_2.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_1.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4.png",
+    "documentation/img/state_example_4.png",
+    "documentation/img/state_example_3.png",
+    "documentation/img/state_example_2.png",
+    "documentation/img",
+    "documentation/Neuer Ordner",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_3.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_sequence_example_1.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_4.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_3.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_2.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_1.json",
+    "og-image.png.md",
     "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.pdb",
     "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.dll",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.dev.json",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.json",
-    "Modulartistic/obj/Debug/netcoreapp3.1/Modulartistic.genruntimeconfig.cache",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.deps.json",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Melanchall_DryWetMidi_Native64.dylib",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Melanchall_DryWetMidi_Native32.dll",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.exe",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Melanchall_DryWetMidi_Native64.dll",
-    "Modulartistic/bin/Debug/netcoreapp3.1/NCalc.dll",
-    "documentation/examples.md",
-    "documentation/addons.md",
-    "documentation/json format.md"
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.dev.json"
   ]
 }
