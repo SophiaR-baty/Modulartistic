@@ -12,5 +12,13 @@ namespace DebugFunctions
 
             return double.NaN;
         }
+
+        public static double DebugCircle(double x, double y, double x_0, double y_0, double r, double th)
+        {
+            double circ_calc = (x - x_0) * (x - x_0) + (y - y_0) * (y - y_0);
+            if (circ_calc > (r - th / 2) * (r - th / 2) && circ_calc < (r + th / 2) * (r + th / 2)) { return 0; }
+            if (x > x_0 - th/2 && x < x_0 + th / 2 && y > y_0 - th / 2 && y < y_0 + th / 2) { return 0; }
+            return double.NaN;
+        }
     }
 }

@@ -308,7 +308,6 @@ namespace Modulartistic.Core
                 for (int j = 0; j < frames; j++)
                 {
                     State frameState = new State(current.State, next.State, current.Easing, j, frames);
-                    frameState.Name = $"Frame_" + j.ToString().PadLeft((TotalFrameCount(framerate) - 1).ToString().Length, '0');
                     if (max_threads == 0 || max_threads == 1) { frameState.GenerateImage(args, 1, scene_out_dir); }
                     else { frameState.GenerateImage(args, max_threads, scene_out_dir); }
                 }

@@ -360,7 +360,7 @@ namespace Modulartistic.Core
             Name = "Frame_" + idx.ToString().PadLeft(maxidx.ToString().Length, '0');
 
             // Get the eased "inbetween" value of each property
-            for (StateProperty prop = StateProperty.Mod; prop <= StateProperty.i9; prop++)
+            for (StateProperty prop = 0; prop <= StateProperty.i9; prop++)
             {
                 this[prop] = easing.Ease(
                     startState[prop], 
@@ -488,6 +488,13 @@ namespace Modulartistic.Core
 
             // Create instance of Bitmap for pixel data
             Bitmap image = new Bitmap((int)size.Width, (int)size.Height);
+
+            VectorSpace vs = new VectorSpace()
+                .ScaleBy(1, -1)
+                .RotateAroundPoint(new Point(xrotc, yrotc), Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT))
+                .ShiftOriginToPoint(new Point(x0, y0))
+                .ShiftPointToOrigin(new Point(size.Width / 2.0, size.Height / 2.0))
+                .ScaleBy(xfact, yfact);
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
             {
@@ -495,18 +502,9 @@ namespace Modulartistic.Core
                 {
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
-                    double x_1 = x - xrotc; // im not sure about signs of translations...
-                    double y_1 = -y + yrotc;
-                    double x_ = x_1*cosrot - y_1*sinrot           // Apply rotation
-                        + (x0-xrotc)*cosrot - (y0-yrotc)*sinrot;      // Shift Origin to middle of screen
-                    double y_ = x_1*sinrot + y_1*cosrot           // Apply rotation
-                        - (x0-xrotc)*sinrot - (y0-yrotc)*cosrot;      // Shift Origin to middle of Screen
-                    // scale everything
-                    x_ *= xfact;
-                    y_ *= yfact;
-                    // put origin in middle
-                    x_ -= size.Width / 2.0;
-                    y_ += size.Height / 2.0;
+                    Point point = vs.GetProjected(new Point(x, y));
+                    double x_ = point.X;
+                    double y_ = point.Y;
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
@@ -813,10 +811,10 @@ namespace Modulartistic.Core
                 {
                     // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
                     // shift the Rotation Center to Origin
-                    double x_1 = -(x + first_px) - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
+                    double x_1 = x + first_px - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
                     double y_1 = -y - yrotc;
                     double x_ = x_1 * cosrot - y_1 * sinrot           // Apply rotation
-                        - (x0 - xrotc) * cosrot + (y0 - yrotc) * sinrot;      // Shift Origin to middle of screen
+                        + (x0 - xrotc) * cosrot - (y0 - yrotc) * sinrot;      // Shift Origin to middle of screen
                     double y_ = x_1 * sinrot + y_1 * cosrot           // Apply rotation
                         - (x0 - xrotc) * sinrot - (y0 - yrotc) * cosrot;      // Shift Origin to middle of Screen
                     // scale everything
@@ -824,7 +822,7 @@ namespace Modulartistic.Core
                     y_ *= yfact;
                     // put origin in middle
                     x_ -= size.Width / 2.0;
-                    y_ -= size.Height / 2.0;
+                    y_ += size.Height / 2.0;
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue

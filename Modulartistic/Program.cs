@@ -12,6 +12,8 @@ namespace Modulartistic
     {
         static async Task<int> Main(string[] argv)
         {
+            FFMpegCore.GlobalFFOptions.Configure(new FFMpegCore.FFOptions { BinaryFolder = @"D:\Downloads\ffmpeg-2023-09-07-git-9c9f48e7f2-full_build\bin", TemporaryFilesFolder = "/tmp" });
+
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             

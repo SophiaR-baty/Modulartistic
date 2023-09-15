@@ -1,0 +1,51 @@
+[
+  {
+    "Size": [
+      500,
+      500
+    ],
+    "Framerate": 12,
+    "HueFunction": "DebugCircle(x, y, 50, 100, 100, 3)",
+    "Circular": true,
+    "InvalidColorGlobal": true,
+    "UseRGB": false,
+    "AddOns": [ "MathFunctions.dll", "DebugFunctions.dll" ]
+  },
+  {
+    "Name": "debug",
+    "Scenes": [
+      {
+        "State": {
+          "Name": "1",
+          "ColorAlpha": 1,
+          "ColorValue": 1,
+          "X0": 0,
+          "Y0": 0,
+          "XRotationCenter": 50,
+          "YRotationCenter": 100,
+          "Rotation": 0,
+          "ColorSaturation": 1,
+          "InvalidColorAlpha": 1
+        },
+        "Length": 2,
+        "EasingType": "Linear"
+      },
+      {
+        "State": {
+          "Name": "2",
+          "ColorAlpha": 1,
+          "ColorValue": 1,
+          "X0": 0,
+          "Y0": 0,
+          "XRotationCenter": 50,
+          "YRotationCenter": 100,
+          "Rotation": 45,
+          "ColorSaturation": 1,
+          "InvalidColorAlpha": 1
+        },
+        "Length": 2,
+        "EasingType": "Linear"
+      }
+    ]
+  }
+]

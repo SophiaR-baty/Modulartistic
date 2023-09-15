@@ -139,8 +139,6 @@ namespace MathFunctions
             return minDistance;
         }
 
-
-
         public static double Mod(double d1, double d2)
         {
             if (d2 <= 0)
@@ -154,10 +152,18 @@ namespace MathFunctions
             double z = Math.Floor(Math.Sqrt(x) + 1.0 / 2);
             return z + 1 - Math.Abs(x - 1 - z * z);
         }
-
-        public static double TEST(double x, double y, string s)
+    
+        public static double Collatz(double start, double steps)
         {
-            return x * y;
+            int x = (int)Math.Round(start);
+            int stp = (int)Math.Round(steps);
+
+            for (int i = 0; i < stp; i++)
+            {
+                x = x % 2 == 0 ? x / 2 : 3 * x + 1;
+            }
+
+            return x;
         }
     }
 }
