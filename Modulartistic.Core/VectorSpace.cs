@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Modulartistic.Core
 {
-    class VectorSpace
+    public class VectorSpace
     {
         private List<ITransformation> transformations;
 
@@ -20,8 +20,7 @@ namespace Modulartistic.Core
         /// <returns></returns>
         public VectorSpace ShiftPointToOrigin(Point p)
         {
-            Point pr = GetProjected(p);
-            transformations.Add(new Shift(-pr.X, -pr.Y));
+            ShiftPointToPoint(p, Point.Origin);
             return this;
         }
 
@@ -32,8 +31,14 @@ namespace Modulartistic.Core
         /// <returns></returns>
         public VectorSpace ShiftOriginToPoint(Point p)
         {
-            Point pr = GetProjected(Point.Origin);
-            transformations.Add(new Shift(-pr.X - p.X, -pr.Y - p.Y));
+            ShiftPointToPoint(Point.Origin, p);
+            return this;
+        }
+
+        public VectorSpace ShiftPointToPoint(Point in_p, Point out_p)
+        {
+            Point pr = GetProjected(in_p);
+            ShiftBy(-pr.X + out_p.X, -pr.Y + out_p.Y);
             return this;
         }
 
@@ -83,16 +88,20 @@ namespace Modulartistic.Core
 
         public VectorSpace RotateAroundPoint(Point p, double degrees)
         {
-            Point old_origin = GetProjected(Point.Origin);
+            Point rotation_point = GetInverseProjected(p);
+            
             ShiftPointToOrigin(p);
             RotateBy(degrees);
-            ShiftPointToOrigin(old_origin);
+            // r.Apply(ref p);
+            // ShiftOriginToPoint(rotation_point);
+            // rotation_point = GetProjected(p);
+            ShiftPointToPoint(rotation_point, p);
+            
+            // ShiftPointToPoint(p, rotation_point);
+            // ShiftBy(p.X, p.Y);
             return this;
         }
-
-
-
-
+        
         public Point GetProjected(double x, double y)
         {
             return GetProjected(new Point(x, y));
@@ -101,9 +110,29 @@ namespace Modulartistic.Core
         public Point GetProjected(Point p)
         {
             if (transformations.Count == 0) { return p; }
-            
-            Point current = p;
-            for (int i = 0; i < transformations.Count; i++) { transformations[i].Apply(ref current); }
+
+            Point current = new Point(p);
+            for (int i = 0; i < transformations.Count; i++) 
+            {
+                transformations[i].Apply(ref current);
+            }
+            return current;
+        }
+
+        public Point GetInverseProjected(double x, double y)
+        {
+            return GetInverseProjected(new Point(x, y));
+        }
+
+        public Point GetInverseProjected(Point p)
+        {
+            if (transformations.Count == 0) { return p; }
+
+            Point current = new Point(p);
+            for (int i = transformations.Count-1; i >= 0; i--)
+            {
+                transformations[i].ApplyInverse(ref current);
+            }
             return current;
         }
 
@@ -111,6 +140,7 @@ namespace Modulartistic.Core
         interface ITransformation
         {
             public void Apply(ref Point p);
+            public void ApplyInverse(ref Point p);
         }
         
         class Shift : ITransformation
@@ -128,6 +158,12 @@ namespace Modulartistic.Core
                 p.X += _x;
                 p.Y += _y;
             }
+
+            public void ApplyInverse(ref Point p)
+            {
+                p.X -= _x;
+                p.Y -= _y;
+            }
         }
         
         class Scale : ITransformation
@@ -144,6 +180,12 @@ namespace Modulartistic.Core
             {
                 p.X *= _x;
                 p.Y *= _y;
+            }
+
+            public void ApplyInverse(ref Point p)
+            {
+                p.X /= _x;
+                p.Y /= _y;
             }
         }
 
@@ -166,11 +208,18 @@ namespace Modulartistic.Core
                 p.Y = p.X * _sindeg + p.Y * _cosdeg;
                 p.X = _x;
             }
+
+            public void ApplyInverse(ref Point p)
+            {
+                double _x = p.X * _cosdeg + p.Y * _sindeg;
+                p.Y = -p.X * _sindeg + p.Y * _cosdeg;
+                p.X = _x;
+            }
         }
         #endregion
     }
 
-    class Point
+    public class Point
     {
         private double _x;
         private double _y;
@@ -184,6 +233,17 @@ namespace Modulartistic.Core
         {
             _x = x;
             _y = y;
+        }
+
+        public Point(Point p)
+        {
+            _x = p.X;
+            _y = p.Y;
+        }
+
+        public override string ToString()
+        {
+            return $"({_x}, {_y})";
         }
     }
 }

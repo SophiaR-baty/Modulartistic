@@ -250,7 +250,7 @@ namespace Modulartistic.Core
                         if (keepframes)
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
-                            CreateGif(framerate, folder);
+                            CreateGif(args, folder);
                         }
                         else
                         {
@@ -263,7 +263,7 @@ namespace Modulartistic.Core
                         if (keepframes) 
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
-                            CreateMp4(framerate, folder);
+                            CreateMp4(args, folder);
                         }
                         else
                         {
@@ -321,7 +321,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private void CreateGif(double framerate, string folder)
+        private void CreateGif(GenerationArgs args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -345,7 +345,7 @@ namespace Modulartistic.Core
                 sceneDirs.Add(sceneDir);
                 imgPaths.AddRange(Directory.GetFiles(sceneDir));
             }
-
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             FFMpeg.JoinImageSequence(folder + @".gif", frameRate: framerate, imgPaths.ToArray());
         }
 
@@ -354,7 +354,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private void CreateMp4(double framerate, string folder)
+        private void CreateMp4(GenerationArgs args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -378,7 +378,7 @@ namespace Modulartistic.Core
                 sceneDirs.Add(sceneDir);
                 imgPaths.AddRange(Directory.GetFiles(sceneDir));
             }
-
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
             FFMpeg.JoinImageSequence(folder + @".mp4", frameRate: framerate, imgPaths.ToArray());
         }
         #endregion

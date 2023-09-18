@@ -488,24 +488,28 @@ namespace Modulartistic.Core
 
             // Create instance of Bitmap for pixel data
             Bitmap image = new Bitmap((int)size.Width, (int)size.Height);
+            
+            
+            // get rotation center via inverse
+            double rx1 = xrotc + xfact * (-xrotc - size.Width / 2.0)  + x0;
+            double ry1 = yrotc + -yfact * (-yrotc - size.Height / 2.0) + y0;
+            
+            double add_to_x = -xrotc - size.Width + 2 * x0 / xfact;
+            double add_to_y = -yrotc - size.Height - 2 * y0 / yfact;
+            double add_to_x_2 = xrotc - rx1 * cosrot + ry1 * sinrot;
+            double add_to_y_2 = yrotc - rx1 * sinrot - ry1 * cosrot;
 
-            VectorSpace vs = new VectorSpace()
-                .ScaleBy(1, -1)
-                .RotateAroundPoint(new Point(xrotc, yrotc), Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT))
-                .ShiftOriginToPoint(new Point(x0, y0))
-                .ShiftPointToOrigin(new Point(size.Width / 2.0, size.Height / 2.0))
-                .ScaleBy(xfact, yfact);
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
             {
                 for (int x = 0; x < size.Width; x++)
                 {
-                    // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
-                    // shift the Rotation Center to Origin
-                    Point point = vs.GetProjected(new Point(x, y));
-                    double x_ = point.X;
-                    double y_ = point.Y;
+                    double x1 = xfact * (x + add_to_x);
+                    double y1 = -yfact * (y + add_to_y);
 
+                    double x_ = x1 * cosrot - y1 * sinrot + add_to_x_2;
+                    double y_ = x1 * sinrot + y1 * cosrot + add_to_y_2;
+                    
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
                         pixel_g_s = 0,    // green or saturation
