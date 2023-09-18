@@ -42,29 +42,22 @@ namespace Modulartistic.Core
 
         #region Constructors
         /// <summary>
-        /// Constructor for an empty StateSequence
-        /// </summary>
-        public StateSequence()
-        {
-            Scenes = new List<Scene>();
-            Name = Constants.STATESEQUENCE_NAME_DEFAULT;
-        }
-
-        /// <summary>
         /// Constructor of StateSequence with an Array of Scenes and a name.
         /// </summary>
         /// <param name="sequence">An Array of Scenes.</param>
         /// <param name="name">The Name of this StateSequence.</param>
-        public StateSequence(Scene[] sequence, string name)
+        public StateSequence(Scene[] sequence, string name = "")
         {
-            this.Scenes = sequence.ToList();
-            Name = name;
+            Scenes = sequence.ToList();
+            Name = name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : name;
         }
-
-        public StateSequence(string name)
+        /// <summary>
+        /// Constructor for an empty StateSequence
+        /// </summary>
+        public StateSequence(string name = "")
         {
             Scenes = new List<Scene>();
-            Name = name;
+            Name = Name = name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : name; ;
         }
         #endregion
 
@@ -166,7 +159,7 @@ namespace Modulartistic.Core
                 .FromPipeInput(videoFramesSource)
                 .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
                     .WithVideoCodec(VideoCodec.LibX265)
-                    .WithVideoBitrate(16000) // find a balance between quality and file size
+                    // .WithVideoBitrate(16000) // find a balance between quality and file size
                     .WithFramerate(framerate))
                 .ProcessAsynchronously();
             }
@@ -390,22 +383,22 @@ namespace Modulartistic.Core
         /// <returns>A formatted details string</returns>
         public string GetDetailsString(uint framerate = 12)
         {
-            string result = string.Format(
-                $"{"Name: ",-30} {Name} \n" +
-                $"{"Scene Count: ",-30} {Count} \n" +
-                $"{"Total Frame Count: ",-30} {TotalFrameCount(framerate)} \n" +
-                $"{"Length in Seconds: ",-30} {LengthInSeconds()} \n\n" +
-                $"{"Scenes: ",-30} \n\n"
-                );
+            const int padding = -30;
+            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ", padding} {Name} \n";
+            details += $"{"Scene Count: ", padding} {Count} \n";
+            details += $"{"Total Frame Count: ", padding} {TotalFrameCount(framerate)} \n";
+            details += $"{"Length in Seconds: ", padding} {LengthInSeconds()} \n\n";
+            details += $"{"Scenes: ", padding} \n\n";
+
             for (int i = 0; i < Count; i++)
             {
-                result +=
+                details +=
                     $"Scene {i}: \n" +
-                    $"{"Easing: ",-30} {Scenes[i].EasingType} \n" +
-                    Scenes[i].State.GetDebugInfo() + "\n\n";
+                    $"{"Easing: ", padding} {Scenes[i].EasingType} \n" +
+                    Scenes[i].State.GetDetailsString() + "\n\n";
             }
 
-            return result;
+            return details;
         }
         #endregion
     }

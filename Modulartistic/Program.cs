@@ -13,7 +13,6 @@ namespace Modulartistic
         static async Task<int> Main(string[] argv)
         {
             // FFMpegCore.GlobalFFOptions.Configure(new FFMpegCore.FFOptions { BinaryFolder = @"D:\Downloads\ffmpeg-2023-09-07-git-9c9f48e7f2-full_build\bin", TemporaryFilesFolder = "/tmp" });
-
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             
@@ -30,6 +29,11 @@ namespace Modulartistic
             if (argv[0] == "generate")
             {
                 command = new GenerateCommand(argv[1..]);
+            }
+
+            if (argv[0] == "config")
+            {
+                command = new ConfigCommand(argv[1..]);
             }
 
             // if the first argument is midi-animation

@@ -17,7 +17,7 @@ namespace Modulartistic.Core
     /// </summary>
     public class StateTimeline
     {
-        #region properties
+        #region Properties
         /// <summary>
         /// The Name of this StateTimeline
         /// </summary>
@@ -39,32 +39,20 @@ namespace Modulartistic.Core
         public List<StateEvent> Events { get; set; }
         #endregion
 
-        #region constructors
+        #region Constructors
         /// <summary>
         /// Creates an Empty StateTimeline
         /// </summary>
-        public StateTimeline()
+        public StateTimeline(string name = "")
         {
-            Name = "";
-            Length = 0;
-            Base = new State();
-            Events = new List<StateEvent>();
-        }
-
-        /// <summary>
-        /// Creates an Empty StateTimeline
-        /// </summary>
-        /// <param name="name">The name of the TimeLine</param>
-        public StateTimeline(string name)
-        {
-            Name = name;
+            Name = name == "" ? Constants.STATETIMELINE_NAME_DEFAULT : name;
             Length = 0;
             Base = new State();
             Events = new List<StateEvent>();
         }
         #endregion
 
-        #region methods
+        #region Other Methods
         public int TotalFrameCount(uint framerate)
         {
             return (int)(framerate * Length / 1000);
@@ -76,7 +64,13 @@ namespace Modulartistic.Core
         }
         #endregion
 
-        #region Methods for animation Creation
+        #region Animation Generation
+        /// <summary>
+        /// Enumerates Frames of this StateTimeline as IViedeoframes
+        /// </summary>
+        /// <param name="args">The GenerationArgs. </param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <returns></returns>
         private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args, int max_threads)
         {
             // parses GenerationArgs
@@ -122,7 +116,19 @@ namespace Modulartistic.Core
                 else { yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, max_threads)); }
             }
         }
-        
+
+        /// <summary>
+        /// Generates Animation for this StateTimeline and Saves it to a file. 
+        /// </summary>
+        /// <param name="args">The GenerationArgs</param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="type">The file type to be saved (mp4 or gif) </param>
+        /// <param name="keepframes">Whether to keep single frames. Otherwise only the animation is saved. Not implemented yet -> must be false. </param>
+        /// <param name="out_dir">Absolute path of a directory where to save the generated file. If this is an empty string the default output is used. </param>
+        /// <returns>The absolute path of the generated file. </returns>
+        /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
         public async Task<string> GenerateAnimation(GenerationArgs args, int max_threads, AnimationType type, bool keepframes, string out_dir)
         {
             // If out-dir is empty set to default, then check if it exists
@@ -185,6 +191,14 @@ namespace Modulartistic.Core
             }
         }
 
+        /// <summary>
+        /// Create Animation for this StateTimeline and Saves it to a mp4 file. 
+        /// </summary>
+        /// <param name="args">The GenerationArgs</param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
+        /// <returns></returns>
+        /// <exception cref="Exception">If generation fails</exception>
         private async Task CreateMp4(GenerationArgs args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
@@ -204,7 +218,7 @@ namespace Modulartistic.Core
                 .FromPipeInput(videoFramesSource)
                 .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
                     .WithVideoCodec(VideoCodec.LibX265)
-                    .WithVideoBitrate(16000) // find a balance between quality and file size
+                    // .WithVideoBitrate(16000) // find a balance between quality and file size
                     .WithFramerate(framerate))
                 .ProcessAsynchronously();
             }
@@ -214,6 +228,14 @@ namespace Modulartistic.Core
             }
         }
 
+        /// <summary>
+        /// Create Animation for this StateTimeline and Saves it to a gif file. 
+        /// </summary>
+        /// <param name="args">The GenerationArgs</param>
+        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
+        /// <returns></returns>
+        /// <exception cref="Exception">If generation fails</exception>
         private async Task CreateGif(GenerationArgs args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
@@ -242,6 +264,13 @@ namespace Modulartistic.Core
             }
         }
 
+        /// <summary>
+        /// Generate all frames and save them in the specified out_dir
+        /// </summary>
+        /// <param name="args">GenerationArgs</param>
+        /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
+        /// <param name="out_dir">the output directory</param>
+        /// <returns>returns outdir</returns>
         private string GenerateFrames(GenerationArgs args, int max_threads, string out_dir)
         {
             // parses GenerationArgs

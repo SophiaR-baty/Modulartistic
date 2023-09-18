@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json;
 
 #nullable enable
 
@@ -115,27 +114,5 @@ namespace Modulartistic.Core
 
             return result;
         }
-
-        #region Json Serialization
-        public static GenerationArgs FromJson(string json_string)
-        {
-            JsonSerializerOptions option = new JsonSerializerOptions()
-            {
-                AllowTrailingCommas = true,
-            };
-            return JsonSerializer.Deserialize<GenerationArgs>(json_string);
-        }
-
-        public string ToJson()
-        {
-            JsonSerializerOptions options = new JsonSerializerOptions()
-            {
-                IgnoreNullValues = true,
-                WriteIndented = true,
-            };
-            return JsonSerializer.Serialize(this, options);
-        }
-        #endregion
-
     }
 }

@@ -64,7 +64,6 @@ namespace Modulartistic.Core
         #endregion
 
         #region Json Serialization Methods
-        
         /// <summary>
         /// Serializes the GenerationData object to json
         /// </summary>
@@ -232,7 +231,7 @@ namespace Modulartistic.Core
                     if (Debug)
                     {
                         Console.WriteLine("Generating Image for State: ");
-                        Console.WriteLine(S.GetDebugInfo());
+                        Console.WriteLine(S.GetDetailsString());
                         Console.WriteLine();
                     }
 

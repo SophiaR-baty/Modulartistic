@@ -300,11 +300,11 @@ namespace Modulartistic.Core
         /// <summary>
         /// Constructs a new State that has default values.
         /// </summary>
-        public State()
+        public State(string name = "")
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
 
-            Name = Constants.STATENAME_DEFAULT;
+            Name = name == "" ? Constants.STATENAME_DEFAULT : name;
 
             X0 = null;
             Y0 = null;
@@ -373,328 +373,15 @@ namespace Modulartistic.Core
 
         #region Methods for Generating Image
         /// <summary>
-        /// Generates the Bitmap object of the state, given a size and Function for Color calculation. Uses singlethread generation. 
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <returns>The Generated Bitmap</returns>
-        private Bitmap GetBitmap(GenerationArgs args)
-        {
-            // setting and validating State Properties
-            // mod Properties
-            double mod = Mod.GetValueOrDefault(Constants.NUM_DEFAULT);
-            if (mod <= 0) { mod = double.Epsilon; }
-            double modliml = ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT);
-            double modlimu = ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT);
-            double lowBound = Helper.inclusiveMod(modliml, mod);
-            double upBound = Helper.inclusiveMod(modlimu, mod);
-            // coordinate Properties
-            double x0 = X0.GetValueOrDefault(Constants.XY0_DEFAULT);
-            double y0 = Y0.GetValueOrDefault(Constants.XY0_DEFAULT);
-            double xrotc = XRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-            double yrotc = YRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-            double xfact = XFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
-            double yfact = YFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
-            // calculate the rotation in radiants and its cos and sin
-            double rotrad = 2 * Math.PI * Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT) / 360;
-            double sinrot = Math.Sin(rotrad);
-            double cosrot = Math.Cos(rotrad);
-            // color Properties
-            double colr = ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colg = ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colb = ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colh = ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double cols = ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colv = ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double cola = ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT);
-            // invalid Color Properties
-            double inv_colr = InvalidColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colg = InvalidColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colb = InvalidColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colh = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_cols = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colv = InvalidColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_cola = InvalidColorAlpha.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            // Color Factors
-            double colfactr = ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
-            double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
-            double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
-
-            // Parsing GenerationArgs
-            Size size = new Size(args.Size[0], args.Size[1]);
-            bool invalGlobal = args.InvalidColorGlobal.GetValueOrDefault(Constants.INVALIDCOLORGLOBAL_DEFAULT);
-            bool circ = args.Circular.GetValueOrDefault(Constants.CIRCULAR_DEFAULT);
-            bool useRGB = args.UseRGB.GetValueOrDefault(Constants.USERGB_DEFAULT);
-            // instanciate the functions
-            Function? Func_R_H = null;
-            Function? Func_G_S = null;
-            Function? Func_B_V = null;
-            Function? Func_Alp = null;
-            bool Func_R_H_null = true;
-            bool Func_G_S_null = true;
-            bool Func_B_V_null = true;
-            bool Func_Alp_null = true;
-
-            // parse the functions
-            if (useRGB)
-            {
-                if (!string.IsNullOrEmpty(args.RedFunction))
-                {
-                    Func_R_H = new Function(args.RedFunction);
-                    if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
-                    Func_R_H_null = false;
-                }
-                if (!string.IsNullOrEmpty(args.GreenFunction))
-                {
-                    Func_G_S = new Function(args.GreenFunction);
-                    if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
-                    Func_G_S_null = false;
-                }
-                if (!string.IsNullOrEmpty(args.BlueFunction))
-                {
-                    Func_B_V = new Function(args.BlueFunction);
-                    if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
-                    Func_B_V_null = false;
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(args.HueFunction))
-                {
-                    Func_R_H = new Function(args.HueFunction);
-                    if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
-                    Func_R_H_null = false;
-                }
-
-                if (!string.IsNullOrEmpty(args.SaturationFunction))
-                {
-                    Func_G_S = new Function(args.SaturationFunction);
-                    if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
-                    Func_G_S_null = false;
-                }
-
-                if (!string.IsNullOrEmpty(args.ValueFunction))
-                {
-                    Func_B_V = new Function(args.ValueFunction);
-                    if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
-                    Func_B_V_null = false;
-                }
-            }
-            if (!string.IsNullOrEmpty(args.AlphaFunction))
-            {
-                Func_Alp = new Function(args.AlphaFunction);
-                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray());
-                Func_Alp_null = false;
-            }
-
-            // Create instance of Bitmap for pixel data
-            Bitmap image = new Bitmap((int)size.Width, (int)size.Height);
-            
-            
-            // get rotation center via inverse
-            double rx1 = xrotc + xfact * (-xrotc - size.Width / 2.0)  + x0;
-            double ry1 = yrotc + -yfact * (-yrotc - size.Height / 2.0) + y0;
-            
-            double add_to_x = -xrotc - size.Width + 2 * x0 / xfact;
-            double add_to_y = -yrotc - size.Height - 2 * y0 / yfact;
-            double add_to_x_2 = xrotc - rx1 * cosrot + ry1 * sinrot;
-            double add_to_y_2 = yrotc - rx1 * sinrot - ry1 * cosrot;
-
-            // Iterate over every pixel
-            for (int y = 0; y < size.Height; y++)
-            {
-                for (int x = 0; x < size.Width; x++)
-                {
-                    double x1 = xfact * (x + add_to_x);
-                    double y1 = -yfact * (y + add_to_y);
-
-                    double x_ = x1 * cosrot - y1 * sinrot + add_to_x_2;
-                    double y_ = x1 * sinrot + y1 * cosrot + add_to_y_2;
-                    
-                    // Creating Instance of the pixel
-                    double pixel_r_h = 0, // red or hue
-                        pixel_g_s = 0,    // green or saturation
-                        pixel_b_v = 0,    // blue or value
-                        pixel_alp = 0;    // alpha
-
-                    void calculatePixelValue(Function? func, out double pixel_val)
-                    {
-                        double n;
-                        // not trying to catch exceptions here anymore! 
-                        // if there is an exception, it has to do with the function and/or addons
-                        // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
-                        n = func.Evaluate(x_, y_, Parameters, mod);
-                        pixel_val = n.IsFinite() ? Helper.mod(n, mod) : -1;
-                    }
-
-                    // calculate color values
-                    bool all_inval = invalGlobal;
-                    // Yes, using gotos now (instead of do{}while(false)),
-                    // I think its more readable and shouldn't come with any risks
-
-                    if (!Func_R_H_null) { calculatePixelValue(Func_R_H, out pixel_r_h); }
-                    if (all_inval && (pixel_r_h == -1)) { goto FinishCalculation; }
-
-                    if (!Func_G_S_null) { calculatePixelValue(Func_G_S, out pixel_g_s); }
-                    if (all_inval && (pixel_g_s == -1)) { goto FinishCalculation; }
-
-                    if (!Func_B_V_null) { calculatePixelValue(Func_B_V, out pixel_b_v);  }
-                    if (all_inval && (pixel_b_v == -1)) { goto FinishCalculation; }
-
-                    if (!Func_Alp_null) { calculatePixelValue(Func_Alp, out pixel_alp); }
-                    if (all_inval &= (pixel_alp == -1)) { goto FinishCalculation; }
-
-                FinishCalculation:
-
-                    // if bounds are equal, all colors are invalid
-                    all_inval |= lowBound == upBound;
-                    // if all inval is true set all values to -1
-                    if (all_inval)
-                    {
-                        pixel_r_h = -1;
-                        pixel_g_s = -1;
-                        pixel_b_v = -1;
-                        pixel_alp = -1;
-                    }
-                    // Setting Pixel to -1 if out of lower and upper bounds
-                    // Only check for lower and upper bounds if... 
-                    if (!all_inval && !(modliml == 0 && modlimu == Mod))
-                    {
-                        // if the lower bound is less than the upper bound,
-                        // pixel is invalid if its value is not between the bound
-                        if (lowBound < upBound)
-                        {
-                            if (!Func_R_H_null && !(pixel_r_h >= lowBound && pixel_r_h <= upBound)) { pixel_r_h = -1; }
-                            if (!Func_G_S_null && !(pixel_g_s >= lowBound && pixel_g_s <= upBound)) { pixel_g_s = -1; }
-                            if (!Func_B_V_null && !(pixel_b_v >= lowBound && pixel_b_v <= upBound)) { pixel_b_v = -1; }
-                            if (!Func_Alp_null && !(pixel_alp >= lowBound && pixel_alp <= upBound)) { pixel_alp = -1; }
-                        }
-                        // if the lower bound is greater than the upper bound,
-                        // pixel is invalid if its value IS between the bounds
-                        else if (lowBound > upBound)
-                        {
-                            if (!Func_R_H_null && pixel_r_h <= lowBound && pixel_r_h >= upBound) { pixel_r_h = -1; }
-                            if (!Func_G_S_null && pixel_g_s <= lowBound && pixel_g_s >= upBound) { pixel_g_s = -1; }
-                            if (!Func_B_V_null && pixel_b_v <= lowBound && pixel_b_v >= upBound) { pixel_b_v = -1; }
-                            if (!Func_Alp_null && pixel_alp <= lowBound && pixel_alp >= upBound) { pixel_alp = -1; }
-                        }
-                    }
-
-                    // Setting col to inval col if pixel == -1
-                    Color color;
-                    if (useRGB)
-                    {
-                        int a, r, g, b;
-                        if (pixel_alp == -1) { a = (int)(255 * inv_cola); }
-                        else
-                        {
-                            a = (int)(circ ?
-                            Helper.circ(cola + pixel_alp / mod, 1) * 255 :
-                            Helper.inclusiveMod(cola + pixel_alp / mod, 1) * 255);
-                        }
-
-                        if (pixel_r_h == -1) { r = (int)(255 * inv_colr); }
-                        else
-                        {
-                            r = (int)(circ ?
-                            Helper.circ(colr + pixel_r_h / mod, 1) * 255 :
-                            Helper.inclusiveMod(colr + pixel_r_h / mod, 1) * 255);
-                        }
-
-                        if (pixel_g_s == -1) { g = (int)(255 * inv_colg); }
-                        else
-                        {
-                            g = (int)(circ ?
-                            Helper.circ(colg + pixel_g_s / mod, 1) * 255 :
-                            Helper.inclusiveMod(colg + pixel_g_s / mod, 1) * 255);
-                        }
-                        
-                        if (pixel_b_v == -1) { b = (int)(255 * inv_colb); }
-                        else
-                        {
-                            b = (int)(circ ?
-                            Helper.circ(colb + pixel_b_v / mod, 1) * 255 :
-                            Helper.inclusiveMod(colb + pixel_b_v / mod, 1) * 255);
-                        }
-                        
-                        // Apply the Color factors
-                        r = (int)(r * colfactr);
-                        g = (int)(g * colfactg);
-                        b = (int)(b * colfactb);
-
-                        // Validate the Colors (range 0-255)
-                        if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
-                        if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
-                        if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
-
-                        color = new Color(r, g, b, a);
-                    }
-                    else
-                    {
-                        double a, h, s, v;
-                        if (pixel_alp == -1) { a = inv_cola; }
-                        else
-                        {
-                            a = circ ?
-                            Helper.circ(cola + pixel_alp / mod, 1) :
-                            Helper.inclusiveMod(cola + pixel_alp / mod, 1);
-                        }
-
-                        if (pixel_r_h == -1) { h = inv_colh; }
-                        else
-                        {
-                            // this used inclusive mod before, which caused problems with animations. In case that happens in any other sections refer to this comment :)
-                            h = Helper.mod(colh / 360 + pixel_r_h / mod, 1) * 360;
-                        }
-
-                        if (pixel_g_s == -1) { s = inv_cols; }
-                        else
-                        {
-                            s = circ ?
-                            Helper.circ(cols + pixel_g_s / mod, 1) :
-                            Helper.inclusiveMod(cols + pixel_g_s / mod, 1);
-                        }
-
-                        if (pixel_b_v == -1) { v = inv_colv; }
-                        else
-                        {
-                            v = circ ?
-                            Helper.circ(colv + pixel_b_v / mod, 1) :
-                            Helper.inclusiveMod(colv + pixel_b_v / mod, 1);
-                        }
-
-                        color = Color.FromHSV((float)h, (float)s, (float)v);
-                        int r, g, b;
-                        // Apply the Color factors
-                        r = (int)(color.R * colfactr);
-                        g = (int)(color.G * colfactg);
-                        b = (int)(color.B * colfactb);
-
-                        // Validate the Colors (range 0-255)
-                        if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
-                        if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
-                        if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
-
-                        // Update Color
-                        color = new Color(r, g, b, (int)(255 * a));
-                    }
-
-                    // set the pixel on the image bitmap
-                    image.SetPixel(x, y, color);
-
-                }
-            }
-            return image;
-        }
-
-        /// <summary>
         /// Generates part of the Bitmap object of the state, given a size and Function for Color calculation and index of the thread and number of max threads.
         /// </summary>
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
         /// <param name="idx">The number of the Thread</param>
         /// <param name="max">The Total Number of Threads</param>
         /// <param name="image">The Bitmap where the Data should be stored</param>
-        private void GetPartialBitmap(GenerationArgs args, int idx, int max, out Bitmap image)
+        private void GetPartialBitmap(GenerationArgs args, out Bitmap image, int idx = 0, int max = 0)
         {
+            #region Setting and validating State Properties
             // setting and validating State Properties
             // mod Properties
             double mod = Mod.GetValueOrDefault(Constants.NUM_DEFAULT);
@@ -734,7 +421,9 @@ namespace Modulartistic.Core
             double colfactr = ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
             double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
             double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+            #endregion
 
+            #region parsing GenerationArgs (Functions and size)
             // Parsing GenerationArgs
             Size size = new Size(args.Size[0], args.Size[1]);
             bool invalGlobal = args.InvalidColorGlobal.GetValueOrDefault(Constants.INVALIDCOLORGLOBAL_DEFAULT);
@@ -800,33 +489,52 @@ namespace Modulartistic.Core
                 if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray());
                 Func_Alp_null = false;
             }
+            #endregion
 
-            // setting the Width of the Bitmap and the first pixel to generate
-            int partial_width = size.Width / max;
-            int first_px = idx * partial_width;
-            if (idx == max - 1) { partial_width = size.Width - first_px; }
+            #region Setting values for partial creation
+            int partial_width;
+            int first_px;
+            if (max == 0)
+            {
+                partial_width = size.Width;
+                first_px = 0;
+            }
+            else
+            {
+                // setting the Width of the Bitmap and the first pixel to generate
+                partial_width = size.Width / max;
+                first_px = idx * partial_width;
+                if (idx == max - 1) { partial_width = size.Width - first_px; }
+            }
+            #endregion
+
+            #region Coordinate Calculation (unchanging for x and y)
+            // get rotation center via inverse
+            double rx1 = xrotc + xfact * (-xrotc - size.Width / 2.0) + x0;
+            double ry1 = yrotc + -yfact * (-yrotc - size.Height / 2.0) + y0;
+
+            // static summands for coordinate calculation
+            double add_to_x = -xrotc - size.Width + 2 * x0 / xfact + first_px;
+            double add_to_y = -yrotc - size.Height - 2 * y0 / yfact;
+            double add_to_x_2 = xrotc - rx1 * cosrot + ry1 * sinrot;
+            double add_to_y_2 = yrotc - rx1 * sinrot - ry1 * cosrot;
+            #endregion
 
             // Create instance of Bitmap for pixel data
             image = new Bitmap(partial_width, (int)size.Height);
+
             // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
             {
                 for (int x = 0; x < partial_width; x++)
                 {
-                    // Calculate actual x,y values x_ & y_ (Implementing Scaling and rotation)
-                    // shift the Rotation Center to Origin
-                    double x_1 = x + first_px - xrotc; // im not sure if it should be -x and -y but all it would do anyways is flip it
-                    double y_1 = -y - yrotc;
-                    double x_ = x_1 * cosrot - y_1 * sinrot           // Apply rotation
-                        + (x0 - xrotc) * cosrot - (y0 - yrotc) * sinrot;      // Shift Origin to middle of screen
-                    double y_ = x_1 * sinrot + y_1 * cosrot           // Apply rotation
-                        - (x0 - xrotc) * sinrot - (y0 - yrotc) * cosrot;      // Shift Origin to middle of Screen
-                    // scale everything
-                    x_ *= xfact;
-                    y_ *= yfact;
-                    // put origin in middle
-                    x_ -= size.Width / 2.0;
-                    y_ += size.Height / 2.0;
+                    #region Coordinate Calculation (dependent on x and y)
+                    double x1 = xfact * (x + add_to_x);
+                    double y1 = -yfact * (y + add_to_y);
+
+                    double x_ = x1 * cosrot - y1 * sinrot + add_to_x_2;
+                    double y_ = x1 * sinrot + y1 * cosrot + add_to_y_2;
+                    #endregion
 
                     // Creating Instance of the pixel
                     double pixel_r_h = 0, // red or hue
@@ -834,6 +542,7 @@ namespace Modulartistic.Core
                         pixel_b_v = 0,    // blue or value
                         pixel_alp = 0;    // alpha
 
+                    #region Evaluating Functions
                     void calculatePixelValue(Function? func, out double pixel_val)
                     {
                         double n;
@@ -873,6 +582,9 @@ namespace Modulartistic.Core
                         pixel_b_v = -1;
                         pixel_alp = -1;
                     }
+                    #endregion
+
+                    #region Checking Bounds
                     // Setting Pixel to -1 if out of lower and upper bounds
                     // Only check for lower and upper bounds if... 
                     if (!all_inval && !(modliml == 0 && modlimu == Mod))
@@ -896,7 +608,9 @@ namespace Modulartistic.Core
                             if (!Func_Alp_null && pixel_alp <= lowBound && pixel_alp >= upBound) { pixel_alp = -1; }
                         }
                     }
+                    #endregion
 
+                    #region Setting Color in RGB Mode
                     // Setting col to inval col if pixel == -1
                     Color color;
                     if (useRGB)
@@ -946,6 +660,9 @@ namespace Modulartistic.Core
 
                         color = new Color(r, g, b, a);
                     }
+                    #endregion
+
+                    #region Setting Color in HSV Mode
                     else
                     {
                         double a, h, s, v;
@@ -995,6 +712,7 @@ namespace Modulartistic.Core
                         // Update Color
                         color = new Color(r, g, b, (int)(255 * a));
                     }
+                    #endregion
 
                     // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
@@ -1038,7 +756,11 @@ namespace Modulartistic.Core
         /// <returns>The generated Bitmap</returns>
         public Bitmap GetBitmap(GenerationArgs args, int max_threads)
         {
-            if (max_threads == 0 || max_threads == 1) { return GetBitmap(args); }
+            if (max_threads == 0 || max_threads == 1) 
+            {
+                GetPartialBitmap(args, out Bitmap image);
+                return image;
+            }
             else
             {
                 // Parsing GenerationArgs Size
@@ -1062,7 +784,7 @@ namespace Modulartistic.Core
                     // index needs to be made local for the lambda function
                     int local_i = i;
 
-                    threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, local_i, threads_num, out partial_images[local_i])));
+                    threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, out partial_images[local_i], local_i, threads_num)));
                     threads[local_i].Start();
                 }
 
@@ -1088,45 +810,46 @@ namespace Modulartistic.Core
         /// Gets details about this state. Useful for debugging. 
         /// </summary>
         /// <returns>A formatted details string</returns>
-        public string GetDebugInfo()
+        public string GetDetailsString()
         {
-            string result =
-                string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",-30} {Name} \n" +
+            const int padding = -30;
+            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ", padding} {Name} \n"; 
 
-                (X0 == null ? "" : $"{"X0 Coordinate: ",-30} {X0} \n") +
-                (Y0 == null ? "" : $"{"Y0 Coordinate: ",-30} {Y0} \n") +
-                (XRotationCenter == null ? "" : $"{"X Rotation Center: ",-30} {XRotationCenter} \n") +
-                (YRotationCenter == null ? "" : $"{"Y Rotation Center: ",-30} {YRotationCenter} \n") +
-                (XFactor == null ? "" : $"{"X-Factor: ",-30} {XFactor} \n") +
-                (YFactor == null ? "" : $"{"Y-Factor: ",-30} {YFactor} \n") +
-                (Rotation == null ? "" : $"{"Rotation: ",-30} {Rotation} \n") +
+            if (X0 != null) { details += $"{"X0 Coordinate: ", padding} {X0} \n"; }
+            if (Y0 != null) { details += $"{"Y0 Coordinate: ", padding} {Y0} \n"; }
+            if (XRotationCenter != null) { details += $"{"X Rotation Center: ", padding} {XRotationCenter} \n"; }
+            if (YRotationCenter != null) { details += $"{"Y Rotation Center: ", padding} {YRotationCenter} \n"; }
+            if (XFactor != null) { details += $"{"X Factor: ", padding} {XFactor} \n"; }
+            if (YFactor != null) { details += $"{"Y Factor: ", padding} {YFactor} \n"; }
+            if (Rotation != null) { details += $"{"Rotation: ", padding} {Rotation} \n"; }
 
-                (Mod == null ? "" : $"{"Modulus Number: ",-30} {Mod} \n") +
-                (ModLimLow == null ? "" : $"{"Modulus Lower Limit: ",-30} {ModLimLow} \n") +
-                (ModLimUp == null ? "" : $"{"Modulus Upper Limit: ",-30} {ModLimUp} \n") +
+            if (Mod != null) { details += $"{"Modulus Number: ", padding} {Mod} \n"; }
+            if (ModLimLow != null) { details += $"{"Modulus Lower Limit: ", padding} {ModLimLow} \n"; }
+            if (ModLimUp != null) { details += $"{"Modulus Upper Limit: ", padding} {ModLimUp} \n"; }
 
-                (ColorHue == null ? "" : $"{"Color Hue: ",-30} {ColorHue} \n") +
-                (ColorSaturation == null ? "" : $"{"Color Saturation: ",-30} {ColorSaturation} \n") +
-                (ColorValue == null ? "" : $"{"Color Value: ",-30} {ColorValue} \n") +
-                (InvalidColorHue == null ? "" : $"{"Invalid Color Hue: ",-30} {InvalidColorHue} \n") +
-                (InvalidColorSaturation == null ? "" : $"{"Invalid Color Saturation: ",-30} {InvalidColorSaturation} \n") +
-                (InvalidColorValue == null ? "" : $"{"Invalid Color Value: ",-30} {InvalidColorValue} \n") +
+            if (ColorHue != null) { details += $"{"Hue Offset: ", padding} {ColorHue} \n"; }
+            if (ColorSaturation != null) { details += $"{"Saturation Offset: ", padding} {ColorSaturation} \n"; }
+            if (ColorValue != null) { details += $"{"Color Value Offset: ", padding} {ColorValue} \n"; }
 
-                (ColorBlue == null ? "" : $"{"Color Red: ",-30} {ColorBlue} \n") +
-                (ColorGreen == null ? "" : $"{"Color Green: ",-30} {ColorGreen} \n") +
-                (ColorBlue == null ? "" : $"{"Color Blue: ",-30} {ColorBlue} \n") +
-                (InvalidColorRed == null ? "" : $"{"Invalid Color Red: ",-30} {InvalidColorRed} \n") +
-                (InvalidColorGreen == null ? "" : $"{"Invalid Color Green: ",-30} {InvalidColorGreen} \n") +
-                (InvalidColorBlue == null ? "" : $"{"Invalid Color Blue: ",-30} {InvalidColorBlue} \n") +
+            if (InvalidColorHue != null) { details += $"{"Invalid Hue: ", padding} {InvalidColorHue} \n"; }
+            if (InvalidColorSaturation != null) { details += $"{"Invalid Saturation: ", padding} {InvalidColorSaturation} \n"; }
+            if (InvalidColorValue != null) { details += $"{"Invalid Color Value: ", padding} {InvalidColorValue} \n"; }
 
-                $"{"Color Factors (R G B): ",-30} {ColorFactorR} {ColorFactorG} {ColorFactorB} \n" +
+            if (ColorRed != null) { details += $"{"Red Offset: ", padding} {ColorRed} \n"; }
+            if (ColorGreen != null) { details += $"{"Green Offset: ", padding} {ColorGreen} \n"; }
+            if (ColorBlue != null) { details += $"{"Blue Offset: ", padding} {ColorBlue} \n"; }
+            
+            if (InvalidColorRed != null) { details += $"{"Invalid Red: ",padding} {InvalidColorRed} \n"; }
+            if (InvalidColorGreen != null) { details += $"{"Invalid Green: ",padding} {InvalidColorGreen} \n"; }
+            if (InvalidColorBlue != null) { details += $"{"Invalid Blue: ",padding} {InvalidColorBlue} \n"; }
+            
+            if (ColorAlpha != null) { details += $"{"Alpha Offset: ", padding} {ColorAlpha} \n"; }
+            if (InvalidColorAlpha != null) { details += $"{"Invalid Alpha Offset: ", padding} {InvalidColorAlpha} \n"; }
 
-                (ColorAlpha == null ? "" : $"{"Color Alpha: ",-30} {ColorAlpha} \n") +
-                (InvalidColorAlpha == null ? "" : $"{"Invalid Color Alpha: ",-30} {InvalidColorAlpha} \n") +
-                
-                $"{"Parameters: ",-30} {Parameters[0]} {Parameters[1]} {Parameters[2]} {Parameters[3]} {Parameters[4]} {Parameters[5]} {Parameters[6]} {Parameters[7]} {Parameters[8]} {Parameters[9]}";
+            if (ColorFactorR != null || ColorFactorG != null || ColorFactorB != null) { details += $"{"Color Factors (R G B): ", padding} {this[StateProperty.ColorFactorR]} {this[StateProperty.ColorFactorG]} {this[StateProperty.ColorFactorB]} \n"; }
+            details += $"{"Parameters: ",-30} {Parameters[0]} {Parameters[1]} {Parameters[2]} {Parameters[3]} {Parameters[4]} {Parameters[5]} {Parameters[6]} {Parameters[7]} {Parameters[8]} {Parameters[9]}";
 
-            return result;
+            return details;
         }
         
         /// <summary>
@@ -1180,7 +903,7 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Fills the Dictionary containing Strong to StateProperty Values
+        /// Fills the Dictionary containing String to StateProperty Values
         /// </summary>
         private static void FillPropertyStringDict()
         {

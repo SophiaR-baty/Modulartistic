@@ -39,19 +39,7 @@ namespace Modulartistic.Core
         // For StateTimeline
         public const string STATETIMELINE_NAME_DEFAULT = "timeline";   // default for statetimeline name
 
-        // Folders configuration -> put this in a config file
-        private static string _output_folder = AppDomain.CurrentDomain.BaseDirectory + "output";
-        private static string _input_folder = AppDomain.CurrentDomain.BaseDirectory + "input";
-        private static string _addon_folder = AppDomain.CurrentDomain.BaseDirectory + "addons";
-        private static string _demo_folder = AppDomain.CurrentDomain.BaseDirectory + "demofiles";
-
-        private static string _ffmpeg_folder = ""; // implement this once config files work
-
-        public static string OUTPUTFOLDER { get => _output_folder; set => _output_folder = value; }
-        public static string INPUTFOLDER { get => _input_folder; set => _input_folder = value; }
-        public static string ADDONFOLDER { get => _addon_folder; set => _addon_folder = value; }
-        public static string DEMOFOLDER { get => _demo_folder; set => _demo_folder = value; }
-        public static string FFMPEGFOLDER { get => _ffmpeg_folder; set => _ffmpeg_folder = value; }
+        
 
     }
 }
