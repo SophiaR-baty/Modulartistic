@@ -85,6 +85,7 @@ namespace Modulartistic
             for (int i = 0; i < args.Length; i++)
             {
                 string arg = args[i];
+                
                 if (expect_midi && File.Exists(arg) && arg.EndsWith(".mid"))
                 {
                     midi_path = arg;
@@ -93,18 +94,22 @@ namespace Modulartistic
                     accept_flags = true;
                     continue;
                 }
+
                 if (accept_json && File.Exists(arg) && arg.EndsWith(".json"))
                 {
                     json_path = arg;
                     accept_json = false;
                     continue;
                 }
+
                 if (accept_outdir && Directory.Exists(arg))
                 {
                     out_path = arg;
                     accept_json = false;
                     accept_outdir = false;
+                    continue;
                 }
+
                 if (accept_flags)
                 {
                     if (arg == "--debug") { debug = true; }
@@ -122,6 +127,7 @@ namespace Modulartistic
 
                     accept_json = false;
                     accept_outdir = false;
+                    continue;
                 }
 
                 Console.Error.WriteLine($"Unexpected Flag or Argument: {arg} \nUse -? for help. ");

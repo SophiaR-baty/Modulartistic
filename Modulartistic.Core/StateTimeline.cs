@@ -296,7 +296,7 @@ namespace Modulartistic.Core
             List<StateEvent> activeEvents = new List<StateEvent>();
 
             // iterate over all frames
-            ulong frames = framerate * Length / 1000;
+            ulong frames = (ulong)((double)framerate * (double)Length / 1000);
             for (uint i = 0; i < frames; i++)
             {
                 // Get Time in Seconds and milliseconds
@@ -361,6 +361,47 @@ namespace Modulartistic.Core
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
             // create mp4
             FFMpeg.JoinImageSequence(folder + @".mp4", frameRate: framerate, imgPaths.ToArray());
+        }
+
+        internal string GetDetailsString(uint framerate)
+        {
+            const int padding = -30;
+            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",padding} {Name} \n";
+            details += $"{"Total Frame Count: ",padding} {TotalFrameCount(framerate)} \n";
+            details += $"{"Length in Seconds: ",padding} {LengthInSeconds()} \n\n";
+            
+            details += $"{"Base State: ",padding} \n";
+            details += Base.GetDetailsString() + "\n\n";
+
+            details += $"{"Events: ",padding} \n\n";
+
+            for (int i = 0; i < Events.Count; i++)
+            {
+                StateEvent e = Events[i];
+                details +=
+                    $"Event {i}: \n" +
+                    $"{"Start Time: ",padding} {e.StartTime} \n" +
+                    $"{"Length: ",padding} {e.Length} \n" +
+                    $"{"Attack Time: ",padding} {e.AttackTime} \n" +
+                    $"{"Attack Easing: ",padding} {e.AttackEasingType} \n" +
+                    $"{"Decay Time: ",padding} {e.DecayTime} \n" +
+                    $"{"Decay Easing: ",padding} {e.DecayEasingType} \n" +
+                    $"{"Release Time: ",padding} {e.ReleaseTime} \n" +
+                    $"{"Release Easing: ",padding} {e.ReleaseEasingType} \n";
+                details += "Sustain Values: \n";
+                foreach (StateProperty prop in e.SustainValues.Keys)
+                {
+                    details += $"{prop + ": ",padding} {e.SustainValues[prop]} \n";
+                }
+                details += "Peak Values: \n";
+                foreach (StateProperty prop in e.PeakValues.Keys)
+                {
+                    details += $"{prop + ": ",padding} {e.PeakValues[prop]} \n";
+                }
+                details += "\n";
+            }
+
+            return details;
         }
         #endregion
     }

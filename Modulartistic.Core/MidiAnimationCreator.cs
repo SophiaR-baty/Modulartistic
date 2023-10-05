@@ -27,10 +27,11 @@ namespace Modulartistic.Core
             if (!template.OrderAndValidate()) { throw new Exception("For each channel only 1 EventType must be given"); }
 
 
-            Console.WriteLine("\nThe Midi file uses following Channels: \n");
-            foreach (StateEventType eventType in template.Events) { Console.Write("{0} ", eventType.Channel); }
-            Console.WriteLine("\nThe Template defines EventTypes for following Channels: \n");
-            foreach (FourBitNumber channel in midiFile.GetChannels()) { Console.Write("{0} ", channel); }
+            Console.WriteLine("The Template defines EventTypes for following Channels: \n");
+            foreach (StateEventType eventType in template.Events) { Console.Write($"{eventType.Channel} "); }
+            
+            Console.WriteLine("\nThe Midi file uses following Channels: ");
+            foreach (FourBitNumber channel in midiFile.GetChannels()) { Console.Write($"{channel} "); }
 
             timeline.Base = template.Base;
             List<Note> notes = midiFile.GetNotes().ToList();
@@ -39,7 +40,6 @@ namespace Modulartistic.Core
                 for (int i = 0; i < notes.Count;  i++)
                 {
                     Note note = notes[i];
-                    Console.WriteLine(note.Channel);
 
                     if (note.Channel == eventType.Channel)
                     {
@@ -63,6 +63,7 @@ namespace Modulartistic.Core
                         SE.ReleaseEasingType = eventType.ReleaseEasingType;
                         SE.Length = (uint)((TimeSpan)(MetricTimeSpan)note.LengthAs(TimeSpanType.Metric, tmpMap)).TotalMilliseconds;
 
+                        
                         foreach (KeyValuePair<StateProperty, string> keyValuePair in eventType.SustainValueMappings)
                         {
                             Expression exp = new Expression(keyValuePair.Value);
@@ -82,7 +83,6 @@ namespace Modulartistic.Core
                             }
                             SE.PeakValues[keyValuePair.Key] = Convert.ToDouble(exp.Evaluate());
                         }
-
                         SE.StartTime = (uint)((TimeSpan)(MetricTimeSpan)note.TimeAs(TimeSpanType.Metric, tmpMap)).TotalMilliseconds;
 
                         timeline.Events.Add(SE);

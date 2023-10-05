@@ -177,7 +177,7 @@ namespace Modulartistic.Core
                 Name = "Base",
                 Mod = 960,
                 ModLimUp = 50,
-                ColorSaturation = 0,
+                ColorSaturation = 1,
                 InvalidColorAlpha = 1,
                 InvalidColorHue = 0,
                 InvalidColorSaturation = 0,

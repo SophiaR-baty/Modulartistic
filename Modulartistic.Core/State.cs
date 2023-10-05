@@ -80,7 +80,7 @@ namespace Modulartistic.Core
         /// <summary>
         /// The y-Coordinate that will be in the middle of the screen. 
         /// </summary>
-        public double? Y0 { get => m_y0; set => m_y0 =value; }
+        public double? Y0 { get => m_y0; set => m_y0 = value; }
         /// <summary>
         /// The x-Coordinate around which is rotated. 
         /// </summary>
@@ -228,26 +228,26 @@ namespace Modulartistic.Core
                     case StateProperty.ModLimLow: return ModLimLow ?? Constants.LIMLOW_DEFAULT; 
                     case StateProperty.ModLimHigh: return ModLimUp ?? Constants.LIMHIGH_DEFAULT;
                     
-                    case StateProperty.ColorHue: return ColorHue ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.ColorSaturation: return ColorSaturation ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.ColorValue: return ColorValue ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.InvalidColorHue: return InvalidColorHue ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.InvalidColorSaturation: return InvalidColorSaturation ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.InvalidColorValue: return InvalidColorValue ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.ColorHue: return ColorHue ?? Constants.COLOR_HUE_DEFAULT;
+                    case StateProperty.ColorSaturation: return ColorSaturation ?? Constants.COLOR_SATURATION_DEFAULT;
+                    case StateProperty.ColorValue: return ColorValue ?? Constants.COLOR_VALUE_DEFAULT;
+                    case StateProperty.InvalidColorHue: return InvalidColorHue ?? Constants.INV_COLOR_HUE_DEFAULT;
+                    case StateProperty.InvalidColorSaturation: return InvalidColorSaturation ?? Constants.INV_COLOR_SATURATION_DEFAULT;
+                    case StateProperty.InvalidColorValue: return InvalidColorValue ?? Constants.INV_COLOR_VALUE_DEFAULT;
 
-                    case StateProperty.ColorRed: return ColorRed ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.ColorGreen: return ColorGreen ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.ColorBlue: return ColorBlue ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.InvalidColorRed: return InvalidColorRed ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.InvalidColorGreen: return InvalidColorGreen ?? Constants.COLOR_DEFAULT;
-                    case StateProperty.InvalidColorBlue: return InvalidColorBlue ?? Constants.COLOR_DEFAULT;
+                    case StateProperty.ColorRed: return ColorRed ?? Constants.COLOR_RED_DEFAULT;
+                    case StateProperty.ColorGreen: return ColorGreen ?? Constants.COLOR_GREEN_DEFAULT;
+                    case StateProperty.ColorBlue: return ColorBlue ?? Constants.COLOR_BLUE_DEFAULT;
+                    case StateProperty.InvalidColorRed: return InvalidColorRed ?? Constants.INV_COLOR_RED_DEFAULT;
+                    case StateProperty.InvalidColorGreen: return InvalidColorGreen ?? Constants.INV_COLOR_GREEN_DEFAULT;
+                    case StateProperty.InvalidColorBlue: return InvalidColorBlue ?? Constants.INV_COLOR_BLUE_DEFAULT;
 
                     case StateProperty.ColorFactorR: return ColorFactorR ?? Constants.COLORFACT_DEFAULT;
                     case StateProperty.ColorFactorG: return ColorFactorG ?? Constants.COLORFACT_DEFAULT;
                     case StateProperty.ColorFactorB: return ColorFactorB ?? Constants.COLORFACT_DEFAULT;
 
-                    case StateProperty.ColorAlpha: return ColorAlpha ?? Constants.ALPHA_DEFAULT;
-                    case StateProperty.InvalidColorAlpha: return InvalidColorAlpha ?? Constants.ALPHA_DEFAULT;
+                    case StateProperty.ColorAlpha: return ColorAlpha ?? Constants.COLOR_ALPHA_DEFAULT;
+                    case StateProperty.InvalidColorAlpha: return InvalidColorAlpha ?? Constants.INV_COLOR_ALPHA_DEFAULT;
 
                     default: return Parameters[(int)p - (int)StateProperty.i0];
                 }
@@ -389,43 +389,43 @@ namespace Modulartistic.Core
             #region Setting and validating State Properties
             // setting and validating State Properties
             // mod Properties
-            double mod = Mod.GetValueOrDefault(Constants.NUM_DEFAULT);
+            double mod = this[StateProperty.Mod];
             if (mod <= 0) { mod = double.Epsilon; }
-            double modliml = ModLimLow.GetValueOrDefault(Constants.LIMLOW_DEFAULT);
-            double modlimu = ModLimUp.GetValueOrDefault(Constants.LIMHIGH_DEFAULT);
+            double modliml = this[StateProperty.ModLimLow];
+            double modlimu = this[StateProperty.ModLimHigh];
             double lowBound = Helper.inclusiveMod(modliml, mod);
             double upBound = Helper.inclusiveMod(modlimu, mod);
             // coordinate Properties
-            double x0 = X0.GetValueOrDefault(Constants.XY0_DEFAULT);
-            double y0 = Y0.GetValueOrDefault(Constants.XY0_DEFAULT);
-            double xrotc = XRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-            double yrotc = YRotationCenter.GetValueOrDefault(Constants.XYROTCENTER_DEFAULT);
-            double xfact = XFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
-            double yfact = YFactor.GetValueOrDefault(Constants.XYFACTOR_DEFAULT);
+            double x0 = this[StateProperty.X0];
+            double y0 = this[StateProperty.Y0];
+            double xrotc = this[StateProperty.XRotationCenter];
+            double yrotc = this[StateProperty.YRotationCenter];
+            double xfact = this[StateProperty.XFactor];
+            double yfact = this[StateProperty.YFactor];
             // calculate the rotation in radiants and its cos and sin
-            double rotrad = 2 * Math.PI * Rotation.GetValueOrDefault(Constants.ROTATION_DEFAULT) / 360;
+            double rotrad = 2 * Math.PI * this[StateProperty.Rotation] / 360;
             double sinrot = Math.Sin(rotrad);
             double cosrot = Math.Cos(rotrad);
             // color Properties
-            double colr = ColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colg = ColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colb = ColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colh = ColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double cols = ColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double colv = ColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double cola = ColorAlpha.GetValueOrDefault(Constants.ALPHA_DEFAULT);
+            double colr = this[StateProperty.ColorRed];
+            double colg = this[StateProperty.ColorGreen];
+            double colb = this[StateProperty.ColorBlue];
+            double colh = this[StateProperty.ColorHue];
+            double cols = this[StateProperty.ColorSaturation];
+            double colv = this[StateProperty.ColorValue];
+            double cola = this[StateProperty.ColorAlpha];
             // invalid Color Properties
-            double inv_colr = InvalidColorRed.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colg = InvalidColorGreen.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colb = InvalidColorBlue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colh = InvalidColorHue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_cols = InvalidColorSaturation.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_colv = InvalidColorValue.GetValueOrDefault(Constants.COLOR_DEFAULT);
-            double inv_cola = InvalidColorAlpha.GetValueOrDefault(Constants.COLOR_DEFAULT);
+            double inv_colr = this[StateProperty.InvalidColorRed];
+            double inv_colg = this[StateProperty.InvalidColorGreen];
+            double inv_colb = this[StateProperty.InvalidColorBlue];
+            double inv_colh = this[StateProperty.InvalidColorHue];
+            double inv_cols = this[StateProperty.InvalidColorSaturation];
+            double inv_colv = this[StateProperty.InvalidColorValue];
+            double inv_cola = this[StateProperty.InvalidColorAlpha];
             // Color Factors
-            double colfactr = ColorFactorR.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
-            double colfactg = ColorFactorG.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
-            double colfactb = ColorFactorB.GetValueOrDefault(Constants.COLORFACT_DEFAULT);
+            double colfactr = this[StateProperty.ColorFactorR];
+            double colfactg = this[StateProperty.ColorFactorG];
+            double colfactb = this[StateProperty.ColorFactorB];
             #endregion
 
             #region parsing GenerationArgs (Functions and size)
@@ -594,6 +594,7 @@ namespace Modulartistic.Core
                     // Only check for lower and upper bounds if... 
                     if (!all_inval && !(modliml == 0 && modlimu == Mod))
                     {
+                        
                         // if the lower bound is less than the upper bound,
                         // pixel is invalid if its value is not between the bound
                         if (lowBound < upBound)
@@ -612,6 +613,14 @@ namespace Modulartistic.Core
                             if (!Func_B_V_null && pixel_b_v <= lowBound && pixel_b_v >= upBound) { pixel_b_v = -1; }
                             if (!Func_Alp_null && pixel_alp <= lowBound && pixel_alp >= upBound) { pixel_alp = -1; }
                         }
+                    }
+
+                    if (invalGlobal && (pixel_alp == -1 || pixel_b_v == -1 || pixel_g_s == -1 || pixel_r_h == -1))
+                    {
+                        pixel_r_h = -1;
+                        pixel_g_s = -1;
+                        pixel_b_v = -1;
+                        pixel_alp = -1;
                     }
                     #endregion
 
@@ -881,25 +890,25 @@ namespace Modulartistic.Core
                 case StateProperty.ModLimHigh: return Constants.LIMHIGH_DEFAULT;
 
 
-                case StateProperty.ColorHue:
-                case StateProperty.ColorSaturation:
-                case StateProperty.ColorValue:
-                case StateProperty.InvalidColorHue:
-                case StateProperty.InvalidColorSaturation:
-                case StateProperty.InvalidColorValue:
-                case StateProperty.ColorRed:
-                case StateProperty.ColorGreen:
-                case StateProperty.ColorBlue:
-                case StateProperty.InvalidColorRed:
-                case StateProperty.InvalidColorGreen:
-                case StateProperty.InvalidColorBlue: return Constants.COLOR_DEFAULT;
+                case StateProperty.ColorHue: return Constants.COLOR_HUE_DEFAULT;
+                case StateProperty.ColorSaturation: return Constants.COLOR_SATURATION_DEFAULT;
+                case StateProperty.ColorValue: return Constants.COLOR_VALUE_DEFAULT;
+                case StateProperty.InvalidColorHue: return Constants.INV_COLOR_HUE_DEFAULT;
+                case StateProperty.InvalidColorSaturation: return Constants.INV_COLOR_SATURATION_DEFAULT;
+                case StateProperty.InvalidColorValue: return Constants.INV_COLOR_VALUE_DEFAULT;
+                case StateProperty.ColorRed: return Constants.COLOR_RED_DEFAULT;
+                case StateProperty.ColorGreen: return Constants.COLOR_GREEN_DEFAULT;
+                case StateProperty.ColorBlue: return Constants.COLOR_BLUE_DEFAULT;
+                case StateProperty.InvalidColorRed: return Constants.INV_COLOR_RED_DEFAULT;
+                case StateProperty.InvalidColorGreen: return Constants.INV_COLOR_GREEN_DEFAULT;
+                case StateProperty.InvalidColorBlue: return Constants.INV_COLOR_BLUE_DEFAULT;
 
                 case StateProperty.ColorFactorR:
                 case StateProperty.ColorFactorG:
                 case StateProperty.ColorFactorB: return Constants.COLORFACT_DEFAULT;
 
-                case StateProperty.ColorAlpha: 
-                case StateProperty.InvalidColorAlpha: return Constants.ALPHA_DEFAULT;
+                case StateProperty.ColorAlpha: return Constants.COLOR_ALPHA_DEFAULT;
+                case StateProperty.InvalidColorAlpha: return Constants.INV_COLOR_ALPHA_DEFAULT;
 
                 default: return 0;
 

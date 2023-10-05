@@ -19,9 +19,23 @@ namespace Modulartistic.Core
         public const double LIMLOW_DEFAULT = 0;             // default for limlow
         public const double LIMHIGH_DEFAULT = 500;          // default for limhigh
 
-        public const double COLOR_DEFAULT = 0;              // default for all color values (rgb, hsv and invals too)
+        public const double COLOR_HUE_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double COLOR_SATURATION_DEFAULT = 1;              // default for all color values (rgb, hsv)
+        public const double COLOR_VALUE_DEFAULT = 1;              // default for all color values (rgb, hsv)
+        public const double COLOR_RED_DEFAULT = 1;              // default for all color values (rgb, hsv)
+        public const double COLOR_GREEN_DEFAULT = 1;              // default for all color values (rgb, hsv)
+        public const double COLOR_BLUE_DEFAULT = 1;              // default for all color values (rgb, hsv)
+        public const double COLOR_ALPHA_DEFAULT = 1;              // default for all color values (rgb, hsv)
+
+        public const double INV_COLOR_HUE_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double INV_COLOR_SATURATION_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double INV_COLOR_VALUE_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double INV_COLOR_RED_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double INV_COLOR_GREEN_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double INV_COLOR_BLUE_DEFAULT = 0;              // default for all color values (rgb, hsv)
+        public const double INV_COLOR_ALPHA_DEFAULT = 1;              // default for all color values (rgb, hsv)
+
         public const double COLORFACT_DEFAULT = 1;          // default for color factors
-        public const double ALPHA_DEFAULT = 1;              // default for alpha
 
         // For StateSequence
         public const string STATESEQUENCE_NAME_DEFAULT = "animation";   // default for statesequence name

@@ -325,6 +325,8 @@ namespace Modulartistic.Core
                         }
                     }
                 }
+
+                // if the object is a StateTimeline
                 else if (obj.GetType() == typeof(StateTimeline))
                 {
                     StateTimeline ST = obj as StateTimeline;
@@ -332,8 +334,8 @@ namespace Modulartistic.Core
                     // print Debug Information Pre Generating
                     if (Debug)
                     {
-                        Console.WriteLine("Generating Animation for StateSequence: ");
-                        // Console.WriteLine(ST.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
+                        Console.WriteLine("Generating Animation for StateTimeline: ");
+                        Console.WriteLine(ST.GetDetailsString(currentArgs.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT)));
 
                         Console.WriteLine();
                     }
