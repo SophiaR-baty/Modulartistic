@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Xml.Linq;
 
 #nullable enable
 
@@ -297,14 +298,10 @@ namespace Modulartistic.Core
         #endregion
 
         #region Constructors
-        /// <summary>
-        /// Constructs a new State that has default values.
-        /// </summary>
-        public State(string name = "")
+        public State()
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
-
-            Name = name == "" ? Constants.STATENAME_DEFAULT : name;
+            Name = Constants.STATENAME_DEFAULT;
 
             X0 = null;
             Y0 = null;
@@ -336,12 +333,20 @@ namespace Modulartistic.Core
 
             ColorAlpha = null;
             InvalidColorAlpha = null;
-            
+
             ColorFactorR = null;
             ColorFactorG = null;
             ColorFactorB = null;
 
             m_parameters = new double[10];
+        }
+        
+        /// <summary>
+        /// Constructs a new State that has default values.
+        /// </summary>
+        public State(string name) : this()
+        {
+            Name = name == "" ? Constants.STATENAME_DEFAULT : name;
         }
 
         /// <summary>
@@ -732,7 +737,7 @@ namespace Modulartistic.Core
         public string GenerateImage(GenerationArgs args, int max_threads, string out_dir = @"")
         {
             // If out-dir is empty set to default, then check if it exists
-            out_dir = out_dir == "" ? Constants.OUTPUTFOLDER : out_dir;
+            out_dir = out_dir == "" ? PathConfig.OUTPUTFOLDER : out_dir;
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
             // set the absolute path for the file to be save

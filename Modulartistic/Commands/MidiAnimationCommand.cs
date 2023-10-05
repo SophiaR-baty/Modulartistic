@@ -132,7 +132,23 @@ namespace Modulartistic
 
         public void PrintHelp()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("midi-animation <midifile.mid> [<template.json>] [output_directory] [<flags>]");
+            Console.WriteLine("the 'midi-animation' command will generate images and animations from 'generationData.json' files. \n");
+
+            Console.WriteLine("<midifile.mid>          - a single existing midi files to create an animation of");
+            Console.WriteLine("[<template.json>]       - a single json file containing a StateTimelineTemplate");
+            Console.WriteLine("[output_directory]      - a single existing directory to ave the output in. If omitted they will be generated in the deafault output directory. ");
+            Console.WriteLine("[<flags>]               - 0 or more flags. ");
+            Console.WriteLine("argument types must be specified in this order! \n");
+
+            Console.WriteLine("flags: ");
+            Console.WriteLine(" --debug   - Print additional information");
+            Console.WriteLine(" --faster  - Use multiple cores");
+            Console.WriteLine(" --show    - Open generated images and animations");
+            Console.WriteLine(" --mp4     - Generate mp4 instead of gif");
+            Console.WriteLine(" --json    - Generate a json that can be generated with the 'generate' command instead of an animation \n");
+
+            Console.WriteLine("Visit https://github.com/MaxGeo543/Modulartistic for more information. \n");
         }
     }
 }

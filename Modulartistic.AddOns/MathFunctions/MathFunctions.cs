@@ -165,5 +165,31 @@ namespace MathFunctions
 
             return x;
         }
+
+        public static double PascalsTriangleLn(double x, double y, double skew)
+        {
+            return MathNet.Numerics.SpecialFunctions.BinomialLn((int)Math.Floor(-y), (int)Math.Floor((x - skew - y / 2)));
+        }
+
+        public static double PascalsTriangle(double x, double y, double skew)
+        {
+            return MathNet.Numerics.SpecialFunctions.Binomial((int)Math.Floor(-y), (int)Math.Floor(x - skew - y / 2));
+        }
+
+        public static double PascalsTriangleGamma(double x, double y, double skew)
+        {
+            double a = -y;
+            double b = x - skew - y / 2;
+
+            return Gamma(a - 1) / Gamma(b - 1) / Gamma(a - b - 1);
+        }
+
+        public static double PascalsTriangleGammaLn(double x, double y, double skew)
+        {
+            double a = -y;
+            double b = x - skew - y / 2;
+
+            return GammaLn(a - 1) / GammaLn(b - 1) / GammaLn(a - b - 1);
+        }
     }
 }

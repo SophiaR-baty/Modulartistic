@@ -32,7 +32,7 @@ namespace Modulartistic
             debug = false;
             keepframes = false;
             filenames_json = new List<string>();
-            output_dir = Constants.OUTPUTFOLDER;
+            output_dir = PathConfig.OUTPUTFOLDER;
 
             error_code = 0;
         }

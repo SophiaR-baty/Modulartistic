@@ -17,6 +17,7 @@ namespace Modulartistic.Core
         private static string[] types = new string[]
         {
             "Linear",
+            "Multiplicative",
 
             "SineIn",
             "SineOut",
@@ -49,6 +50,7 @@ namespace Modulartistic.Core
             if (!ImplementedEasingTypes.Contains(type)) { throw new NotImplementedException(); }
 
             if (type == "Linear") { return Linear(); }
+            if (type == "Multiplicative") { return Multiplicative(); }
 
             if (type == "SineIn") { return SineIn(); }
             if (type == "SineOut") { return SineOut(); }
@@ -72,6 +74,16 @@ namespace Modulartistic.Core
         {
             Func<double, double, double, double, double> f = (start, end, idx, maxIdx) => start + (end - start) * idx / maxIdx;
             return new Easing(f, "Linear");
+        }
+
+        public static Easing Multiplicative()
+        {
+            Func<double, double, double, double, double> f = (start, end, idx, maxIdx) =>
+            {
+                if (start == 0 || maxIdx == 0) { return 0; }
+                return start * Math.Pow(end / start, idx / maxIdx);
+            };
+            return new Easing(f, "Multiplicative");
         }
 
         public static Easing SineIn()

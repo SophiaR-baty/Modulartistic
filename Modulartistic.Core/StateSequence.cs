@@ -54,10 +54,14 @@ namespace Modulartistic.Core
         /// <summary>
         /// Constructor for an empty StateSequence
         /// </summary>
-        public StateSequence(string name = "")
+        public StateSequence(string name) : this()
+        {
+            Name = name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : name;        }
+
+        public StateSequence()
         {
             Scenes = new List<Scene>();
-            Name = Name = name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : name; ;
+            Name = Constants.STATESEQUENCE_NAME_DEFAULT;
         }
         #endregion
 
@@ -221,7 +225,7 @@ namespace Modulartistic.Core
         public async Task<string> GenerateAnimation(GenerationArgs args, int max_threads, AnimationType type, bool keepframes, string out_dir)
         {
             // If out-dir is empty set to default, then check if it exists
-            out_dir = out_dir == "" ? Constants.OUTPUTFOLDER : out_dir;
+            out_dir = out_dir == "" ? PathConfig.OUTPUTFOLDER : out_dir;
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
             // set the absolute path for the file to be save

@@ -39,7 +39,20 @@ namespace Modulartistic.Core
         // For StateTimeline
         public const string STATETIMELINE_NAME_DEFAULT = "timeline";   // default for statetimeline name
 
-        
+        // For Config
+        public const string OUTPUT_CONFIG_KEY = "output_path";
+        public const string INPUT_CONFIG_KEY = "input_path";
+        public const string DEMO_CONFIG_KEY = "demo_path";
+        public const string FFMPEG_CONFIG_KEY = "ffmpeg_path";
+        public const string ADDON_CONFIG_KEY = "addon_path";
+
+        public static readonly string OUTPUT_FOLDER_DEFAULT = AppDomain.CurrentDomain.BaseDirectory + "output";
+        public static readonly string INPUT_FOLDER_DEFAULT = AppDomain.CurrentDomain.BaseDirectory + "input";
+        public static readonly string ADDONS_FOLDER_DEFAULT = AppDomain.CurrentDomain.BaseDirectory + "addons";
+        public static readonly string DEMOS_FOLDER_DEFAULT = AppDomain.CurrentDomain.BaseDirectory + "demofiles";
+        public static readonly string FFMPEG_FOLDER_DEFAULT = "";
+        public static readonly string CONFIG_FILE_PATH = AppDomain.CurrentDomain.BaseDirectory + "pathconfig.json";
+
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using Modulartistic.Core;
+﻿using FFMpegCore;
+using Modulartistic.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +20,15 @@ namespace Modulartistic
             
             Helper.CreateDirectories();
             ICommand command = new HelpCommand(); ;
-            
+            try
+            {
+                PathConfig.LoadConfigurationFile(Constants.CONFIG_FILE_PATH);
+            }
+            catch { }
+
+            GlobalFFOptions.Configure(options => options.BinaryFolder = PathConfig.FFMPEGFOLDER);
+
+
             if (argv.Length == 0)
             {
                 return (int)(await command.Execute());
@@ -39,26 +48,7 @@ namespace Modulartistic
             // if the first argument is midi-animation
             if (argv[0] == "midi-animation")
             {
-                command = new MidiAnimationCommand();
-                //if (argv[0].EndsWith(".mid") && File.Exists(argv[0]) && argv[1].EndsWith(".json") && File.Exists(argv[1]))
-                //{
-                //    StateTimelineTemplate template = StateTimelineTemplate.LoadJson(argv[1]);
-                //    MidiAnimationCreator.GenerateJson(argv[0], template);
-
-                //    Console.WriteLine("Json has been created. \nCreate Animation now? (y?)");
-                //    if (Console.Read() == 'y')
-                //    {
-                //        MidiAnimationCreator.GenerateAnimation(argv[0], template);
-                //        Console.WriteLine("Done!");
-                //    }
-                //    else
-                //    {
-                //        Console.WriteLine("The Animation can be created later using the generated Json file.");
-                //    }
-                //    return 0;
-                //}
-                Console.Error.WriteLine("Not implemented yet...");
-                return 1;
+                command = new MidiAnimationCommand(argv[1..]);
             }
 
             // if the first argument is test

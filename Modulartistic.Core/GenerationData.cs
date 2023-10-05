@@ -91,7 +91,7 @@ namespace Modulartistic.Core
         public void SaveJson(string out_dir = "")
         {
             // If out-dir is empty set to default, then check if it exists
-            out_dir = out_dir == "" ? Constants.DEMOFOLDER : out_dir;
+            out_dir = out_dir == "" ? PathConfig.DEMOFOLDER : out_dir;
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
             // set the absolute path for the file to be save

@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "documentation/examples.md",
+                "file": "documentation/json format.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "documentation/examples.md",
+                "file": "documentation/json format.md",
                 "collapseAll": true,
                 "extraContext": true,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "documentation/examples.md",
+                "file": "documentation/json format.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "documentation/examples.md"
+                "file": "documentation/json format.md"
               }
             }
           }
@@ -148,30 +148,31 @@
   },
   "active": "6f6d8024cb4c8c6d",
   "lastOpenFiles": [
-    "documentation/modulartistic addons.md",
-    "documentation/img/state_example_1.png",
-    "documentation/json format.md",
-    "documentation/function definition.md",
-    "documentation/examples.md",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_4.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_3.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_2.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4_1.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_4.png",
-    "documentation/img/state_example_4.png",
-    "documentation/img/state_example_3.png",
-    "documentation/img/state_example_2.png",
-    "documentation/img",
-    "documentation/Neuer Ordner",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/state_example_3.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_sequence_example_1.json",
-    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_4.json",
-    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_3.json",
-    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_2.json",
-    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/state_example_1.json",
-    "og-image.png.md",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9.mp4",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/2",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_119.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_118.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_117.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_116.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_115.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_114.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_113.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_112.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_111.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1/Frame_110.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9/1",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_9",
     "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.pdb",
     "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.dll",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.dev.json"
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.dev.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.runtimeconfig.json",
+    "Modulartistic/obj/Debug/netcoreapp3.1/Modulartistic.genruntimeconfig.cache",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.deps.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/Modulartistic.dll.config",
+    "documentation/modulartistic addons.md",
+    "documentation/examples.md",
+    "documentation/json format.md",
+    "documentation/function definition.md",
+    "og-image.png.md"
   ]
 }

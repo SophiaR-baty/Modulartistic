@@ -11,5 +11,6 @@ namespace Modulartistic
         UnexpectedArgument = -2,
         JsonParsingError = -3,
         GenerationError = -4,
+        DirectoryNotFound = -5,
     }
 }
