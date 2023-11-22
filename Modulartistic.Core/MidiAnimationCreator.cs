@@ -27,11 +27,12 @@ namespace Modulartistic.Core
             if (!template.OrderAndValidate()) { throw new Exception("For each channel only 1 EventType must be given"); }
 
 
-            Console.WriteLine("The Template defines EventTypes for following Channels: \n");
+            Console.WriteLine("The Template defines EventTypes for following Channels: ");
             foreach (StateEventType eventType in template.Events) { Console.Write($"{eventType.Channel} "); }
             
             Console.WriteLine("\nThe Midi file uses following Channels: ");
             foreach (FourBitNumber channel in midiFile.GetChannels()) { Console.Write($"{channel} "); }
+            Console.WriteLine();
 
             timeline.Base = template.Base;
             List<Note> notes = midiFile.GetNotes().ToList();

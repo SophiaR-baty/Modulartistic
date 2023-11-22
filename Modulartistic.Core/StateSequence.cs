@@ -11,6 +11,7 @@ using FFMpegCore.Enums;
 using FFMpegCore.Extensions.SkiaSharp;
 using SkiaSharp;
 using System.Threading.Tasks;
+using Modulartistic.Drawing;
 
 namespace Modulartistic.Core
 {
@@ -153,9 +154,6 @@ namespace Modulartistic.Core
                 FrameRate = framerate, // set source frame rate
             };
 
-            // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
-
             // generate the mp4 file
             try
             {
@@ -233,9 +231,6 @@ namespace Modulartistic.Core
             // Validate (if file with same name exists already, append index)
             file_path_out = Helper.ValidFileName(file_path_out);
             
-            // parse framerate from GenerationArgs
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            
             switch (type)
             {
                 case AnimationType.None:
@@ -247,7 +242,7 @@ namespace Modulartistic.Core
                         if (keepframes)
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
-                            CreateGif(args, folder);
+                            await CreateGif(args, folder);
                         }
                         else
                         {
@@ -260,7 +255,7 @@ namespace Modulartistic.Core
                         if (keepframes) 
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
-                            CreateMp4(args, folder);
+                            await CreateMp4(args, folder);
                         }
                         else
                         {
@@ -318,7 +313,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private void CreateGif(GenerationArgs args, string folder)
+        private async Task CreateGif(GenerationArgs args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -342,8 +337,40 @@ namespace Modulartistic.Core
                 sceneDirs.Add(sceneDir);
                 imgPaths.AddRange(Directory.GetFiles(sceneDir));
             }
+
+            // Enumerater for image files
+            IEnumerable<IVideoFrame> EnumerateFrames()
+            {
+                // loops through the all img paths
+                for (int i = 0; i < imgPaths.Count; i++)
+                {
+                    yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
+                }
+            }
+
             uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            FFMpeg.JoinImageSequence(folder + @".gif", frameRate: framerate, imgPaths.ToArray());
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // parsing size
+            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+
+            // generate the gif file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(folder + @".gif", false, options => options
+                    .WithGifPaletteArgument(0, size, (int)framerate)
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
         }
 
         /// <summary>
@@ -351,7 +378,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private void CreateMp4(GenerationArgs args, string folder)
+        private async Task CreateMp4(GenerationArgs args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -375,8 +402,38 @@ namespace Modulartistic.Core
                 sceneDirs.Add(sceneDir);
                 imgPaths.AddRange(Directory.GetFiles(sceneDir));
             }
+
+            // Enumerater for image files
+            IEnumerable<IVideoFrame> EnumerateFrames()
+            {
+                // loops through the all img paths
+                for (int i = 0; i < imgPaths.Count; i++)
+                {
+                    yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
+                }
+            }
+
             uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-            FFMpeg.JoinImageSequence(folder + @".mp4", frameRate: framerate, imgPaths.ToArray());
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // generate the mp4 file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(folder + @".mp4", false, options => options
+                    .WithVideoCodec(VideoCodec.LibX265)
+                    // .WithVideoBitrate(16000) // find a balance between quality and file size
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
         }
         #endregion
 

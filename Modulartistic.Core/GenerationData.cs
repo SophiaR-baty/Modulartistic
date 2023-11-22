@@ -67,7 +67,7 @@ namespace Modulartistic.Core
         /// <summary>
         /// Serializes the GenerationData object to json
         /// </summary>
-        /// <returns> the seriealized object as string </returns>
+        /// <returns> the serialized object as string </returns>
         public string ToJson()
         {
             var options = new JsonSerializerOptions
@@ -140,9 +140,6 @@ namespace Modulartistic.Core
             {
                 JsonElement element = root[i];
 
-                // This is terrible implementation but it became frustrating trying to find an alternative
-                // what I actually want is the following: 
-                // Try to deserialize the object as (Type) but if the JsonElement has a Property that (Type) has not, the next Type should be tested. if all types fail an Exception should be raised
                 if (element.EnumerateObject().All(prop => typeof(GenerationArgs).GetProperty(prop.Name) != null))
                 {
                     GenerationArgs generationArgs = JsonSerializer.Deserialize<GenerationArgs>(element.GetRawText(), options);
@@ -163,7 +160,7 @@ namespace Modulartistic.Core
                     StateTimeline stateTimeLine = JsonSerializer.Deserialize<StateTimeline>(element.GetRawText(), options);
                     Data.Add(stateTimeLine);
                 }
-                else { throw new Exception($"Parsing Error in file {file_name}: Unrecognized Type"); }
+                else { throw new Exception($"Parsing Error in file {file_name}: Unrecognized Property"); }
             }
         }
         #endregion

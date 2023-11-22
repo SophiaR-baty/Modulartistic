@@ -62,7 +62,7 @@ namespace Modulartistic.Core
                 {
                     Name = "ch" + e.Channel + "_peak",
                 };
-                for (StateProperty j = StateProperty.Mod; j <= StateProperty.i9; j++)
+                for (StateProperty j = 0; j <= StateProperty.i9; j++)
                 {
                     Expression exp = new Expression(e.PeakValueMappings.ContainsKey(j) ? e.PeakValueMappings[j] : Base[j].ToString());
                     foreach (KeyValuePair<string, double> keyValuePair in testMappings)
@@ -79,7 +79,7 @@ namespace Modulartistic.Core
                 {
                     Name = "ch" + e.Channel + "_sustain",
                 };
-                for (StateProperty j = StateProperty.Mod; j <= StateProperty.i9; j++)
+                for (StateProperty j = 0; j <= StateProperty.i9; j++)
                 {
                     Expression exp = new Expression(e.SustainValueMappings.ContainsKey(j) ? e.SustainValueMappings[j] : Base[j].ToString());
                     foreach (KeyValuePair<string, double> keyValuePair in testMappings)
@@ -193,7 +193,7 @@ namespace Modulartistic.Core
             SET.ReleaseTime = 100;
             SET.ReleaseEasingType = "Linear";
             SET.PeakValueMappings.Add(StateProperty.ModLimLow, "4*Velocity");
-            SET.PeakValueMappings.Add(StateProperty.ModLimHigh, "4*Velocity+50");
+            SET.PeakValueMappings.Add(StateProperty.ModLimUp, "4*Velocity+50");
             SET.PeakValueMappings.Add(StateProperty.ColorSaturation, "1");
 
             STT.Events.Add(SET);

@@ -226,7 +226,7 @@ namespace Modulartistic.Core
 
                     case StateProperty.Mod: return Mod ?? Constants.NUM_DEFAULT;
                     case StateProperty.ModLimLow: return ModLimLow ?? Constants.LIMLOW_DEFAULT; 
-                    case StateProperty.ModLimHigh: return ModLimUp ?? Constants.LIMHIGH_DEFAULT;
+                    case StateProperty.ModLimUp: return ModLimUp ?? Constants.LIMHIGH_DEFAULT;
                     
                     case StateProperty.ColorHue: return ColorHue ?? Constants.COLOR_HUE_DEFAULT;
                     case StateProperty.ColorSaturation: return ColorSaturation ?? Constants.COLOR_SATURATION_DEFAULT;
@@ -268,7 +268,7 @@ namespace Modulartistic.Core
 
                     case StateProperty.Mod: Mod = value; break;
                     case StateProperty.ModLimLow: ModLimLow = value; break;
-                    case StateProperty.ModLimHigh: ModLimUp = value; break;
+                    case StateProperty.ModLimUp: ModLimUp = value; break;
 
                     case StateProperty.ColorHue: ColorHue = value; break;
                     case StateProperty.ColorSaturation: ColorSaturation = value; break;
@@ -392,7 +392,7 @@ namespace Modulartistic.Core
             double mod = this[StateProperty.Mod];
             if (mod <= 0) { mod = double.Epsilon; }
             double modliml = this[StateProperty.ModLimLow];
-            double modlimu = this[StateProperty.ModLimHigh];
+            double modlimu = this[StateProperty.ModLimUp];
             double lowBound = Helper.inclusiveMod(modliml, mod);
             double upBound = Helper.inclusiveMod(modlimu, mod);
             // coordinate Properties
@@ -887,7 +887,7 @@ namespace Modulartistic.Core
                 case StateProperty.Rotation: return Constants.ROTATION_DEFAULT;
                 case StateProperty.Mod: return Constants.NUM_DEFAULT;
                 case StateProperty.ModLimLow: return Constants.LIMLOW_DEFAULT;
-                case StateProperty.ModLimHigh: return Constants.LIMHIGH_DEFAULT;
+                case StateProperty.ModLimUp: return Constants.LIMHIGH_DEFAULT;
 
 
                 case StateProperty.ColorHue: return Constants.COLOR_HUE_DEFAULT;
@@ -945,7 +945,7 @@ namespace Modulartistic.Core
         
         Mod,
         ModLimLow,
-        ModLimHigh,
+        ModLimUp,
         
         
         ColorHue,

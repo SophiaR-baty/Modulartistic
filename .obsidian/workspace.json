@@ -69,7 +69,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 256.5
   },
   "right": {
     "id": "b9521b7557fdcde6",
@@ -134,7 +134,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -148,31 +149,37 @@
   },
   "active": "6f6d8024cb4c8c6d",
   "lastOpenFiles": [
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1.mp4",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_237.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_236.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_235.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_234.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_233.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_232.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_231.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_230.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_229.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1/Frame_228.png",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_1",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline.mp4",
-    "Modulartistic/bin/Debug/netcoreapp3.1/Instances.dll",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline",
-    "Modulartistic.Core/belqnynw.ulx~",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_2",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_10/1",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/debug_10",
-    "Modulartistic/bin/Debug/netcoreapp3.1/output/timeline_4",
-    "Modulartistic/bin/Debug/netcoreapp3.1/demofiles/GenerationData_7.json",
-    "documentation/modulartistic addons.md",
+    "documentation/img/state_example_3.png",
+    "documentation/img/state_example_4.png",
     "documentation/examples.md",
-    "documentation/json format.md",
+    "documentation/modulartistic addons.md",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_85.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_75.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_84.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_74.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_83.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_73.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_82.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_72.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_81.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_71.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_80.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_70.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_79.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_69.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_78.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_68.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_77.json",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/pascals_67.png",
+    "Modulartistic/bin/Debug/netcoreapp3.1/output/GenerationData_76.json",
     "documentation/function definition.md",
+    "documentation/json format.md",
+    "documentation/state timeline template.md",
+    "json format/JSON Format/GenerationArgs.md",
+    "README.md",
+    "state_timeline_template.md",
+    "state.md",
+    "documentation/todo.md",
     "og-image.png.md"
   ]
 }

@@ -62,8 +62,8 @@ State objects support the following Property names:
 | ```YFactor```                | ```double``` | ```1```                              | All Y Values will be multiplied by this                                                                       |
 | ```Rotation```               | ```double``` | ```0```                              | The rotation angle in degrees                                                                                 |
 | ```Mod```                    | ```double``` | ```500```                            | All functions are taken modulo this number                                                                    |
-| ```ModLimLow```              | ```double``` | ```0```                              | If the result of the modulo is outside of the range ModLimLow-ModLimUp, the result will be treated as invalid |
-| ```ModLimUp```               | ```double``` | ```500```                            | If ModLimUp < ModLimLow -> everything that is INSIDE the range ModLimLow-ModLimUp will be treated as invalid  |
+| ```ModLimLow```              | ```double``` | ```0```                              | If the result of the modulo is outside of the range ModLimLow-ModLimHigh, the result will be treated as invalid |
+| ```ModLimUp```               | ```double``` | ```500```                            | If ModLimHigh < ModLimLow -> everything that is INSIDE the range ModLimLow-ModLimHigh will be treated as invalid  |
 | ```ColorHue```               | ```double``` | ```0```                              | The Constant Hue or offset                                                                                    |
 | ```ColorSaturation```        | ```double``` | ```0```                              | The Constant Saturation or offset                                                                                                              |
 | ```ColorValue```             | ```double``` | ```0```                              | The Constant Value or offset                                                                                                              |
@@ -84,21 +84,14 @@ State objects support the following Property names:
 > When specifying functions in GenerationArgs you can use `i` instead of `i_0` and `j` instead of `i_1`
 ## StateSequence
 A **StateSequence** object is one strategy to create animations. It contains a list of ```Sequence``` objects that are simply a State, an Easing Function and a length. It then creates an animation easing between consecutive Scenes (or rather their states) for the specified length. 
-The StateSequence object therefore is relatively simple: 
+The StateSequence object therefore is relatively simple. It only has the following 2 properties:  
 
-```json
-{
-	"Name": "...",
-	"Scenes": [
-		"scene1",
-		"scene2",
-		"scene3",
-		"..."
-	]
-}
-```
+|       name       | value type         | default value                 | Description                                                   |
+|----------------| ------------------ | ----------------------------- | ------------------------------------------------------------- |
+|   `Name`    | `string` | `"StateSequence"` | The name of the StateSequence which will also be the filename of the animation |
+|   `Scenes`   | `List of Scene object`        | `[]`                       | A list of `Scene` objects       |
 
-But as you can see there is another object used here called ```scene```. Scenes have the following Property Names: 
+But as you can see there is another object type used here called a `Scene`. Scenes have the following Property Names: 
 
 |       name       | value type         | default value                 | Description                                                   |
 |----------------| ------------------ | ----------------------------- | ------------------------------------------------------------- |
@@ -120,6 +113,32 @@ But as you can see there is another object used here called ```scene```. Scenes 
 >   More are planned for the future. 
 >   For more information about these easing types, see https://easings.net/
 
+## StateTimeline
+A **StateTimeline** lets you create animations just like with StateSequences. However there are differences. It has a **specific Length**, a Collection of **Events** and a **Base State** that is shown when no Events are active. You can compare it to a piece of music where the Notes are the events. 
+A StateTimeline has the following properties: 
 
+|       name       | value type         | default value                 | Description                                                   |
+|----------------| ------------------ | ----------------------------- | ------------------------------------------------------------- |
+|   `Name`    | `string` |  | The name of the StateTimeline which will also be the filename of the animation |
+|   `Length`   | `int`       |                        | The length of The StateTimeline in milliseconds       |
+| `Base` | `state object`       |   | The state to display when no Events are active                          |
+| `Events` | `List of Event object`       | | A list of `Event` objects                          |
 
+Like with StateSequences these objects also male use of another types this time called `Event`. Events have the following Properties: 
 
+|       name       | value type         | default value                 | Description                                                   |
+|----------------| ------------------ | ----------------------------- | ------------------------------------------------------------- |
+|   `StartTime`    | `int` |  | The time in milliseconds at which this Event starts |
+|   `Length`   | `int`       | | The length of the Event in milliseconds       |
+| `AttackTime` | `int`       |   | The time in milliseconds for this Event to reach its peak values    |
+| `AttackEasingType` | `string`       |                 | The EasingType for the Attack                       |
+| `DecayTime` | `int`       |   | The time in milliseconds for this Event to decay from its peak values to its sustain values   |
+| `DecayEasingType` | `string`       |                 | The EasingType for the Decay                         |
+| `ReleaseTime` | `int`       |   | The time in milliseconds for this Event to reach base values after its end |
+| `ReleaseEasingType` | `string`       |                 | The EasingType for the Release                          |
+| `PeakValues` | `object`       |   | The  peak values as key-value-pairs of state properties |
+| `SustainValues` | `object`       |  | The  sustain values as key-value-pairs of state properties |
+
+For more clarification about what is meant by Attack, Decay, Sustain and Release read about [envelope in music](https://en.wikipedia.org/wiki/Envelope_(music)). 
+
+Creating StateTimelines by hand is rather uninteresting in my opinion. When adding this I had a different purpose in mind: creating animations as visualization of [midi files](https://en.wikipedia.org/wiki/MIDI#Standard_files). For this purpose there is an additional page where you can read about how to do this using [StateTimelineTemplate](<state timeline template>). 

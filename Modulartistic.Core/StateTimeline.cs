@@ -9,6 +9,7 @@ using FFMpegCore.Extensions.SkiaSharp;
 using FFMpegCore.Pipes;
 using FFMpegCore;
 using FFMpegCore.Enums;
+using Modulartistic.Drawing;
 
 namespace Modulartistic.Core
 {
@@ -32,6 +33,10 @@ namespace Modulartistic.Core
         /// Base State
         /// </summary>
         public State Base { get; set; }
+
+        [JsonIgnore]
+        public double LengthInSeconds { get => Length / 1000.0; }
+
 
         /// <summary>
         /// List of StateEvents with their start Timings (in Milliseconds)
@@ -61,11 +66,6 @@ namespace Modulartistic.Core
         public int TotalFrameCount(uint framerate)
         {
             return (int)(framerate * Length / 1000);
-        }
-
-        public double LengthInSeconds()
-        {
-            return Length / 1000;
         }
         #endregion
 
@@ -145,9 +145,6 @@ namespace Modulartistic.Core
             // Validate (if file with same name exists already, append index)
             file_path_out = Helper.ValidFileName(file_path_out);
 
-            // parse framerate from GenerationArgs
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
-
             // Order Events
             Events = Events.OrderBy((a) => a.StartTime).ToList();
 
@@ -168,7 +165,7 @@ namespace Modulartistic.Core
                         if (keepframes)
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
-                            CreateGif(framerate, folder);
+                            await CreateGif(args, folder);
                         }
                         else
                         {
@@ -181,7 +178,7 @@ namespace Modulartistic.Core
                         if (keepframes)
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
-                            CreateMp4(framerate, folder);
+                            await CreateMp4(args, folder);
                         }
                         else
                         {
@@ -285,52 +282,60 @@ namespace Modulartistic.Core
             if (!Directory.Exists(out_dir)) { Directory.CreateDirectory(out_dir); }
 
             // Order Events
-            Events = Events.OrderBy((a) => a.StartTime).ToList();
+            List<StateEvent> event_list = Events.OrderBy(a => a.StartTime).ToList();
 
             // set Length if Length == 0
             if (Length == 0)
             {
-                Length = Events.Max(x => x.StartTime + x.Length + x.ReleaseTime) + 500;
+                Length = Events.Max(x => x.StartTime + x.Length + x.ReleaseTime) + 1000;
             }
 
+            // Initiate List for active states
             List<StateEvent> activeEvents = new List<StateEvent>();
 
             // iterate over all frames
-            ulong frames = (ulong)((double)framerate * (double)Length / 1000);
-            for (uint i = 0; i < frames; i++)
+            int frames = TotalFrameCount(framerate);
+            for (int frame = 0; frame < frames; frame++)
             {
-                // Get Time in Seconds and milliseconds
-                double second = Convert.ToDouble(i) / Convert.ToDouble(framerate);
-                uint time = Convert.ToUInt32(second * 1000);
-
+                // Get Time in Milliseconds
+                uint time = (uint)((double)frame / framerate * 1000);
+                // Console.WriteLine(time);
                 // Add events triggered on this tick to active events
-                while (Events.Count > 0 && Events[0].StartTime <= time)
+                while (event_list.Count > 0 && event_list[0].StartTime <= time)
                 {
-                    activeEvents.Add(Events[0]);
-                    Events.RemoveAt(0);
+                    activeEvents.Add(event_list[0]);
+                    event_list.RemoveAt(0);
                 }
 
                 // Make a list with all current states of the active events
                 List<State> states = new List<State>();
-                for (int j = 0; j < activeEvents.Count; j++)
+                for (int j = 0; j < activeEvents.Count; )
                 {
                     StateEvent se = activeEvents[j];
-                    uint activationTime = se.StartTime;
-
-                    if (!se.IsActive(time)) { activeEvents.RemoveAt(j); }
-                    states.Add(se.CurrentState(time, Base));
+                    if (se.IsActive(time)) 
+                    {
+                        // Console.WriteLine(time);
+                        states.Add(se.CurrentState(time, Base));
+                    }
+                    else 
+                    {
+                        activeEvents.RemoveAt(j);
+                        continue;
+                    }
+                    j++;
                 }
 
                 // Somehow combine all states into one single state
                 State FrameState = new State();
 
-                for (StateProperty j = StateProperty.Mod; j <= StateProperty.i9; j++)
+                for (StateProperty j = 0; j <= StateProperty.i9; j++)
                 {
-                    FrameState[j] = (Base[j] + states.Sum(state => state[j])) / (states.Count + 1);
+                    if (states.Count == 0) { FrameState[j] = Base[j]; }
+                    else { FrameState[j] = states.Sum(state => state[j]) - Base[j] * (states.Count - 1); }
                 }
 
                 // Create Image of state
-                FrameState.Name = "Frame_" + i.ToString().PadLeft(frames.ToString().Length, '0');
+                FrameState.Name = "Frame_" + frame.ToString().PadLeft(frames.ToString().Length, '0');
                 FrameState.GenerateImage(args, max_threads, out_dir);
             }
 
@@ -340,27 +345,88 @@ namespace Modulartistic.Core
         /// <summary>
         /// Create Animation after having generated all frames beforehand and save as gif
         /// </summary>
-        /// <param name="framerate">The framerate</param>
+        /// <param name="args">The GenerationArgs</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private void CreateGif(double framerate, string folder)
+        private async Task CreateGif(GenerationArgs args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
-            // create gif
-            FFMpeg.JoinImageSequence(folder + @".gif", frameRate: framerate, imgPaths.ToArray());
+            // Enumerater for image files
+            IEnumerable<IVideoFrame> EnumerateFrames()
+            {
+                // loops through the all img paths
+                for (int i = 0; i < imgPaths.Count; i++)
+                {
+                    yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
+                }
+            }
+
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // parsing size
+            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+
+            // generate the gif file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(folder + @".gif", false, options => options
+                    .WithGifPaletteArgument(0, size, (int)framerate)
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
         }
 
         /// <summary>
         /// Create Animation after having generated all frames beforehand and save as mp4
         /// </summary>
-        /// <param name="framerate">The framerate</param>
+        /// /// <param name="args">The GenerationArgs</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private void CreateMp4(double framerate, string folder)
+        private async Task CreateMp4(GenerationArgs args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
-            // create mp4
-            FFMpeg.JoinImageSequence(folder + @".mp4", frameRate: framerate, imgPaths.ToArray());
+
+            // Enumerater for image files
+            IEnumerable<IVideoFrame> EnumerateFrames()
+            {
+                // loops through the all img paths
+                for (int i = 0; i < imgPaths.Count; i++)
+                {
+                    yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
+                }
+            }
+
+            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            // generate the mp4 file
+            try
+            {
+                await FFMpegArguments
+                .FromPipeInput(videoFramesSource)
+                .OutputToFile(folder + @".mp4", false, options => options
+                    .WithVideoCodec(VideoCodec.LibX265)
+                    // .WithVideoBitrate(16000) // find a balance between quality and file size
+                    .WithFramerate(framerate))
+                .ProcessAsynchronously();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error generating animation. ", e);
+            }
         }
 
         internal string GetDetailsString(uint framerate)
@@ -368,7 +434,7 @@ namespace Modulartistic.Core
             const int padding = -30;
             string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",padding} {Name} \n";
             details += $"{"Total Frame Count: ",padding} {TotalFrameCount(framerate)} \n";
-            details += $"{"Length in Seconds: ",padding} {LengthInSeconds()} \n\n";
+            details += $"{"Length in Seconds: ",padding} {LengthInSeconds} \n\n";
             
             details += $"{"Base State: ",padding} \n";
             details += Base.GetDetailsString() + "\n\n";
@@ -464,6 +530,9 @@ namespace Modulartistic.Core
         /// </summary>
         public Dictionary<StateProperty, double> SustainValues { get; set; }
         #endregion
+        
+        [JsonIgnore]
+        private State pre_release_state;
 
         /// <summary>
         /// Creates a Standard StateEvent
@@ -481,6 +550,8 @@ namespace Modulartistic.Core
             DecayEasing = Easing.Linear();
             ReleaseTime = 0;
             ReleaseEasing = Easing.Linear();
+
+            pre_release_state = new State();
         }
 
         /// <summary>
@@ -492,22 +563,25 @@ namespace Modulartistic.Core
         /// <exception cref="Exception">if Activation Time is before Current time</exception>
         public State CurrentState(uint currentTime, State BaseState)
         {
+            // Console.WriteLine(currentTime);
             long t_active = currentTime - StartTime;
             if (t_active < 0) { throw new Exception(); }
 
             State result = new State();
             // Attack
-            if (t_active < AttackTime)
+            if (t_active < Length && t_active < AttackTime)
             {
                 Easing easing = AttackEasing;
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     if (!PeakValues.ContainsKey(i)) { result[i] = BaseState[i]; }
-                    else { result[i] = easing.Ease(BaseState[i], PeakValues[i], Convert.ToInt32(t_active / 2), Convert.ToInt32(AttackTime / 2)); }
+                    else { result[i] = easing.Ease(BaseState[i], PeakValues[i], Convert.ToInt32(t_active), Convert.ToInt32(AttackTime)); }
                 }
+
+                pre_release_state = result;
             }
             // Decay
-            else if (t_active < AttackTime + DecayTime)
+            else if (t_active < Length && t_active < AttackTime + DecayTime)
             {
                 Easing easing = DecayEasing;
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
@@ -521,38 +595,40 @@ namespace Modulartistic.Core
                         result[i] = easing.Ease(
                             PeakValues.ContainsKey(i) ? PeakValues[i] : BaseState[i],
                             SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i],
-                            Convert.ToInt32((t_active - AttackTime) / 2),
-                            Convert.ToInt32(DecayTime / 2));
+                            Convert.ToInt32(t_active - AttackTime),
+                            Convert.ToInt32(DecayTime));
                     }
                 }
+
+                pre_release_state = result;
             }
             // Sustain
-            else if (t_active < AttackTime + Length + DecayTime)
+            else if (t_active < Length)
             {
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     result[i] = SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i];
                 }
+
+                pre_release_state = result;
             }
             // Release
-            else if (t_active < AttackTime + Length + DecayTime + ReleaseTime)
+            else if (t_active > Length && t_active < AttackTime + Length + ReleaseTime)
             {
                 Easing easing = ReleaseEasing;
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
-                    if (!SustainValues.ContainsKey(i) && !PeakValues.ContainsKey(i)) { result[i] = BaseState[i]; }
-                    else
-                    {
-                        result[i] = easing.Ease(
-                            SustainValues.ContainsKey(i) ? SustainValues[i] : PeakValues[i],
-                            BaseState[i],
-                            Convert.ToInt32((t_active - AttackTime - Length - DecayTime) / 2),
-                            Convert.ToInt32(ReleaseTime / 2));
-                    }
+                    result[i] = easing.Ease(
+                        pre_release_state[i],
+                        BaseState[i],
+                        Convert.ToInt32(t_active - AttackTime - Length),
+                        Convert.ToInt32(ReleaseTime));
                 }
             }
             else
             {
+                // Console.WriteLine(currentTime);
+                
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     result[i] = BaseState[i];
@@ -565,7 +641,7 @@ namespace Modulartistic.Core
         /// <summary>
         /// Whether this StateEvent is still Active
         /// </summary>
-        /// <param name="currentTime">The Current Time</param>
+        /// <param name="currentTime">The Current Time in Milliseconds</param>
         /// <returns>bool</returns>
         /// <exception cref="Exception">If Activation Time is after Current Time</exception>
         public bool IsActive(uint currentTime)
@@ -573,7 +649,7 @@ namespace Modulartistic.Core
             long t_active = currentTime - StartTime;
             if (t_active < 0) { return false; }
 
-            if (t_active >= AttackTime + Length + DecayTime + ReleaseTime) { return false; }
+            if (t_active >= Length + ReleaseTime) { return false; }
             else { return true; }
         }
     }

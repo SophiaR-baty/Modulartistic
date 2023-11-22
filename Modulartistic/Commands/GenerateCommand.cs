@@ -24,6 +24,7 @@ namespace Modulartistic
         {
             ParseArguments(args);
         }
+        
         public GenerateCommand()
         {
             faster = false;
@@ -77,6 +78,7 @@ namespace Modulartistic
                 try
                 {
                     await gd.GenerateAll(flags, output_dir);
+                    gd.SaveJson(output_dir);
                 }
                 catch (Exception e)
                 {
