@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Modulartistic.Core</RootNamespace>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
@@ -12,10 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="AnimatedGif" Version="1.0.5" />
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
+    <PackageReference Include="CoreCLR-NCalc" Version="3.0.130" />
     <PackageReference Include="FFMpegCore" Version="5.1.0" />
     <PackageReference Include="FFMpegCore.Extensions.SkiaSharp" Version="5.0.0" />
-    <PackageReference Include="Melanchall.DryWetMidi" Version="6.1.4" />
+    <PackageReference Include="Melanchall.DryWetMidi" Version="7.0.2" />
   </ItemGroup>
 
   <ItemGroup>
