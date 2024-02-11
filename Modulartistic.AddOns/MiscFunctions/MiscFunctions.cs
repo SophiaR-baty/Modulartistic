@@ -87,21 +87,21 @@ namespace MiscFunctions
             return result;
         }
 
-        public static double RecDigSum(double num, double num_base)
+        public static double LeastSquares(double a, double b)
         {
-            int inum = (int)Math.Floor(num);
-            int inum_base = (int)Math.Floor(num_base);
-
-            if (inum < 0) { inum *= -1; }
-            if (inum_base < 0) { inum_base *= -1; }
-            if (Math.Abs(inum_base) <= 1) { return double.NaN; }
-
-            int result = inum;
-            for (; ; )
+            a = Math.Abs(a);
+            b = Math.Abs(b);
+            
+            int result = 0;
+            while (a*b != 0)
             {
-                int digsum = (int)DigSum(result, inum_base);
-                if (digsum == result) { break; }
-                result = digsum;
+                double b_ = Math.Min(a, b);
+                double a_ = Math.Max(a, b) - b_;
+
+                a = a_;
+                b = b_;
+                
+                result++;
             }
 
             return result;
