@@ -75,19 +75,19 @@ namespace Modulartistic.Drawing
         public float GetBrightness()
         {
             _color.ToHsl(out _, out _, out float l);
-            return l;
+            return l/100;
         }
 
         public float GetSaturation()
         {
             _color.ToHsl(out _, out float s, out _);
-            return s;
+            return s/100;
         }
 
         public float GetValue()
         {
             _color.ToHsv(out _, out _, out float v);
-            return v;
+            return v/100;
         }
         #endregion
 
