@@ -166,8 +166,9 @@ namespace Modulartistic.Core
             STT.Name = "default_template";
             STT.Metadata = new GenerationArgs()
             {
-                HueFunction = "x*y",
-                Size = new int[]{ 640, 360 },
+                FunctionRH = "x*y",
+                Width = 640,
+                Height = 360,
                 Framerate = 12,
                 Circular = true,
                 InvalidColorGlobal = true,
@@ -177,11 +178,11 @@ namespace Modulartistic.Core
                 Name = "Base",
                 Mod = 960,
                 ModLimUp = 50,
-                ColorSaturation = 1,
-                InvalidColorAlpha = 1,
-                InvalidColorHue = 0,
-                InvalidColorSaturation = 0,
-                InvalidColorValue = 0,
+                ColorGreenSaturation = 1,
+                InvColorAlpha = 1,
+                InvColorRedHue = 0,
+                InvColorGreenSaturation = 0,
+                InvColorBlueValue = 0,
             };
             
             StateEventType SET = new StateEventType();
@@ -194,7 +195,7 @@ namespace Modulartistic.Core
             SET.ReleaseEasingType = "Linear";
             SET.PeakValueMappings.Add(StateProperty.ModLimLow, "4*Velocity");
             SET.PeakValueMappings.Add(StateProperty.ModLimUp, "4*Velocity+50");
-            SET.PeakValueMappings.Add(StateProperty.ColorSaturation, "1");
+            SET.PeakValueMappings.Add(StateProperty.ColorGreenSaturation, "1");
 
             STT.Events.Add(SET);
 

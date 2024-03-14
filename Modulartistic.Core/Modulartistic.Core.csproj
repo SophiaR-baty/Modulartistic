@@ -15,6 +15,7 @@
     <PackageReference Include="CoreCLR-NCalc" Version="3.0.130" />
     <PackageReference Include="FFMpegCore" Version="5.1.0" />
     <PackageReference Include="FFMpegCore.Extensions.SkiaSharp" Version="5.0.0" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="7.0.2" />
   </ItemGroup>
 
@@ -25,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\MathFunctions\MathFunctions.csproj" />
     <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
   </ItemGroup>
 

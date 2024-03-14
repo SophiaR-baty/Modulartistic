@@ -79,7 +79,7 @@ namespace Modulartistic.Core
         private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args, int max_threads)
         {
             // parses GenerationArgs
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            uint framerate = args.Framerate;
 
             // loops through the frames
             List<StateEvent> activeEvents = new List<StateEvent>();
@@ -204,14 +204,14 @@ namespace Modulartistic.Core
         private async Task CreateMp4(GenerationArgs args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            uint framerate = args.Framerate;
             var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
             {
                 FrameRate = framerate, // set source frame rate
             };
 
             // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+            System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
 
             // generate the mp4 file
             try
@@ -241,14 +241,14 @@ namespace Modulartistic.Core
         private async Task CreateGif(GenerationArgs args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            uint framerate = args.Framerate;
             var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
             {
                 FrameRate = framerate, // set source frame rate
             };
 
             // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+            System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
 
             // generate the gif file
             try
@@ -276,7 +276,7 @@ namespace Modulartistic.Core
         private string GenerateFrames(GenerationArgs args, int max_threads, string out_dir)
         {
             // parses GenerationArgs
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            uint framerate = args.Framerate;
 
             // create Directory for frames if not exist
             if (!Directory.Exists(out_dir)) { Directory.CreateDirectory(out_dir); }
@@ -361,14 +361,14 @@ namespace Modulartistic.Core
                 }
             }
 
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            uint framerate = args.Framerate;
             var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
             {
                 FrameRate = framerate, // set source frame rate
             };
 
             // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Size[0], args.Size[1]);
+            System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
 
             // generate the gif file
             try
@@ -406,7 +406,7 @@ namespace Modulartistic.Core
                 }
             }
 
-            uint framerate = args.Framerate.GetValueOrDefault(Constants.FRAMERATE_DEFAULT);
+            uint framerate = args.Framerate;
             var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
             {
                 FrameRate = framerate, // set source frame rate

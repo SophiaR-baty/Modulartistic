@@ -7,44 +7,36 @@ namespace Modulartistic.Core
 {
     public class Function
     {
-        private Expression expression;
+        private Expression m_expression;
 
         public Function(Expression expression)
         {
-            this.expression = expression;
+            m_expression = expression;
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
         }
 
         public Function(string expression)
         {
-            this.expression = new Expression(expression);
-            this.expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            m_expression = new Expression(expression);
+            m_expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
         }
 
-        public double Evaluate(double x, double y, double[] paras, double mod)
+        public double Evaluate(double x, double y)
         {
 
-            expression.Parameters["x"] = x;
-            expression.Parameters["y"] = y;
-            expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
-            expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
-            expression.Parameters["num"] = mod;
+            m_expression.Parameters["x"] = x;
+            m_expression.Parameters["y"] = y;
+            m_expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
+            m_expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
 
-            expression.Parameters["i_0"] = paras[0];
-            expression.Parameters["i"] = paras[0];
-            expression.Parameters["i_1"] = paras[1];
-            expression.Parameters["j"] = paras[1];
-            expression.Parameters["i_2"] = paras[2];
-            expression.Parameters["i_3"] = paras[3];
-            expression.Parameters["i_4"] = paras[4];
-            expression.Parameters["i_5"] = paras[5];
-            expression.Parameters["i_6"] = paras[6];
-            expression.Parameters["i_7"] = paras[7];
-            expression.Parameters["i_8"] = paras[8];
-            expression.Parameters["i_9"] = paras[9];
+            // Console.WriteLine((double)m_expression.Evaluate());
+            return (double)m_expression.Evaluate();
+        }
 
-            // Console.WriteLine((double)expression.Evaluate());
-            return (double)expression.Evaluate();
+        public void RegisterStateProperties(State s, GenerationArgs args)
+        {
+            Helper.ExprRegisterStateProperties(ref m_expression, s);
+            Helper.ExprRegisterGenArgs(ref m_expression, args);
         }
 
         public void LoadAddOn(string dll_path)
@@ -67,7 +59,7 @@ namespace Modulartistic.Core
                 {
                     if (methodInfo.ReturnType == typeof(double))
                     {
-                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -84,7 +76,7 @@ namespace Modulartistic.Core
 
                     else if (methodInfo.ReturnType == typeof(int))
                     {
-                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -101,7 +93,7 @@ namespace Modulartistic.Core
 
                     else if (methodInfo.ReturnType == typeof(string))
                     {
-                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -118,7 +110,7 @@ namespace Modulartistic.Core
 
                     else if (methodInfo.ReturnType == typeof(bool))
                     {
-                        expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -148,26 +140,26 @@ namespace Modulartistic.Core
 
         public bool IsValid()
         {
-            expression.Parameters["x"] = 1;
-            expression.Parameters["y"] = 1;
-            expression.Parameters["Th"] = 1;
-            expression.Parameters["r"] = 1;
-            expression.Parameters["num"] = 1;
+            m_expression.Parameters["x"] = 1;
+            m_expression.Parameters["y"] = 1;
+            m_expression.Parameters["Th"] = 1;
+            m_expression.Parameters["r"] = 1;
+            m_expression.Parameters["num"] = 1;
 
-            expression.Parameters["i_0"] = 1;
-            expression.Parameters["i"] = 1;
-            expression.Parameters["i_1"] = 1;
-            expression.Parameters["j"] = 1;
-            expression.Parameters["i_2"] = 1;
-            expression.Parameters["i_3"] = 1;
-            expression.Parameters["i_4"] = 1;
-            expression.Parameters["i_5"] = 1;
-            expression.Parameters["i_6"] = 1;
-            expression.Parameters["i_7"] = 1;
-            expression.Parameters["i_8"] = 1;
-            expression.Parameters["i_9"] = 1;
-            expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-            return !expression.HasErrors();
+            m_expression.Parameters["i_0"] = 1;
+            m_expression.Parameters["i"] = 1;
+            m_expression.Parameters["i_1"] = 1;
+            m_expression.Parameters["j"] = 1;
+            m_expression.Parameters["i_2"] = 1;
+            m_expression.Parameters["i_3"] = 1;
+            m_expression.Parameters["i_4"] = 1;
+            m_expression.Parameters["i_5"] = 1;
+            m_expression.Parameters["i_6"] = 1;
+            m_expression.Parameters["i_7"] = 1;
+            m_expression.Parameters["i_8"] = 1;
+            m_expression.Parameters["i_9"] = 1;
+            m_expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            return !m_expression.HasErrors();
         }
     }
 }
