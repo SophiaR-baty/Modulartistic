@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Modulartistic.Core;
 using System.Reflection;
 
 namespace MiscFunctions
@@ -106,5 +107,61 @@ namespace MiscFunctions
 
             return result;
         }
+    
+        public static double GetNumberedSquare(double x, double y, double width, double height)
+        {
+            width = Math.Abs(width);
+            height = Math.Abs(height);
+            
+            if (height*width == 0) { return double.NaN; }
+            return Helper.mod(y, height)*width + Helper.mod(x, width);
+        }
+
+        public static double CoordToSqrSpiral(double x, double y)
+        {
+            double s = Math.Abs(x) >= Math.Abs(y) ? x : y;
+            double d = x==s ? -1 : 1;
+
+            if (s >= 0) { return 4*s*s - x + y; }
+            else {  return 4*s*s + d * (2*s + x + y) ; }
+        }
+
+        public static double CoordToSqrSpiral2(double x, double y)
+        {
+            int ix = (int)x;
+            int iy = (int)y;
+
+            int s = Math.Abs(ix) >= Math.Abs(iy) ? ix : iy;
+            int side_len = 2 * s + 1;
+            int max_ring_num = side_len * side_len - 1;
+
+            int result;
+
+            if (x == -s)
+            {
+                result = max_ring_num - (iy + s);
+            }
+            else if (y == s)
+            {
+                result = max_ring_num - 2*s - (ix + s);
+            }
+            else if (x == s)
+            {
+                result = max_ring_num - 4 * s - (-iy + s);
+            }
+            else
+            {
+                result = max_ring_num - 6 * s - (-ix + s);
+            }
+
+            return result;
+        }
+    
+        public static double RecursiveTest(double x, double y, double r, double min_r)
+        {
+            if (r < min_r) { return x * y; }
+            return RecursiveTest(x, y, r - 2, min_r) + RecursiveTest(x, y, r - 1, min_r) - r;
+        }
+    
     }
 }

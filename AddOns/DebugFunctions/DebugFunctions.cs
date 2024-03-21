@@ -20,5 +20,23 @@ namespace DebugFunctions
             if (x > x_0 - th/2 && x < x_0 + th / 2 && y > y_0 - th / 2 && y < y_0 + th / 2) { return 0; }
             return double.NaN;
         }
+
+        public static int IntProd1(int i1, int i2)
+        {
+            return i1*i2;
+        }
+
+        public static double IntProd2(int i1, int i2)
+        {
+            return i1 * i2;
+        }
+
+        public static int IntProd3(double i1, double i2)
+        {
+            return (int)(i1 * i2);
+        }
+
+        public static int ToInt(double d) { return (int)d; }
+        public static double ToDouble(int i) { return i; }
     }
 }

@@ -3,6 +3,7 @@ using Modulartistic.Core;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using NCalc;
 
 namespace Modulartistic
 {
@@ -37,8 +38,9 @@ namespace Modulartistic
                 // Generation Args
                 GenerationArgs GA = new GenerationArgs()
                 {
-                    Size = new int[] { 500, 500 },
-                    HueFunction = "x*y",
+                    Width = 500,
+                    Height = 500,
+                    FunctionRH = "x*y",
                     Circular = true,
                 };
                 GD.Add(GA);
@@ -47,8 +49,8 @@ namespace Modulartistic
                 State S = new State()
                 {
                     Name = name,
-                    ColorSaturation = 1,
-                    ColorValue = 1,
+                    ColorGreenSaturation = 1,
+                    ColorBlueValue = 1,
                     ColorAlpha = 1,
                 };
                 GD.Add(S);
@@ -74,10 +76,11 @@ namespace Modulartistic
                 // Generation Args
                 GenerationArgs GA = new GenerationArgs()
                 {
-                    Size = new int[] { 500, 500 },
-                    RedFunction = "x*x + y*y",
-                    GreenFunction = "(x+1)*(x+1) + y*y",
-                    BlueFunction = "(x-1)*(x-1) + y*y",
+                    Width = 500,
+                    Height = 500,
+                    FunctionRH = "x*x + y*y",
+                    FunctionGS = "(x+1)*(x+1) + y*y",
+                    FunctionBV = "(x-1)*(x-1) + y*y",
                     Circular = false,
                     UseRGB = true,
                 };
@@ -87,9 +90,9 @@ namespace Modulartistic
                 State S = new State()
                 {
                     Name = name,
-                    ColorRed = 0,
-                    ColorGreen = 0,
-                    ColorBlue = 0,
+                    ColorRedHue = 0,
+                    ColorGreenSaturation = 0,
+                    ColorBlueValue = 0,
                     ColorAlpha = 1,
                 };
                 GD.Add(S);
@@ -113,10 +116,11 @@ namespace Modulartistic
                 // Generation Args
                 GenerationArgs GA = new GenerationArgs()
                 {
-                    Size = new int[] { 500, 500 },
-                    RedFunction = "x*x + y*y",
-                    GreenFunction = "(x+1)*(x+1) + y*y",
-                    BlueFunction = "(x-1)*(x-1) + y*y",
+                    Width= 500,
+                    Height = 500,
+                    FunctionRH = "x*x + y*y",
+                    FunctionGS = "(x+1)*(x+1) + y*y",
+                    FunctionBV = "(x-1)*(x-1) + y*y",
                     Circular = true,
                     UseRGB = true,
                 };
@@ -126,9 +130,9 @@ namespace Modulartistic
                 State S = new State()
                 {
                     Name = name,
-                    ColorRed = 0,
-                    ColorGreen = 0,
-                    ColorBlue = 0,
+                    ColorRedHue = 0,
+                    ColorGreenSaturation = 0,
+                    ColorBlueValue = 0,
                     ColorAlpha = 1,
                 };
                 GD.Add(S);
@@ -153,8 +157,9 @@ namespace Modulartistic
                 // Generation Args
                 GenerationArgs GA = new GenerationArgs()
                 {
-                    Size = new int[] { 500, 500 },
-                    AlphaFunction = "1/x + 1/y + 1/(x+y)",
+                    Width = 500,
+                    Height = 500,
+                    FunctionAlpha = "1/x + 1/y + 1/(x+y)",
                     InvalidColorGlobal = true,
                     UseRGB = true,
                     Circular = false,
@@ -168,12 +173,12 @@ namespace Modulartistic
                     Mod = 1,
                     ModLimLow = 0,
                     ModLimUp = 1,
-                    ColorRed = 1,
-                    ColorGreen = 1,
-                    ColorBlue = 1,
+                    ColorRedHue = 1,
+                    ColorGreenSaturation = 1,
+                    ColorBlueValue = 1,
 
-                    InvalidColorRed = 1,
-                    InvalidColorAlpha = 1,
+                    InvColorRedHue = 1,
+                    InvColorAlpha = 1,
 
                 };
                 GD.Add(S);
@@ -197,8 +202,9 @@ namespace Modulartistic
                 // Generation Args
                 GenerationArgs GA = new GenerationArgs()
                 {
-                    Size = new int[] { 500, 500 },
-                    HueFunction = "x*y",
+                    Width = 500,
+                    Height = 500,
+                    FunctionRH = "x*y",
                     Framerate = 12,
                     Circular = true,
                 };
@@ -208,17 +214,17 @@ namespace Modulartistic
                 State S1 = new State()
                 {
                     Name = "scene1",
-                    ColorSaturation = 1,
-                    ColorValue = 1,
+                    ColorGreenSaturation = 1,
+                    ColorBlueValue = 1,
                     ColorAlpha = 1,
                 };
                 State S2 = new State()
                 {
                     Name = "scene2",
-                    ColorSaturation = 1,
-                    ColorValue = 1,
+                    ColorGreenSaturation = 1,
+                    ColorBlueValue = 1,
                     ColorAlpha = 1,
-                    ColorHue = 360,
+                    ColorRedHue = 360,
                 };
 
                 // create new StateSequence and add the states inside scenes

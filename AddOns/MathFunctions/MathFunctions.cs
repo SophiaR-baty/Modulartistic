@@ -87,10 +87,12 @@ namespace MathFunctions
             return primes;
         }
 
-        public static int IsPrime(int n)
+        public static double IsPrime(double n)
         {
-            if (_primes.Value.Contains(n)) { return 1; }
-            return 0;
+            int i_n = (int)Math.Floor(n);
+            
+            if (_primes.Value.Contains(i_n)) { return 0; }
+            return double.NaN;
         }
 
         public static int IsComposite(int n)
