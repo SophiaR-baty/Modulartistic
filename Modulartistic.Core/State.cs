@@ -106,35 +106,35 @@ namespace Modulartistic.Core
         /// <summary>
         /// The Upper Limit of the Modulus number. Values above will be treated as invalid.
         /// </summary>
-        public double ModLimUp { get => m_lim_high; set => m_lim_high = value; }
+        public double ModLimUpp { get => m_lim_high; set => m_lim_high = value; }
 
         
         /// <summary>
         /// The Red or Hue Offset or Constant.
         /// </summary>
-        public double ColorRedHue { get => m_r_h; set => m_r_h = value; }
+        public double ColorRH { get => m_r_h; set => m_r_h = value; }
         /// <summary>
         /// The Green or Saturation Offset or Constant. Has to be from 0-1.
         /// </summary>
-        public double ColorGreenSaturation { get => m_g_s; set => m_g_s = value; }
+        public double ColorGS { get => m_g_s; set => m_g_s = value; }
         /// <summary>
         /// The Blue or Value Offset or Constant. Has to be from 0-1.
         /// </summary>
-        public double ColorBlueValue { get => m_b_v; set => m_b_v = value; }
+        public double ColorBV { get => m_b_v; set => m_b_v = value; }
 
 
         /// <summary>
         /// The Red or Hue Value for invalid results.
         /// </summary>
-        public double InvColorRedHue { get => m_inv_r_h; set => m_inv_r_h = value; }
+        public double InvColorRH { get => m_inv_r_h; set => m_inv_r_h = value; }
         /// <summary>
         /// The Green or Saturation Value for invalid results. Has to be from 0-1.
         /// </summary>
-        public double InvColorGreenSaturation { get => m_inv_g_s; set => m_inv_g_s = value; }
+        public double InvColorGS { get => m_inv_g_s; set => m_inv_g_s = value; }
         /// <summary>
         /// The Blue or Value Value for invalid results. Has to be from 0-1.
         /// </summary>
-        public double InvColorBlueValue { get => m_inv_b_v; set => m_inv_b_v = value; }
+        public double InvColorBV { get => m_inv_b_v; set => m_inv_b_v = value; }
 
         /// <summary>
         /// Factor by which red or hue is scaled at the end.
@@ -153,11 +153,11 @@ namespace Modulartistic.Core
         /// <summary>
         /// The Alpha Offset or Constant.
         /// </summary>
-        public double ColorAlpha { get => m_alp; set => m_alp = value; }
+        public double ColorAlp { get => m_alp; set => m_alp = value; }
         /// <summary>
         /// The Alpha Value for invalid results.
         /// </summary>
-        public double InvColorAlpha { get => m_inv_alp; set=> m_inv_alp = value; }
+        public double InvColorAlp { get => m_inv_alp; set=> m_inv_alp = value; }
 
 
         /// <summary>
@@ -189,21 +189,21 @@ namespace Modulartistic.Core
 
                     case StateProperty.Mod: return Mod;
                     case StateProperty.ModLimLow: return ModLimLow; 
-                    case StateProperty.ModLimUp: return ModLimUp;
+                    case StateProperty.ModLimUp: return ModLimUpp;
                     
-                    case StateProperty.ColorRedHue: return ColorRedHue;
-                    case StateProperty.ColorGreenSaturation: return ColorGreenSaturation;
-                    case StateProperty.ColorBlueValue: return ColorBlueValue;
-                    case StateProperty.InvColorRedHue: return InvColorRedHue;
-                    case StateProperty.InvColorGreenSaturation: return InvColorGreenSaturation;
-                    case StateProperty.InvColorBlueValue: return InvColorBlueValue;
+                    case StateProperty.ColorRedHue: return ColorRH;
+                    case StateProperty.ColorGreenSaturation: return ColorGS;
+                    case StateProperty.ColorBlueValue: return ColorBV;
+                    case StateProperty.InvColorRedHue: return InvColorRH;
+                    case StateProperty.InvColorGreenSaturation: return InvColorGS;
+                    case StateProperty.InvColorBlueValue: return InvColorBV;
 
                     case StateProperty.ColorFactorRH: return ColorFactorRH;
                     case StateProperty.ColorFactorGS: return ColorFactorGS;
                     case StateProperty.ColorFactorBV: return ColorFactorBV;
 
-                    case StateProperty.ColorAlpha: return ColorAlpha;
-                    case StateProperty.InvColorAlpha: return InvColorAlpha;
+                    case StateProperty.ColorAlpha: return ColorAlp;
+                    case StateProperty.InvColorAlpha: return InvColorAlp;
 
                     default: return Parameters[(int)p - (int)StateProperty.i0];
                 }
@@ -224,21 +224,21 @@ namespace Modulartistic.Core
 
                     case StateProperty.Mod: Mod = value; break;
                     case StateProperty.ModLimLow: ModLimLow = value; break;
-                    case StateProperty.ModLimUp: ModLimUp = value; break;
+                    case StateProperty.ModLimUp: ModLimUpp = value; break;
 
-                    case StateProperty.ColorRedHue: ColorRedHue = value; break;
-                    case StateProperty.ColorGreenSaturation: ColorGreenSaturation = value; break;
-                    case StateProperty.ColorBlueValue: ColorBlueValue = value; break;
-                    case StateProperty.InvColorRedHue: InvColorRedHue = value; break;
-                    case StateProperty.InvColorGreenSaturation: InvColorGreenSaturation = value; break;
-                    case StateProperty.InvColorBlueValue: InvColorBlueValue = value; break;
+                    case StateProperty.ColorRedHue: ColorRH = value; break;
+                    case StateProperty.ColorGreenSaturation: ColorGS = value; break;
+                    case StateProperty.ColorBlueValue: ColorBV = value; break;
+                    case StateProperty.InvColorRedHue: InvColorRH = value; break;
+                    case StateProperty.InvColorGreenSaturation: InvColorGS = value; break;
+                    case StateProperty.InvColorBlueValue: InvColorBV = value; break;
 
                     case StateProperty.ColorFactorRH: ColorFactorRH = value; break;
                     case StateProperty.ColorFactorGS: ColorFactorGS = value; break;
                     case StateProperty.ColorFactorBV: ColorFactorBV = value; break;
 
-                    case StateProperty.ColorAlpha: ColorAlpha = value; break;
-                    case StateProperty.InvColorAlpha: InvColorAlpha = value; break;
+                    case StateProperty.ColorAlpha: ColorAlp = value; break;
+                    case StateProperty.InvColorAlpha: InvColorAlp = value; break;
 
                     default: Parameters[(int)p - (int)StateProperty.i0] = value; break;
                 }
@@ -262,18 +262,18 @@ namespace Modulartistic.Core
 
             Mod = Constants.NUM_DEFAULT;
             ModLimLow = Constants.LIMLOW_DEFAULT;
-            ModLimUp = Constants.LIMHIGH_DEFAULT;
+            ModLimUpp = Constants.LIMHIGH_DEFAULT;
 
-            ColorRedHue = 0;
-            ColorGreenSaturation = 0;
-            ColorBlueValue = 0;
+            ColorRH = 0;
+            ColorGS = 0;
+            ColorBV = 0;
 
-            InvColorRedHue = 0;
-            InvColorGreenSaturation = 0;
-            InvColorBlueValue = 0;
+            InvColorRH = 0;
+            InvColorGS = 0;
+            InvColorBV = 0;
 
-            ColorAlpha = 1;
-            InvColorAlpha = 1;
+            ColorAlp = 1;
+            InvColorAlp = 1;
 
             ColorFactorRH = 1;
             ColorFactorGS = 1;
@@ -325,7 +325,7 @@ namespace Modulartistic.Core
         /// <param name="idx">The number of the Thread</param>
         /// <param name="max">The Total Number of Threads</param>
         /// <param name="image">The Bitmap where the Data should be stored</param>
-        private void GetPartialBitmap(GenerationArgs args, out Bitmap image, int idx = 0, int max = 0)
+        private void GetPartialBitmap(GenerationOptions args, out Bitmap image, int idx = 0, int max = 0)
         {
             #region Setting and validating State Properties
             // setting and validating State Properties
@@ -671,7 +671,7 @@ namespace Modulartistic.Core
         /// <param name="path_out">The Path to save the image at</param>
         /// <returns>the filepath of the generated image</returns>
         /// <exception cref="DirectoryNotFoundException">thrown if path_out does not exist</exception>
-        public string GenerateImage(GenerationArgs args, int max_threads, string out_dir = @"")
+        public string GenerateImage(GenerationOptions args, int max_threads, string out_dir = @"")
         {
             // If out-dir is empty set to default, then check if it exists
             out_dir = out_dir == "" ? PathConfig.OUTPUTFOLDER : out_dir;
@@ -696,7 +696,7 @@ namespace Modulartistic.Core
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
         /// <param name="max_threads">The maximum number of threads this will use</param>
         /// <returns>The generated Bitmap</returns>
-        public Bitmap GetBitmap(GenerationArgs args, int max_threads)
+        public Bitmap GetBitmap(GenerationOptions args, int max_threads)
         {
             if (max_threads == 0 || max_threads == 1) 
             {
@@ -767,18 +767,18 @@ namespace Modulartistic.Core
 
             if (Mod != null) { details += $"{"Modulus Number: ", padding} {Mod} \n"; }
             if (ModLimLow != null) { details += $"{"Modulus Lower Limit: ", padding} {ModLimLow} \n"; }
-            if (ModLimUp != null) { details += $"{"Modulus Upper Limit: ", padding} {ModLimUp} \n"; }
+            if (ModLimUpp != null) { details += $"{"Modulus Upper Limit: ", padding} {ModLimUpp} \n"; }
 
-            if (ColorRedHue != null) { details += $"{"Hue Offset: ", padding} {ColorRedHue} \n"; }
-            if (ColorGreenSaturation != null) { details += $"{"Saturation Offset: ", padding} {ColorGreenSaturation} \n"; }
-            if (ColorBlueValue != null) { details += $"{"Color Value Offset: ", padding} {ColorBlueValue} \n"; }
+            if (ColorRH != null) { details += $"{"Hue Offset: ", padding} {ColorRH} \n"; }
+            if (ColorGS != null) { details += $"{"Saturation Offset: ", padding} {ColorGS} \n"; }
+            if (ColorBV != null) { details += $"{"Color Value Offset: ", padding} {ColorBV} \n"; }
 
-            if (InvColorRedHue != null) { details += $"{"Invalid Hue: ", padding} {InvColorRedHue} \n"; }
-            if (InvColorGreenSaturation != null) { details += $"{"Invalid Saturation: ", padding} {InvColorGreenSaturation} \n"; }
-            if (InvColorBlueValue != null) { details += $"{"Invalid Color Value: ", padding} {InvColorBlueValue} \n"; }
+            if (InvColorRH != null) { details += $"{"Invalid Hue: ", padding} {InvColorRH} \n"; }
+            if (InvColorGS != null) { details += $"{"Invalid Saturation: ", padding} {InvColorGS} \n"; }
+            if (InvColorBV != null) { details += $"{"Invalid Color Value: ", padding} {InvColorBV} \n"; }
             
-            if (ColorAlpha != null) { details += $"{"Alpha Offset: ", padding} {ColorAlpha} \n"; }
-            if (InvColorAlpha != null) { details += $"{"Invalid Alpha Offset: ", padding} {InvColorAlpha} \n"; }
+            if (ColorAlp != null) { details += $"{"Alpha Offset: ", padding} {ColorAlp} \n"; }
+            if (InvColorAlp != null) { details += $"{"Invalid Alpha Offset: ", padding} {InvColorAlp} \n"; }
 
             if (ColorFactorRH != null || ColorFactorGS != null || ColorFactorBV != null) { details += $"{"Color Factors (R G B): ", padding} {this[StateProperty.ColorFactorRH]} {this[StateProperty.ColorFactorGS]} {this[StateProperty.ColorFactorBV]} \n"; }
             details += $"{"Parameters: ",-30} {Parameters[0]} {Parameters[1]} {Parameters[2]} {Parameters[3]} {Parameters[4]} {Parameters[5]} {Parameters[6]} {Parameters[7]} {Parameters[8]} {Parameters[9]}";

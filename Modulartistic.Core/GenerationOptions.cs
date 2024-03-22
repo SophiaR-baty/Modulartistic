@@ -4,7 +4,7 @@
 
 namespace Modulartistic.Core
 {
-    public class GenerationArgs
+    public class GenerationOptions
     {
         #region Fields
         private int m_width;
@@ -82,7 +82,7 @@ namespace Modulartistic.Core
         public bool UseRGB { get => m_use_rgb; set => m_use_rgb=value; }
         #endregion
 
-        public GenerationArgs()
+        public GenerationOptions()
         {
             m_width = 500;
             m_height = 500;

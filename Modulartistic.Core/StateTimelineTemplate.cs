@@ -11,7 +11,7 @@ namespace Modulartistic.Core
     {
         #region Properties
         public string Name { get; set; }
-        public GenerationArgs Metadata { get; set; }
+        public GenerationOptions Metadata { get; set; }
         public State Base { get; set; }
         public List<StateEventType> Events { get; set; }
         #endregion
@@ -31,7 +31,7 @@ namespace Modulartistic.Core
         public StateTimelineTemplate() 
         {
             Name = Constants.STATETIMELINE_NAME_DEFAULT;
-            Metadata = new GenerationArgs();
+            Metadata = new GenerationOptions();
             Base = new State();
             Events = new List<StateEventType>();
         }
@@ -164,7 +164,7 @@ namespace Modulartistic.Core
         {
             StateTimelineTemplate STT = new StateTimelineTemplate();
             STT.Name = "default_template";
-            STT.Metadata = new GenerationArgs()
+            STT.Metadata = new GenerationOptions()
             {
                 FunctionRH = "x*y",
                 Width = 640,
@@ -177,12 +177,12 @@ namespace Modulartistic.Core
             {
                 Name = "Base",
                 Mod = 960,
-                ModLimUp = 50,
-                ColorGreenSaturation = 1,
-                InvColorAlpha = 1,
-                InvColorRedHue = 0,
-                InvColorGreenSaturation = 0,
-                InvColorBlueValue = 0,
+                ModLimUpp = 50,
+                ColorGS = 1,
+                InvColorAlp = 1,
+                InvColorRH = 0,
+                InvColorGS = 0,
+                InvColorBV = 0,
             };
             
             StateEventType SET = new StateEventType();

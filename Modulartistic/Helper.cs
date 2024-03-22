@@ -36,7 +36,7 @@ namespace Modulartistic
                 GenerationData GD = new GenerationData();
 
                 // Generation Args
-                GenerationArgs GA = new GenerationArgs()
+                GenerationOptions GA = new GenerationOptions()
                 {
                     Width = 500,
                     Height = 500,
@@ -49,9 +49,9 @@ namespace Modulartistic
                 State S = new State()
                 {
                     Name = name,
-                    ColorGreenSaturation = 1,
-                    ColorBlueValue = 1,
-                    ColorAlpha = 1,
+                    ColorGS = 1,
+                    ColorBV = 1,
+                    ColorAlp = 1,
                 };
                 GD.Add(S);
 
@@ -74,7 +74,7 @@ namespace Modulartistic
                 GenerationData GD = new GenerationData();
 
                 // Generation Args
-                GenerationArgs GA = new GenerationArgs()
+                GenerationOptions GA = new GenerationOptions()
                 {
                     Width = 500,
                     Height = 500,
@@ -90,10 +90,10 @@ namespace Modulartistic
                 State S = new State()
                 {
                     Name = name,
-                    ColorRedHue = 0,
-                    ColorGreenSaturation = 0,
-                    ColorBlueValue = 0,
-                    ColorAlpha = 1,
+                    ColorRH = 0,
+                    ColorGS = 0,
+                    ColorBV = 0,
+                    ColorAlp = 1,
                 };
                 GD.Add(S);
 
@@ -114,7 +114,7 @@ namespace Modulartistic
                 GenerationData GD = new GenerationData();
 
                 // Generation Args
-                GenerationArgs GA = new GenerationArgs()
+                GenerationOptions GA = new GenerationOptions()
                 {
                     Width= 500,
                     Height = 500,
@@ -130,10 +130,10 @@ namespace Modulartistic
                 State S = new State()
                 {
                     Name = name,
-                    ColorRedHue = 0,
-                    ColorGreenSaturation = 0,
-                    ColorBlueValue = 0,
-                    ColorAlpha = 1,
+                    ColorRH = 0,
+                    ColorGS = 0,
+                    ColorBV = 0,
+                    ColorAlp = 1,
                 };
                 GD.Add(S);
 
@@ -155,7 +155,7 @@ namespace Modulartistic
                 GenerationData GD = new GenerationData();
 
                 // Generation Args
-                GenerationArgs GA = new GenerationArgs()
+                GenerationOptions GA = new GenerationOptions()
                 {
                     Width = 500,
                     Height = 500,
@@ -172,13 +172,13 @@ namespace Modulartistic
                     Name = name,
                     Mod = 1,
                     ModLimLow = 0,
-                    ModLimUp = 1,
-                    ColorRedHue = 1,
-                    ColorGreenSaturation = 1,
-                    ColorBlueValue = 1,
+                    ModLimUpp = 1,
+                    ColorRH = 1,
+                    ColorGS = 1,
+                    ColorBV = 1,
 
-                    InvColorRedHue = 1,
-                    InvColorAlpha = 1,
+                    InvColorRH = 1,
+                    InvColorAlp = 1,
 
                 };
                 GD.Add(S);
@@ -200,7 +200,7 @@ namespace Modulartistic
                 GenerationData GD = new GenerationData();
 
                 // Generation Args
-                GenerationArgs GA = new GenerationArgs()
+                GenerationOptions GA = new GenerationOptions()
                 {
                     Width = 500,
                     Height = 500,
@@ -214,17 +214,17 @@ namespace Modulartistic
                 State S1 = new State()
                 {
                     Name = "scene1",
-                    ColorGreenSaturation = 1,
-                    ColorBlueValue = 1,
-                    ColorAlpha = 1,
+                    ColorGS = 1,
+                    ColorBV = 1,
+                    ColorAlp = 1,
                 };
                 State S2 = new State()
                 {
                     Name = "scene2",
-                    ColorGreenSaturation = 1,
-                    ColorBlueValue = 1,
-                    ColorAlpha = 1,
-                    ColorRedHue = 360,
+                    ColorGS = 1,
+                    ColorBV = 1,
+                    ColorAlp = 1,
+                    ColorRH = 360,
                 };
 
                 // create new StateSequence and add the states inside scenes

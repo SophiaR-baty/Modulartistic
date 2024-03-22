@@ -33,7 +33,7 @@ namespace Modulartistic.Core
             return (double)m_expression.Evaluate();
         }
 
-        public void RegisterStateProperties(State s, GenerationArgs args)
+        public void RegisterStateProperties(State s, GenerationOptions args)
         {
             Helper.ExprRegisterStateProperties(ref m_expression, s);
             Helper.ExprRegisterGenArgs(ref m_expression, args);

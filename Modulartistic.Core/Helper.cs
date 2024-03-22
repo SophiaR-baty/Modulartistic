@@ -70,17 +70,17 @@ namespace Modulartistic.Core
             expr.Parameters["modnum"] = s.Mod;
             expr.Parameters["num"] = s.Mod;
             expr.Parameters["modlimlow"] = s.ModLimLow;
-            expr.Parameters["modlimup"] = s.ModLimUp;
+            expr.Parameters["modlimup"] = s.ModLimUpp;
 
-            expr.Parameters["col_rh"] = s.ColorRedHue;
-            expr.Parameters["col_gs"] = s.ColorGreenSaturation;
-            expr.Parameters["col_bv"] = s.ColorBlueValue;
-            expr.Parameters["col_alp"] = s.ColorAlpha;
+            expr.Parameters["col_rh"] = s.ColorRH;
+            expr.Parameters["col_gs"] = s.ColorGS;
+            expr.Parameters["col_bv"] = s.ColorBV;
+            expr.Parameters["col_alp"] = s.ColorAlp;
 
-            expr.Parameters["inv_col_rh"] = s.InvColorRedHue;
-            expr.Parameters["inv_col_gs"] = s.InvColorGreenSaturation;
-            expr.Parameters["inv_col_bv"] = s.InvColorBlueValue;
-            expr.Parameters["inv_col_alp"] = s.InvColorAlpha;
+            expr.Parameters["inv_col_rh"] = s.InvColorRH;
+            expr.Parameters["inv_col_gs"] = s.InvColorGS;
+            expr.Parameters["inv_col_bv"] = s.InvColorBV;
+            expr.Parameters["inv_col_alp"] = s.InvColorAlp;
 
             expr.Parameters["col_fact_rh"] = s.ColorFactorRH;
             expr.Parameters["col_fact_gs"] = s.ColorFactorGS;
@@ -100,7 +100,7 @@ namespace Modulartistic.Core
             expr.Parameters["i_9"] = s.Parameters[9];
         }
 
-        public static void ExprRegisterGenArgs(ref Expression expr, GenerationArgs args)
+        public static void ExprRegisterGenArgs(ref Expression expr, GenerationOptions args)
         {
             expr.Parameters["img_width"] = (double)args.Width;
             expr.Parameters["img_height"] = (double)args.Height;

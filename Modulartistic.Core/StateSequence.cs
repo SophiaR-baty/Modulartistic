@@ -115,7 +115,7 @@ namespace Modulartistic.Core
         /// <param name="args">The GenerationArgs. </param>
         /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <returns></returns>
-        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationArgs args, int max_threads)
+        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationOptions args, int max_threads)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -145,7 +145,7 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateMp4(GenerationArgs args, int max_threads, string absolute_out_filepath)
+        private async Task CreateMp4(GenerationOptions args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
@@ -180,7 +180,7 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateGif(GenerationArgs args, int max_threads, string absolute_out_filepath)
+        private async Task CreateGif(GenerationOptions args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
@@ -220,7 +220,7 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(GenerationArgs args, int max_threads, AnimationType type, bool keepframes, string out_dir)
+        public async Task<string> GenerateAnimation(GenerationOptions args, int max_threads, AnimationType type, bool keepframes, string out_dir)
         {
             // If out-dir is empty set to default, then check if it exists
             out_dir = out_dir == "" ? PathConfig.OUTPUTFOLDER : out_dir;
@@ -277,7 +277,7 @@ namespace Modulartistic.Core
         /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <param name="out_dir">the output directory</param>
         /// <returns>returns outdir</returns>
-        private string GenerateFrames(GenerationArgs args, int max_threads, string out_dir)
+        private string GenerateFrames(GenerationOptions args, int max_threads, string out_dir)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -313,7 +313,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateGif(GenerationArgs args, string folder)
+        private async Task CreateGif(GenerationOptions args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -378,7 +378,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateMp4(GenerationArgs args, string folder)
+        private async Task CreateMp4(GenerationOptions args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();

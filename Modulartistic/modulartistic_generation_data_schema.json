@@ -28,7 +28,7 @@
           "FunctionRH": { "type": "string" },
           "FunctionBV": { "type": "string" },
           "FunctionGS": { "type": "string" },
-          "FunctionAlpha": { "type": "string" },
+          "FunctionAlp": { "type": "string" },
           "UseRGB": { "type": "boolean" },
           "InvalidColorGlobal": { "type": "boolean" },
           "Circular": { "type": "boolean" },
@@ -225,7 +225,7 @@
         "Parameters": { "type": "array", "items": { "type": "number" } }
       },
       "additionalProperties": false
-    }
+    },
     "Event": {
       "type": "object",
       "properties": {

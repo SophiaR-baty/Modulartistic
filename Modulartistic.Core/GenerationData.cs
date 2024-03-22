@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Json.Schema;
 using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.ComponentModel.Design;
 using NCalc;
+using MathNet.Numerics;
+using Antlr4.Runtime.Misc;
 
 namespace Modulartistic.Core
 {
@@ -39,7 +42,7 @@ namespace Modulartistic.Core
         #endregion
 
         #region List Methods
-        public void Add(GenerationArgs value) => data.Add(value);
+        public void Add(GenerationOptions value) => data.Add(value);
         public void Add(State value) => data.Add(value);
         public void Add(StateSequence value) => data.Add(value);
         public void Add(StateTimeline value) => data.Add(value);
@@ -50,12 +53,12 @@ namespace Modulartistic.Core
 
         public int IndexOf(object value) => data.IndexOf(value);
 
-        public void Insert(int index, GenerationArgs value) => data.Insert(index, value);
+        public void Insert(int index, GenerationOptions value) => data.Insert(index, value);
         public void Insert(int index, State value) => data.Insert(index, value);
         public void Insert(int index, StateSequence value) => data.Insert(index, value);
         public void Insert(int index, StateTimeline value) => data.Insert(index, value);
 
-        public void Remove(GenerationArgs value) => data.Remove(value);
+        public void Remove(GenerationOptions value) => data.Remove(value);
         public void Remove(State value) => data.Remove(value);
         public void Remove(StateSequence value) => data.Remove(value);
         public void Remove(StateTimeline value) => data.Remove(value);
@@ -66,6 +69,32 @@ namespace Modulartistic.Core
         #endregion
 
         #region Json Serialization Methods
+
+
+        private static EvaluationResults isJsonValid(string file_name)
+        {
+            JsonSchema schema = JsonSchema.FromFile(Constants.GENERATIONDATA_SCHEMA_FILE);
+            string file = File.ReadAllText(file_name);
+            JsonDocument json = JsonDocument.Parse(file);
+
+            EvaluationResults result = schema.Evaluate(json.RootElement);
+
+            return result;
+        }
+
+        private static EvaluationResults validateObject(JsonElement el, string object_name)
+        {
+            JsonSchema schema;
+            if (!JsonSchema.FromFile(Constants.GENERATIONDATA_SCHEMA_FILE).GetDefs().TryGetValue(object_name, out schema))
+            {
+                throw new KeyNotFoundException($"The Key {object_name} is not a recognized onject.");
+            }
+
+            EvaluationResults result = schema.Evaluate(el);
+            
+            return result;
+        }
+
         /// <summary>
         /// Serializes the GenerationData object to json
         /// </summary>
@@ -105,12 +134,6 @@ namespace Modulartistic.Core
             File.WriteAllText(file_path_out + @".json", ToJson());
         }
 
-        /// <summary>
-        /// Load GenerationData from a json file
-        /// </summary>
-        /// <param name="file_name">the absolute path of the file</param>
-        /// <exception cref="FileNotFoundException"></exception>
-        /// <exception cref="Exception"></exception>
         public void LoadJson(string file_name)
         {
             // Make sure file exists
@@ -121,16 +144,11 @@ namespace Modulartistic.Core
 
             // parse the json file
             string jsontext = File.ReadAllText(file_name);
+            EvaluationResults res = isJsonValid(file_name);
+
             JsonDocument jd = JsonDocument.Parse(jsontext);
             JsonElement root = jd.RootElement;
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                throw new Exception($"JsonParsingError: in file {file_name}, expected ArrayType RootElement but got {root.ValueKind}");
-            }
-            if (root.EnumerateArray().Any(elem => elem.ValueKind != JsonValueKind.Object))
-            {
-                throw new Exception($"JsonParsingError: in file {file_name}, all elements must be of type object, got a Non Object element.");
-            }
+
             var options = new JsonSerializerOptions
             {
                 Converters =
@@ -140,134 +158,161 @@ namespace Modulartistic.Core
             };
 
             // set initial GenerationArgs
-            GenerationArgs currentArgs = new GenerationArgs();
+            GenerationOptions currentArgs = new GenerationOptions();
 
             // go through each element of array
             foreach (JsonElement element in root.EnumerateArray())
             {
-                GenerationArgs args = TryGetGenerationArgs(element);
-                if (args != null )
-                {
-                    Data.Add(args);
-                    currentArgs = args;
-                    continue;
-                }
-                State s = TryGetState(element, currentArgs);
-                if (s != null) { Data.Add(s); continue; }
+                EvaluationResults el_res;
 
-                else if (element.EnumerateObject().All(prop => typeof(StateSequence).GetProperty(prop.Name) != null))
+                // Check for GenerationOptions
+                el_res = validateObject(element, "GenerationOptions");
+                if (el_res.IsValid) 
+                {
+                    GenerationOptions args = getGenerationOptions(element);
+                    if (args != null)
+                    {
+                        Data.Add(args);
+                        currentArgs = args;
+                        continue;
+                    }
+                }
+
+                // Check for State
+                el_res = validateObject(element, "State");
+                if (el_res.IsValid)
+                {
+                    State s = getState(element, currentArgs);
+                    if (s != null) 
+                    { 
+                        Data.Add(s); 
+                        continue; 
+                    }
+                }
+
+                // Check for StateSequence
+                el_res = validateObject(element, "StateSequence");
+                if (el_res.IsValid)
                 {
                     StateSequence stateSequence = JsonSerializer.Deserialize<StateSequence>(element.GetRawText(), options);
                     Data.Add(stateSequence);
+                    continue;
                 }
-                else if (element.EnumerateObject().All(prop => typeof(StateTimeline).GetProperty(prop.Name) != null))
+
+                // Check for StateTimeline
+                el_res = validateObject(element, "StateTimeline");
+                if (el_res.IsValid)
                 {
                     StateTimeline stateTimeLine = JsonSerializer.Deserialize<StateTimeline>(element.GetRawText(), options);
                     Data.Add(stateTimeLine);
+                    continue;
                 }
-                else { throw new Exception($"Parsing Error in file {file_name}: Unrecognized Property"); }
+
+                throw new Exception($"Parsing Error in file {file_name}: Unrecognized Property");
             }
         }
-        
+
+
+        private double getValueOrEvaluate(JsonProperty elem, GenerationOptions args = null, State s = null, StateSequence ss = null, StateTimeline st = null)
+        {
+            // retrieve the value beforehand
+            double value;
+            if (elem.Value.ValueKind == JsonValueKind.String)
+            {
+                Expression expr = new Expression(elem.Value.GetString());
+                if (s != null) { Helper.ExprRegisterStateProperties(ref expr, s); }
+                if (args != null) { Helper.ExprRegisterGenArgs(ref expr, args); }
+                value = (double)expr.Evaluate();
+            }
+            else if (elem.Value.ValueKind == JsonValueKind.Number) { value = elem.Value.GetDouble(); }
+            else { throw new Exception($"Property {elem.Name} must be string or number. "); }
+
+            return value;
+        }
+
+        private double getValueOrEvaluate(JsonElement elem, GenerationOptions args = null, State s = null, StateSequence ss = null, StateTimeline st = null)
+        {
+            // retrieve the value beforehand
+            double value;
+            if (elem.ValueKind == JsonValueKind.String)
+            {
+                Expression expr = new Expression(elem.GetString());
+                if (s != null) { Helper.ExprRegisterStateProperties(ref expr, s); }
+                if (args != null) { Helper.ExprRegisterGenArgs(ref expr, args); }
+                value = (double)expr.Evaluate();
+            }
+            else if (elem.ValueKind == JsonValueKind.Number) { value = elem.GetDouble(); }
+            else { throw new Exception($"Element must be string or number. "); }
+
+            return value;
+        }
+
         /// <summary>
         /// Tries to parse a json element to GenerationArgs, returns null if didn't work
         /// </summary>
         /// <param name="element">The JsonElement to be parsed</param>
         /// <returns>Parsed GenerationArgs or null</returns>
         /// <exception cref="Exception"></exception>
-        private GenerationArgs TryGetGenerationArgs(JsonElement element)
+        private GenerationOptions getGenerationOptions(JsonElement element)
         {
-            if (element.ValueKind != JsonValueKind.Object) { return null; }
-
-            GenerationArgs args = new GenerationArgs();
-
-            bool used_size = false;
-            bool used_height_width = false;
+            GenerationOptions args = new GenerationOptions();
+            
             foreach (JsonProperty elem in element.EnumerateObject()) 
             {
                 switch (elem.Name)
                 {
                     case "UseRGB": 
-                        { 
-                            if (elem.Value.ValueKind != JsonValueKind.False && elem.Value.ValueKind != JsonValueKind.True) { throw new Exception($"JsonParsingError: Expected a boolean value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
+                        {
                             args.UseRGB = elem.Value.GetBoolean();
                             break; 
                         }
                     case "InvalidColorGlobal": 
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.False && elem.Value.ValueKind != JsonValueKind.True) { throw new Exception($"JsonParsingError: Expected a boolean value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
                             args.InvalidColorGlobal = elem.Value.GetBoolean(); 
                             break; 
                         }
                     case "Circular": 
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.False && elem.Value.ValueKind != JsonValueKind.True) { throw new Exception($"JsonParsingError: Expected a boolean value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
                             args.Circular = elem.Value.GetBoolean(); 
                             break; 
                         }
-                    case "Size":
-                        {
-                            if (used_height_width) { throw new Exception($"JsonParsingError: Can't use Size and Width/Height Properties together."); }
-                            if (elem.Value.GetArrayLength() != 2) { throw new Exception($"JsonParsingError: Size must be an array of length 2."); }
-                            if (elem.Value.EnumerateArray().Any(v => v.ValueKind != JsonValueKind.Number)) { throw new Exception($"JsonParsingError: Size must have only number elements."); }
-                            args.Width = elem.Value[0].GetInt32();
-                            args.Height = elem.Value[1].GetInt32();
-                            used_size = true;
-                            break;
-                        }
                     case "Width":
                         {
-                            if (used_size) { throw new Exception($"JsonParsingError: Can't use Size and Width/Height Properties together."); }
-                            if (elem.Value.ValueKind != JsonValueKind.Number) { throw new Exception($"JsonParsingError: Expected a number value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
-                            args.Width = elem.Value.GetInt32();
-                            used_height_width = true;
+                            args.Width = (int)getValueOrEvaluate(elem, args);
                             break;
                         }
                     case "Height":
                         {
-                            if (used_size) { throw new Exception($"JsonParsingError: Can't use Size and Width/Height Properties together."); }
-                            if (elem.Value.ValueKind != JsonValueKind.Number) { throw new Exception($"JsonParsingError: Expected a number value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
-                            args.Height = elem.Value.GetInt32();
-                            used_height_width = true;
+                            args.Height = (int)getValueOrEvaluate(elem, args);
                             break;
                         }
                     case "Framerate": 
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.Number) { throw new Exception($"JsonParsingError: Expected a number value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
-                            args.Framerate = elem.Value.GetUInt32(); 
+                            args.Framerate = (uint)getValueOrEvaluate(elem, args);
                             break; 
                         }
                     case "FunctionRH":
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.String) { throw new Exception($"JsonParsingError: Expected a string value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
                             args.FunctionRH = elem.Value.GetString();
-                            args.UseRGB = true;
                             break;
                         }
                     case "FunctionGS":
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.String) { throw new Exception($"JsonParsingError: Expected a string value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
                             args.FunctionGS = elem.Value.GetString();
-                            args.UseRGB = true;
                             break;
                         }
                     case "FunctionBV":
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.String) { throw new Exception($"JsonParsingError: Expected a string value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
                             args.FunctionBV = elem.Value.GetString();
-                            args.UseRGB = true;
                             break;
                         }
-                    case "FunctionAlpha": 
+                    case "FunctionAlp": 
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.String) { throw new Exception($"JsonParsingError: Expected a string value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
                             args.FunctionAlpha = elem.Value.GetString(); 
                             break; 
                         }
                     case "AddOns":
                         {
-                            if (elem.Value.ValueKind != JsonValueKind.Array) { throw new Exception($"JsonParsingError: Expected an array value for property {elem.Name} but got a {elem.Value.ValueKind}"); }
-                            if (elem.Value.EnumerateArray().Any(v => v.ValueKind != JsonValueKind.String)) { throw new Exception($"JsonParsingError: AddOns property must only contain string elements"); }
                             foreach (JsonElement addon_elem in elem.Value.EnumerateArray())
                             {
                                 args.AddOns.Add(addon_elem.GetString());
@@ -287,74 +332,56 @@ namespace Modulartistic.Core
         /// <param name="element">The JsonElement to be parsed</param>
         /// <param name="args">GenerationArgs</param>
         /// <returns>Parsed State or null</returns>
-        private State TryGetState(JsonElement element, GenerationArgs args)
+        private State getState(JsonElement element, GenerationOptions args)
         {
             State s = new State();
 
             foreach (JsonProperty elem in element.EnumerateObject())
             {
                 // treat name and parmeters seperately, cause they are not numbers
-                if (elem.Name == "Name") { s.Name = elem.Value.GetString(); continue; }
                 if (elem.Name == "Parameters")
                 {
-                    int i = 0;
-                    foreach (JsonElement param_elem in elem.Value.EnumerateArray())
-                    {
-                        double param_value;
-                        if (param_elem.ValueKind == JsonValueKind.String)
-                        {
-                            Expression expr = new Expression(param_elem.GetString());
-                            Helper.ExprRegisterStateProperties(ref expr, s);
-                            Helper.ExprRegisterGenArgs(ref expr, args);
-                            param_value = (double)expr.Evaluate();
-                        }
-                        else if (param_elem.ValueKind == JsonValueKind.Number) { param_value = param_elem.GetDouble(); }
-                        else { return null; }
-                        s.Parameters[i] = param_value;
-                        i++;
-                    }
-                    continue;
+                    
                 }
-
-                // retrieve the value beforehand
-                double value;
-                if (elem.Value.ValueKind == JsonValueKind.String)
-                {
-                    Expression expr = new Expression(elem.Value.GetString());
-                    Helper.ExprRegisterStateProperties(ref expr, s);
-                    Helper.ExprRegisterGenArgs(ref expr, args);
-                    value = (double)expr.Evaluate();
-                }
-                else if (elem.Value.ValueKind == JsonValueKind.Number) { value = elem.Value.GetDouble(); }
-                else { return null; }
                 
                 switch (elem.Name)
                 {
-                    case "X0": { s.X0 = value; break; }
-                    case "Y0": { s.Y0 = value; break; }
-                    case "XRotationCenter": { s.XRotationCenter = value; break; }
-                    case "YRotationCenter": { s.YRotationCenter = value; break; }
-                    case "XFactor": { s.XFactor = value; break; }
-                    case "YFactor": { s.YFactor = value; break; }
-                    case "Rotation": { s.Rotation = value; break; }
+                    case "Name": { s.Name = elem.Value.GetString(); break; }
+                    case "X0": { s.X0 = getValueOrEvaluate(elem, args, s); break; }
+                    case "Y0": { s.Y0 = getValueOrEvaluate(elem, args, s); break; }
+                    case "XRotationCenter": { s.XRotationCenter = getValueOrEvaluate(elem, args, s); break; }
+                    case "YRotationCenter": { s.YRotationCenter = getValueOrEvaluate(elem, args, s); break; }
+                    case "XFactor": { s.XFactor = getValueOrEvaluate(elem, args, s); break; }
+                    case "YFactor": { s.YFactor = getValueOrEvaluate(elem, args, s); break; }
+                    case "Rotation": { s.Rotation = getValueOrEvaluate(elem, args, s); break; }
                     
-                    case "Mod": { s.Mod = value; break; }
-                    case "ModLimLow": { s.ModLimLow = value; break; }
-                    case "ModLimUp": { s.ModLimUp = value; break; }
+                    case "Mod": { s.Mod = getValueOrEvaluate(elem, args, s); break; }
+                    case "ModLimLow": { s.ModLimLow = getValueOrEvaluate(elem, args, s); break; }
+                    case "ModLimUpp": { s.ModLimUpp = getValueOrEvaluate(elem, args, s); break; }
 
-                    case "ColorRedHue": { s.ColorRedHue = value; break; }
-                    case "ColorGreenSaturation": { s.ColorGreenSaturation = value; break; }
-                    case "ColorBlueValue": { s.ColorBlueValue = value; break; }
-                    case "InvColorRedHue": { s.InvColorRedHue = value; break; }
-                    case "InvColorGreenSaturation": { s.InvColorGreenSaturation = value; break; }
-                    case "InvColorBlueValue": { s.InvColorBlueValue = value; break; }
+                    case "ColorRH": { s.ColorRH = getValueOrEvaluate(elem, args, s); break; }
+                    case "ColorGS": { s.ColorGS = getValueOrEvaluate(elem, args, s); break; }
+                    case "ColorBV": { s.ColorBV = getValueOrEvaluate(elem, args, s); break; }
+                    case "InvColorRH": { s.InvColorRH = getValueOrEvaluate(elem, args, s); break; }
+                    case "InvColorGS": { s.InvColorGS = getValueOrEvaluate(elem, args, s); break; }
+                    case "InvColorBV": { s.InvColorBV = getValueOrEvaluate(elem, args, s); break; }
 
-                    case "ColorAlpha": { s.ColorAlpha = value; break; }
-                    case "InvColorAlpha": { s.InvColorAlpha = value; break; }
+                    case "ColorAlp": { s.ColorAlp = getValueOrEvaluate(elem, args, s); break; }
+                    case "InvColorAlp": { s.InvColorAlp = getValueOrEvaluate(elem, args, s); break; }
 
-                    case "ColorFactorHR": { s.ColorFactorRH = value; break; }
-                    case "ColorFactorSG": { s.ColorFactorGS = value; break; }
-                    case "ColorFactorVB": { s.ColorFactorBV = value; break; }
+                    case "ColorFactorRH": { s.ColorFactorRH = getValueOrEvaluate(elem, args, s); break; }
+                    case "ColorFactorGS": { s.ColorFactorGS = getValueOrEvaluate(elem, args, s); break; }
+                    case "ColorFactorBV": { s.ColorFactorBV = getValueOrEvaluate(elem, args, s); break; }
+                    case "Parameters": 
+                    { 
+                        int i = 0; 
+                        foreach (JsonElement param_elem in elem.Value.EnumerateArray())
+                        { 
+                            s.Parameters[i] = getValueOrEvaluate(param_elem, args, s); 
+                            i++; 
+                        } 
+                        break; 
+                    }
 
                     default: return null;
                 }
@@ -397,7 +424,7 @@ namespace Modulartistic.Core
             bool KeepFrames = (flags & GenerationDataFlags.KeepFrames) == GenerationDataFlags.KeepFrames;
 
             // set initial GenerationArgs
-            GenerationArgs currentArgs = new GenerationArgs();
+            GenerationOptions currentArgs = new GenerationOptions();
 
             // loop over all objects in collection
             for (int i = 0; i < Count; i++)
@@ -408,9 +435,9 @@ namespace Modulartistic.Core
                 object obj = Data[i];
 
                 // if the object is GenerationArgs update the current GenerationArgs
-                if (obj.GetType() == typeof(GenerationArgs))
+                if (obj.GetType() == typeof(GenerationOptions))
                 {
-                    currentArgs = (GenerationArgs)obj;
+                    currentArgs = (GenerationOptions)obj;
 
                     // Print Debug Information
                     if (Debug)

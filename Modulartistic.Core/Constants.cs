@@ -67,6 +67,6 @@ namespace Modulartistic.Core
         public static readonly string FFMPEG_FOLDER_DEFAULT = "";
         public static readonly string CONFIG_FILE_PATH = AppDomain.CurrentDomain.BaseDirectory + "pathconfig.json";
 
-
+        public const string GENERATIONDATA_SCHEMA_FILE = "modulartistic_generation_data_schema.json";
     }
 }
