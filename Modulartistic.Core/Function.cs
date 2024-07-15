@@ -30,7 +30,20 @@ namespace Modulartistic.Core
             m_expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
 
             // Console.WriteLine((double)m_expression.Evaluate());
-            return (double)m_expression.Evaluate();
+            object res = m_expression.Evaluate();
+
+            if (res is int)
+            {
+                return Convert.ToDouble((int)res);
+            }
+            else if (res is double)
+            {
+                return (double)res;
+            }
+            else
+            {
+                throw new InvalidOperationException("The result is neither an int nor a double.");
+            }
         }
 
         public void RegisterStateProperties(State s, GenerationOptions args)
