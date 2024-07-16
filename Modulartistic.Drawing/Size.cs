@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SkiaSharp;
-
-namespace Modulartistic.Drawing
+﻿namespace Modulartistic.Drawing
 {
     public struct Size
     {

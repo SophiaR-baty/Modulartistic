@@ -12,6 +12,8 @@ using FFMpegCore.Extensions.SkiaSharp;
 using SkiaSharp;
 using System.Threading.Tasks;
 using Modulartistic.Drawing;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace Modulartistic.Core
 {
@@ -50,19 +52,20 @@ namespace Modulartistic.Core
         public StateSequence(Scene[] sequence, string name = "")
         {
             Scenes = sequence.ToList();
-            Name = name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : name;
+            Name = name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : name;
         }
         /// <summary>
         /// Constructor for an empty StateSequence
         /// </summary>
         public StateSequence(string name) : this()
         {
-            Name = name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : name;        }
+            Name = name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : name;
+        }
 
         public StateSequence()
         {
             Scenes = new List<Scene>();
-            Name = Constants.STATESEQUENCE_NAME_DEFAULT;
+            Name = Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT;
         }
         #endregion
 
@@ -115,7 +118,7 @@ namespace Modulartistic.Core
         /// <param name="args">The GenerationArgs. </param>
         /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <returns></returns>
-        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationOptions args, int max_threads)
+        private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, int max_threads)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -145,7 +148,7 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateMp4(GenerationOptions args, int max_threads, string absolute_out_filepath)
+        private async Task CreateMp4(StateOptions args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
@@ -180,7 +183,7 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateGif(GenerationOptions args, int max_threads, string absolute_out_filepath)
+        private async Task CreateGif(StateOptions args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
@@ -220,24 +223,23 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(GenerationOptions args, int max_threads, AnimationType type, bool keepframes, string out_dir)
+        public async Task<string> GenerateAnimation(StateOptions args, int max_threads, AnimationFormat type, bool keepframes, string out_dir)
         {
-            // If out-dir is empty set to default, then check if it exists
-            out_dir = out_dir == "" ? PathConfig.OUTPUTFOLDER : out_dir;
+            // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
             // set the absolute path for the file to be save
-            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.STATESEQUENCE_NAME_DEFAULT : Name));
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : Name));
             // Validate (if file with same name exists already, append index)
             file_path_out = Helper.ValidFileName(file_path_out);
-            
+
             switch (type)
             {
-                case AnimationType.None:
+                case AnimationFormat.None:
                     {
                         throw new Exception("No AnimationType was specified. ");
                     }
-                case AnimationType.Gif:
+                case AnimationFormat.Gif:
                     {
                         if (keepframes)
                         {
@@ -250,9 +252,9 @@ namespace Modulartistic.Core
                         }
                         return file_path_out + @".gif";
                     }
-                case AnimationType.Mp4:
+                case AnimationFormat.Mp4:
                     {
-                        if (keepframes) 
+                        if (keepframes)
                         {
                             string folder = GenerateFrames(args, max_threads, file_path_out);
                             await CreateMp4(args, folder);
@@ -277,7 +279,7 @@ namespace Modulartistic.Core
         /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <param name="out_dir">the output directory</param>
         /// <returns>returns outdir</returns>
-        private string GenerateFrames(GenerationOptions args, int max_threads, string out_dir)
+        private string GenerateFrames(StateOptions args, int max_threads, string out_dir)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -292,7 +294,7 @@ namespace Modulartistic.Core
                 Scene next = Scenes[(i + 1) % Scenes.Count];
 
                 // creates the directory for the scene
-                string scene_out_dir = Helper.ValidFileName(Path.Combine(out_dir, current.State.Name == "" ? Constants.SCENE_NAME_DEFAULT : current.State.Name));
+                string scene_out_dir = Helper.ValidFileName(Path.Combine(out_dir, current.State.Name == "" ? Constants.StateSequence.SCENE_NAME_DEFAULT : current.State.Name));
                 if (!Directory.Exists(scene_out_dir)) { Directory.CreateDirectory(scene_out_dir); }
 
                 // iterate over all Frames and create the corresponding images
@@ -313,7 +315,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateGif(GenerationOptions args, string folder)
+        private async Task CreateGif(StateOptions args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -323,7 +325,7 @@ namespace Modulartistic.Core
             for (int i = 0; i < Count; i++)
             {
                 // Define the scenDir of the current scene
-                string sceneDir = Path.Combine(folder, Scenes[i].State.Name == "" ? Constants.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
+                string sceneDir = Path.Combine(folder, Scenes[i].State.Name == "" ? Constants.StateSequence.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
 
                 // In case of identically named Scenes convert Name to Name_n
                 if (sceneDirs.Contains(sceneDir))
@@ -378,7 +380,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="framerate">The framerate</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateMp4(GenerationOptions args, string folder)
+        private async Task CreateMp4(StateOptions args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = new List<string>();
@@ -388,7 +390,7 @@ namespace Modulartistic.Core
             for (int i = 0; i < Count; i++)
             {
                 // Define the scenDir of the current scene
-                string sceneDir = Path.Combine(folder, Scenes[i].State.Name == "" ? Constants.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
+                string sceneDir = Path.Combine(folder, Scenes[i].State.Name == "" ? Constants.StateSequence.SCENE_NAME_DEFAULT : Scenes[i].State.Name);
 
                 // In case of identically named Scenes convert Name to Name_n
                 if (sceneDirs.Contains(sceneDir))
@@ -445,21 +447,78 @@ namespace Modulartistic.Core
         public string GetDetailsString(uint framerate = 12)
         {
             const int padding = -30;
-            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ", padding} {Name} \n";
-            details += $"{"Scene Count: ", padding} {Count} \n";
-            details += $"{"Total Frame Count: ", padding} {TotalFrameCount(framerate)} \n";
-            details += $"{"Length in Seconds: ", padding} {LengthInSeconds()} \n\n";
-            details += $"{"Scenes: ", padding} \n\n";
+            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",padding} {Name} \n";
+            details += $"{"Scene Count: ",padding} {Count} \n";
+            details += $"{"Total Frame Count: ",padding} {TotalFrameCount(framerate)} \n";
+            details += $"{"Length in Seconds: ",padding} {LengthInSeconds()} \n\n";
+            details += $"{"Scenes: ",padding} \n\n";
 
             for (int i = 0; i < Count; i++)
             {
                 details +=
                     $"Scene {i}: \n" +
-                    $"{"Easing: ", padding} {Scenes[i].EasingType} \n" +
+                    $"{"Easing: ",padding} {Scenes[i].EasingType} \n" +
                     Scenes[i].State.GetDetailsString() + "\n\n";
             }
 
             return details;
+        }
+
+
+        #endregion
+
+        #region json
+        /// <summary>
+        /// Returns true if the passed JsonElement is a valid StateSequence representation
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static bool IsJsonElementValid(JsonElement element)
+        {
+            return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        /// <summary>
+        /// Load StateSequence properties from Json
+        /// </summary>
+        /// <param name="element">Json Element for GenerationOption</param>
+        /// /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public void LoadJson(JsonElement element, StateOptions opts)
+        {
+            foreach (JsonProperty jSeqProp in element.EnumerateObject())
+            {
+                switch (jSeqProp.Name)
+                {
+                    case nameof(Name):
+                        Name = jSeqProp.Value.GetString();
+                        break;
+                    case nameof(Scenes):
+                        Scenes.Clear();
+                        foreach (JsonElement jScene in jSeqProp.Value.EnumerateArray())
+                        {
+                            Scene scene = Scene.FromJson(jScene, opts);
+                            Scenes.Add(scene);
+                        }
+                        break;
+                    default:
+                        throw new KeyNotFoundException($"Property '{jSeqProp.Name}' does not exist on type '{GetType().Name}'.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Load StateSequence from Json
+        /// </summary>
+        /// <param name="element">Json Element for StateSequence</param>
+        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public static StateSequence FromJson(JsonElement element, StateOptions opts)
+        {
+            StateSequence stateSequence = new StateSequence();
+            stateSequence.LoadJson(element, opts);
+
+            return stateSequence;
         }
         #endregion
     }
@@ -474,17 +533,19 @@ namespace Modulartistic.Core
         /// The (Beginning-) State of this scene.
         /// </summary>
         public State State { get; set; }
+
         /// <summary>
         /// The Length of this Scene in Seconds. (Time it takes to get to the next Scene)
         /// </summary>
         public double Length { get; set; }
+
         /// <summary>
         /// Easing Function to Transform this to the next Scene.
         /// </summary>
         [JsonIgnore]
         public Easing Easing { get; private set; }
-        
-        public string EasingType { get => Easing.Type; set => Easing = Easing.FromString(value); }
+
+        public EasingType EasingType { get => Easing.Type; set => Easing = Easing.FromType(value); }
         #endregion
 
         #region Constructors
@@ -495,7 +556,7 @@ namespace Modulartistic.Core
         {
             State = new State();
             Length = 1;
-            EasingType = "Linear";
+            EasingType = EasingType.Linear;
         }
 
         /// <summary>
@@ -516,12 +577,65 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="state">The (Beginning-) State of this scene.</param>
         /// <param name="length">The Length of this Scene in Seconds. (Time it takes to get to the next Scene)</param>
-        /// <param name="easingType">EasingType as String to Transform this to the next Scene.</param>
-        public Scene(State state, double length, string easingType)
+        /// <param name="easingType">EasingType as EasingType enum to Transform this to the next Scene.</param>
+        public Scene(State state, double length, EasingType easingType)
         {
             State = state;
             Length = length;
             EasingType = easingType;
+        }
+        #endregion
+
+        #region json
+        /// <summary>
+        /// Returns true if the passed JsonElement is a valid State representation
+        /// </summary>
+        /// <param name="el">JsonElement for State</param>
+        /// <returns></returns>
+        public static bool IsJsonElementValid(JsonElement element)
+        {
+            return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        /// <summary>
+        /// Load Scene properties from Json
+        /// </summary>
+        /// <param name="element">Json Element for State</param>
+        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public void LoadJson(JsonElement element, StateOptions opts)
+        {
+            foreach (JsonProperty jSceneProp in element.EnumerateObject())
+            {
+                switch (jSceneProp.Name)
+                {
+                    case nameof(State):
+                        this.State = State.FromJson(jSceneProp.Value, opts);
+                        break;
+                    case nameof(Length):
+                        this.Length = jSceneProp.Value.GetDouble();
+                        break;
+                    case nameof(EasingType):
+                        this.EasingType = Enum.Parse<EasingType>(jSceneProp.Value.GetString());
+                        break;
+                    default:
+                        throw new KeyNotFoundException($"Property '{jSceneProp.Name}' does not exist on type '{GetType().Name}'.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Load Scene from Json
+        /// </summary>
+        /// <param name="element">Json Element for State</param>
+        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public static Scene FromJson(JsonElement element, StateOptions opts)
+        {
+            Scene scene = new Scene();
+            scene.LoadJson(element, opts);
+
+            return scene;
         }
         #endregion
     }

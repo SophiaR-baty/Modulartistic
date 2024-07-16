@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Modulartistic": {
-      "commandName": "Project",
-      "commandLineArgs": "generate demofiles/state_example_1.json --debug --faster --keepframes --show",
-      "workingDirectory": "C:\\personal-root\\workspaces\\programming\\projects\\c-sharp\\Modulartistic\\Modulartistic\\bin\\Debug\\net8.0"
-    }
-  }
-}

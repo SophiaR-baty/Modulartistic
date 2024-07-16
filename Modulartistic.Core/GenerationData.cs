@@ -15,83 +15,124 @@ using Antlr4.Runtime.Misc;
 
 namespace Modulartistic.Core
 {
-    public class GenerationData
+    public class GenerationData : IList<object>
     {
         #region Properties
-        public List<object> Data { get => data; }
-        
+        /// <summary>
+        /// Collection of StateOptions, State, StateSequence and StateTimeline Objects
+        /// </summary>
+        public List<object> Data { get => _data; }
+
+        /// <summary>
+        /// Number of Objects in this GenerationData
+        /// </summary>
         [JsonIgnore]
-        public int Count => data.Count;
+        public int Count => _data.Count;
 
-        public object this[int index] { get => data[index]; }
-
+        /// <summary>
+        /// Name of this GenerationData
+        /// </summary>
         [JsonIgnore]
         public string Name { get; set; }
         #endregion
 
         #region Fields
-        private List<object> data;
+        /// <summary>
+        /// private field for collection of objects
+        /// </summary>
+        private List<object> _data;
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Construct an empty GenerationData object
+        /// </summary>
         public GenerationData()
         {
-            data = new List<object>();
+            _data = new List<object>();
             Name = "GenerationData";
+        }
+
+        /// <summary>
+        /// Construct an empty GenerationData object with specified name
+        /// </summary>
+        public GenerationData(string name)
+            : this()
+        {
+            Name = name;
         }
         #endregion
 
-        #region List Methods
-        public void Add(GenerationOptions value) => data.Add(value);
-        public void Add(State value) => data.Add(value);
-        public void Add(StateSequence value) => data.Add(value);
-        public void Add(StateTimeline value) => data.Add(value);
+        #region IList implementation
+        int IList<object>.IndexOf(object item)
+        {
+            return _data.IndexOf(item);
+        }
 
-        public void Clear() => data.Clear();
+        void IList<object>.Insert(int index, object item)
+        {
+            _data.Insert(index, item);
+        }
 
-        public bool Contains(object value) => data.Contains(value);
+        void ICollection<object>.Add(object item)
+        {
+            _data.Add(item);
+        }
 
-        public int IndexOf(object value) => data.IndexOf(value);
+        bool ICollection<object>.Contains(object item)
+        {
+            return _data.Contains(item);
+        }
 
-        public void Insert(int index, GenerationOptions value) => data.Insert(index, value);
-        public void Insert(int index, State value) => data.Insert(index, value);
-        public void Insert(int index, StateSequence value) => data.Insert(index, value);
-        public void Insert(int index, StateTimeline value) => data.Insert(index, value);
+        public void CopyTo(object[] array, int arrayIndex)
+        {
+            _data.CopyTo(array, arrayIndex);
+        }
 
-        public void Remove(GenerationOptions value) => data.Remove(value);
-        public void Remove(State value) => data.Remove(value);
-        public void Remove(StateSequence value) => data.Remove(value);
-        public void Remove(StateTimeline value) => data.Remove(value);
+        bool ICollection<object>.Remove(object item)
+        {
+            return _data.Remove(item);
+        }
 
-        public void RemoveAt(int index) => data.RemoveAt(index);
+        IEnumerator<object> IEnumerable<object>.GetEnumerator()
+        {
+            return _data.GetEnumerator();
+        }
+        public void RemoveAt(int index)
+        {
+            _data.RemoveAt(index);
+        }
 
-        public IEnumerator GetEnumerator() => data.GetEnumerator();
+        public void Clear()
+        {
+            _data.Clear();
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return _data.GetEnumerator();
+        }
+
+        public bool IsReadOnly => false;
+
+        object IList<object>.this[int index] { get => _data[index]; set => _data[index] = value; }
         #endregion
 
         #region Json Serialization Methods
-
-
-        private static EvaluationResults isJsonValid(string file_name)
+        /// <summary>
+        /// Uses the GenerationData schema to validate if a specified json element is a valid GenerationData object
+        /// </summary>
+        /// <param name="root">The JsonElement to validate</param>
+        /// <returns>Json.Schema.EvaluationResults</returns>
+        private static EvaluationResults ValidateGenerationDataJson(JsonElement root)
         {
-            JsonSchema schema = JsonSchema.FromFile(Constants.GENERATIONDATA_SCHEMA_FILE);
-            string file = File.ReadAllText(file_name);
-            JsonDocument json = JsonDocument.Parse(file);
-
-            EvaluationResults result = schema.Evaluate(json.RootElement);
-
-            return result;
-        }
-
-        private static EvaluationResults validateObject(JsonElement el, string object_name)
-        {
-            JsonSchema schema;
-            if (!JsonSchema.FromFile(Constants.GENERATIONDATA_SCHEMA_FILE).GetDefs().TryGetValue(object_name, out schema))
-            {
-                throw new KeyNotFoundException($"The Key {object_name} is not a recognized onject.");
-            }
-
-            EvaluationResults result = schema.Evaluate(el);
+            // load jsonSchema
+            JsonSchema schema = JsonSchema.FromText(Schemas.GetGenerationDataSchema());
             
+            // validate
+            EvaluationResults result = schema.Evaluate(root);
+
+            // return evaluation results
             return result;
         }
 
@@ -111,7 +152,7 @@ namespace Modulartistic.Core
                 },
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
-            return JsonSerializer.Serialize(data, options);
+            return JsonSerializer.Serialize(_data, options);
         }
 
         /// <summary>
@@ -121,12 +162,11 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException"></exception>
         public void SaveJson(string out_dir = "")
         {
-            // If out-dir is empty set to default, then check if it exists
-            out_dir = out_dir == "" ? PathConfig.DEMOFOLDER : out_dir;
+            // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
             // set the absolute path for the file to be save
-            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.GENERATIONDATA_NAME_DEFAULT : Name));
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.GenerationData.GENERATIONDATA_NAME_DEFAULT : Name));
             // Validate (if file with same name exists already, append index)
             file_path_out = Helper.ValidFileName(file_path_out);
 
@@ -134,21 +174,22 @@ namespace Modulartistic.Core
             File.WriteAllText(file_path_out + @".json", ToJson());
         }
 
-        public void LoadJson(string file_name)
+
+        /// <summary>
+        /// Load GenerationData properties from Json
+        /// </summary>
+        /// <param name="root">Json Element for GenerationData</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public void LoadJson(JsonElement root)
         {
-            // Make sure file exists
-            if (!File.Exists(file_name))
+            // make sure json is valid GenerationData
+            EvaluationResults res = ValidateGenerationDataJson(root);
+            if (!res.IsValid)
             {
-                throw new FileNotFoundException($"The specified File {file_name} does not exist. ");
+                throw new Exception($"Json file has invalid format for GenerationData object, view GenerationDataSchema at {res.SchemaLocation}\n");
             }
 
-            // parse the json file
-            string jsontext = File.ReadAllText(file_name);
-            EvaluationResults res = isJsonValid(file_name);
-
-            JsonDocument jd = JsonDocument.Parse(jsontext);
-            JsonElement root = jd.RootElement;
-
+            // set options for json parsing
             var options = new JsonSerializerOptions
             {
                 Converters =
@@ -158,239 +199,91 @@ namespace Modulartistic.Core
             };
 
             // set initial GenerationArgs
-            GenerationOptions currentArgs = new GenerationOptions();
+            StateOptions currentArgs = new StateOptions();
 
             // go through each element of array
             foreach (JsonElement element in root.EnumerateArray())
             {
-                EvaluationResults el_res;
-
-                // Check for GenerationOptions
-                el_res = validateObject(element, "GenerationOptions");
-                if (el_res.IsValid) 
+                // Check if element is valid StateOptions
+                if (StateOptions.IsJsonElementValid(element))
                 {
-                    GenerationOptions args = getGenerationOptions(element);
-                    if (args != null)
-                    {
-                        Data.Add(args);
-                        currentArgs = args;
-                        continue;
-                    }
+                    StateOptions args = StateOptions.FromJson(element);
+                    Data.Add(args);
+                    currentArgs = args;
+                    continue;
                 }
 
                 // Check for State
-                el_res = validateObject(element, "State");
-                if (el_res.IsValid)
+                if (State.IsJsonElementValid(element))
                 {
-                    State s = getState(element, currentArgs);
-                    if (s != null) 
-                    { 
-                        Data.Add(s); 
-                        continue; 
-                    }
+                    State s = State.FromJson(element, currentArgs);
+                    Data.Add(s);
+                    continue;
                 }
 
                 // Check for StateSequence
-                el_res = validateObject(element, "StateSequence");
-                if (el_res.IsValid)
+                if (StateSequence.IsJsonElementValid(element))
                 {
-                    StateSequence stateSequence = JsonSerializer.Deserialize<StateSequence>(element.GetRawText(), options);
+                    StateSequence stateSequence = StateSequence.FromJson(element, currentArgs);
                     Data.Add(stateSequence);
                     continue;
                 }
 
                 // Check for StateTimeline
-                el_res = validateObject(element, "StateTimeline");
-                if (el_res.IsValid)
+                if (StateTimeline.IsJsonElementValid(element))
                 {
-                    StateTimeline stateTimeLine = JsonSerializer.Deserialize<StateTimeline>(element.GetRawText(), options);
-                    Data.Add(stateTimeLine);
+                    StateTimeline stateSequence = StateTimeline.FromJson(element, currentArgs);
+                    Data.Add(stateSequence);
                     continue;
                 }
 
-                throw new Exception($"Parsing Error in file {file_name}: Unrecognized Property");
+                throw new KeyNotFoundException($"Unrecognized Property");
             }
-        }
-
-
-        private double getValueOrEvaluate(JsonProperty elem, GenerationOptions args = null, State s = null, StateSequence ss = null, StateTimeline st = null)
-        {
-            // retrieve the value beforehand
-            double value;
-            if (elem.Value.ValueKind == JsonValueKind.String)
-            {
-                Expression expr = new Expression(elem.Value.GetString());
-                if (s != null) { Helper.ExprRegisterStateProperties(ref expr, s); }
-                if (args != null) { Helper.ExprRegisterGenArgs(ref expr, args); }
-                value = (double)expr.Evaluate();
-            }
-            else if (elem.Value.ValueKind == JsonValueKind.Number) { value = elem.Value.GetDouble(); }
-            else { throw new Exception($"Property {elem.Name} must be string or number. "); }
-
-            return value;
-        }
-
-        private double getValueOrEvaluate(JsonElement elem, GenerationOptions args = null, State s = null, StateSequence ss = null, StateTimeline st = null)
-        {
-            // retrieve the value beforehand
-            double value;
-            if (elem.ValueKind == JsonValueKind.String)
-            {
-                Expression expr = new Expression(elem.GetString());
-                if (s != null) { Helper.ExprRegisterStateProperties(ref expr, s); }
-                if (args != null) { Helper.ExprRegisterGenArgs(ref expr, args); }
-                value = (double)expr.Evaluate();
-            }
-            else if (elem.ValueKind == JsonValueKind.Number) { value = elem.GetDouble(); }
-            else { throw new Exception($"Element must be string or number. "); }
-
-            return value;
         }
 
         /// <summary>
-        /// Tries to parse a json element to GenerationArgs, returns null if didn't work
+        /// Load GenerationData from Json
         /// </summary>
-        /// <param name="element">The JsonElement to be parsed</param>
-        /// <returns>Parsed GenerationArgs or null</returns>
-        /// <exception cref="Exception"></exception>
-        private GenerationOptions getGenerationOptions(JsonElement element)
+        /// <param name="element">Json Element for GenerationData</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public static GenerationData FromJson(JsonElement element)
         {
-            GenerationOptions args = new GenerationOptions();
+            GenerationData data= new GenerationData();
+            data.LoadJson(element);
+
+            return data;
+        }
+
+        /// <summary>
+        /// Loads GenerationData from a json file
+        /// </summary>
+        /// <param name="file">path to the json file</param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public static GenerationData FromFile(string file)
+        {
+            if (!File.Exists(file)) { throw new FileNotFoundException($"The file '{file}' does not exist.", file); }
             
-            foreach (JsonProperty elem in element.EnumerateObject()) 
+            try
             {
-                switch (elem.Name)
+                using (var stream = File.OpenRead(file))
                 {
-                    case "UseRGB": 
-                        {
-                            args.UseRGB = elem.Value.GetBoolean();
-                            break; 
-                        }
-                    case "InvalidColorGlobal": 
-                        {
-                            args.InvalidColorGlobal = elem.Value.GetBoolean(); 
-                            break; 
-                        }
-                    case "Circular": 
-                        {
-                            args.Circular = elem.Value.GetBoolean(); 
-                            break; 
-                        }
-                    case "Width":
-                        {
-                            args.Width = (int)getValueOrEvaluate(elem, args);
-                            break;
-                        }
-                    case "Height":
-                        {
-                            args.Height = (int)getValueOrEvaluate(elem, args);
-                            break;
-                        }
-                    case "Framerate": 
-                        {
-                            args.Framerate = (uint)getValueOrEvaluate(elem, args);
-                            break; 
-                        }
-                    case "FunctionRH":
-                        {
-                            args.FunctionRH = elem.Value.GetString();
-                            break;
-                        }
-                    case "FunctionGS":
-                        {
-                            args.FunctionGS = elem.Value.GetString();
-                            break;
-                        }
-                    case "FunctionBV":
-                        {
-                            args.FunctionBV = elem.Value.GetString();
-                            break;
-                        }
-                    case "FunctionAlp": 
-                        {
-                            args.FunctionAlpha = elem.Value.GetString(); 
-                            break; 
-                        }
-                    case "AddOns":
-                        {
-                            foreach (JsonElement addon_elem in elem.Value.EnumerateArray())
-                            {
-                                args.AddOns.Add(addon_elem.GetString());
-                            }
-                            break;
-                        }
-                    default: { return null; }
-                }
-            }
-
-            return args;
-        }
-
-        /// <summary>
-        /// Tries to parse a json element to State, returns null if didn't work
-        /// </summary>
-        /// <param name="element">The JsonElement to be parsed</param>
-        /// <param name="args">GenerationArgs</param>
-        /// <returns>Parsed State or null</returns>
-        private State getState(JsonElement element, GenerationOptions args)
-        {
-            State s = new State();
-
-            foreach (JsonProperty elem in element.EnumerateObject())
-            {
-                // treat name and parmeters seperately, cause they are not numbers
-                if (elem.Name == "Parameters")
-                {
-                    
-                }
-                
-                switch (elem.Name)
-                {
-                    case "Name": { s.Name = elem.Value.GetString(); break; }
-                    case "X0": { s.X0 = getValueOrEvaluate(elem, args, s); break; }
-                    case "Y0": { s.Y0 = getValueOrEvaluate(elem, args, s); break; }
-                    case "XRotationCenter": { s.XRotationCenter = getValueOrEvaluate(elem, args, s); break; }
-                    case "YRotationCenter": { s.YRotationCenter = getValueOrEvaluate(elem, args, s); break; }
-                    case "XFactor": { s.XFactor = getValueOrEvaluate(elem, args, s); break; }
-                    case "YFactor": { s.YFactor = getValueOrEvaluate(elem, args, s); break; }
-                    case "Rotation": { s.Rotation = getValueOrEvaluate(elem, args, s); break; }
-                    
-                    case "Mod": { s.Mod = getValueOrEvaluate(elem, args, s); break; }
-                    case "ModLimLow": { s.ModLimLow = getValueOrEvaluate(elem, args, s); break; }
-                    case "ModLimUpp": { s.ModLimUpp = getValueOrEvaluate(elem, args, s); break; }
-
-                    case "ColorRH": { s.ColorRH = getValueOrEvaluate(elem, args, s); break; }
-                    case "ColorGS": { s.ColorGS = getValueOrEvaluate(elem, args, s); break; }
-                    case "ColorBV": { s.ColorBV = getValueOrEvaluate(elem, args, s); break; }
-                    case "InvColorRH": { s.InvColorRH = getValueOrEvaluate(elem, args, s); break; }
-                    case "InvColorGS": { s.InvColorGS = getValueOrEvaluate(elem, args, s); break; }
-                    case "InvColorBV": { s.InvColorBV = getValueOrEvaluate(elem, args, s); break; }
-
-                    case "ColorAlp": { s.ColorAlp = getValueOrEvaluate(elem, args, s); break; }
-                    case "InvColorAlp": { s.InvColorAlp = getValueOrEvaluate(elem, args, s); break; }
-
-                    case "ColorFactorRH": { s.ColorFactorRH = getValueOrEvaluate(elem, args, s); break; }
-                    case "ColorFactorGS": { s.ColorFactorGS = getValueOrEvaluate(elem, args, s); break; }
-                    case "ColorFactorBV": { s.ColorFactorBV = getValueOrEvaluate(elem, args, s); break; }
-                    case "Parameters": 
-                    { 
-                        int i = 0; 
-                        foreach (JsonElement param_elem in elem.Value.EnumerateArray())
-                        { 
-                            s.Parameters[i] = getValueOrEvaluate(param_elem, args, s); 
-                            i++; 
-                        } 
-                        break; 
+                    using (var jdoc = JsonDocument.Parse(stream))
+                    {
+                        return FromJson(jdoc.RootElement);
                     }
-
-                    default: return null;
                 }
             }
-
-            return s;
+            catch (JsonException ex)
+            {
+                throw new JsonException($"Error parsing JSON in file '{file}': {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error processing file '{file}': {ex.Message}", ex);
+            }
         }
-        
-        
         #endregion
 
         #region Generating Methods
@@ -424,7 +317,7 @@ namespace Modulartistic.Core
             bool KeepFrames = (flags & GenerationDataFlags.KeepFrames) == GenerationDataFlags.KeepFrames;
 
             // set initial GenerationArgs
-            GenerationOptions currentArgs = new GenerationOptions();
+            StateOptions currentArgs = new StateOptions();
 
             // loop over all objects in collection
             for (int i = 0; i < Count; i++)
@@ -435,9 +328,9 @@ namespace Modulartistic.Core
                 object obj = Data[i];
 
                 // if the object is GenerationArgs update the current GenerationArgs
-                if (obj.GetType() == typeof(GenerationOptions))
+                if (obj.GetType() == typeof(StateOptions))
                 {
-                    currentArgs = (GenerationOptions)obj;
+                    currentArgs = (StateOptions)obj;
 
                     // Print Debug Information
                     if (Debug)
@@ -464,10 +357,10 @@ namespace Modulartistic.Core
                     int max_threads = Faster ? -1 : 1;
 
                     // Generate the Image
-                    try 
+                    try
                     {
                         string filename = S.GenerateImage(currentArgs, max_threads, path_out);
-                        
+
                         // print Debug Information Post Generating
                         if (Debug)
                         {
@@ -484,18 +377,7 @@ namespace Modulartistic.Core
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Error Generating \"{S.Name}\"\n");
-                        if (Debug)
-                        {
-                            Console.Error.WriteLine(e.StackTrace);
-                            Exception ex = e;
-                            while (ex != null)
-                            {
-                                Console.Error.WriteLine(e.Message);
-                                e = e.InnerException;
-                            }
-                            continue;
-                        }
+                        throw;
                     }
                 }
 
@@ -513,9 +395,9 @@ namespace Modulartistic.Core
                         Console.WriteLine();
                     }
 
-                    AnimationType type = MP4 ? AnimationType.Mp4 : AnimationType.Gif;
+                    AnimationFormat type = MP4 ? AnimationFormat.Mp4 : AnimationFormat.Gif;
                     int max_threads = Faster ? -1 : 1;
-                    
+
                     // generate Animation
                     try
                     {
@@ -565,7 +447,7 @@ namespace Modulartistic.Core
                         Console.WriteLine();
                     }
 
-                    AnimationType type = MP4 ? AnimationType.Mp4 : AnimationType.Gif;
+                    AnimationFormat type = MP4 ? AnimationFormat.Mp4 : AnimationFormat.Gif;
                     int max_threads = Faster ? -1 : 1;
 
                     // generate Animation

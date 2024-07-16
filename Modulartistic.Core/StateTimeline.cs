@@ -10,11 +10,15 @@ using FFMpegCore.Pipes;
 using FFMpegCore;
 using FFMpegCore.Enums;
 using Modulartistic.Drawing;
+using System.Reflection;
+using System.Text.Json;
+using static Modulartistic.Core.Constants;
+using System.Xml.Linq;
 
 namespace Modulartistic.Core
 {
     /// <summary>
-    /// StateTimeline consisting of a BaseStates and several timed StateEvents
+    /// StateTimeline consisting of a Base State and several timed StateEvents
     /// </summary>
     public class StateTimeline
     {
@@ -28,20 +32,19 @@ namespace Modulartistic.Core
         /// Length in Milliseconds
         /// </summary>
         public uint Length { get; set; }
-        
+
         /// <summary>
         /// Base State
         /// </summary>
         public State Base { get; set; }
 
-        [JsonIgnore]
-        public double LengthInSeconds { get => Length / 1000.0; }
-
-
         /// <summary>
         /// List of StateEvents with their start Timings (in Milliseconds)
         /// </summary>
         public List<StateEvent> Events { get; set; }
+
+        [JsonIgnore]
+        public double LengthInSeconds { get => Length / 1000.0; }
         #endregion
 
         #region Constructors
@@ -50,12 +53,15 @@ namespace Modulartistic.Core
         /// </summary>
         public StateTimeline(string name) : this()
         {
-            Name = name == "" ? Constants.STATETIMELINE_NAME_DEFAULT : name;
+            Name = name == "" ? Constants.StateTimeline.STATETIMELINE_NAME_DEFAULT : name;
         }
 
+        /// <summary>
+        /// Creates an Empty StateTimeline
+        /// </summary>
         public StateTimeline()
         {
-            Name = Constants.STATETIMELINE_NAME_DEFAULT;
+            Name = Constants.StateTimeline.STATETIMELINE_NAME_DEFAULT;
             Length = 0;
             Base = new State();
             Events = new List<StateEvent>();
@@ -63,6 +69,11 @@ namespace Modulartistic.Core
         #endregion
 
         #region Other Methods
+        /// <summary>
+        /// Gets the total amount of frames for a given framerate
+        /// </summary>
+        /// <param name="framerate">framerate</param>
+        /// <returns></returns>
         public int TotalFrameCount(uint framerate)
         {
             return (int)(framerate * Length / 1000);
@@ -76,7 +87,7 @@ namespace Modulartistic.Core
         /// <param name="args">The GenerationArgs. </param>
         /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <returns></returns>
-        private IEnumerable<IVideoFrame> EnumerateFrames(GenerationOptions args, int max_threads)
+        private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, int max_threads)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -134,14 +145,13 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(GenerationOptions args, int max_threads, AnimationType type, bool keepframes, string out_dir)
+        public async Task<string> GenerateAnimation(StateOptions args, int max_threads, AnimationFormat type, bool keepframes, string out_dir)
         {
-            // If out-dir is empty set to default, then check if it exists
-            out_dir = out_dir == "" ? PathConfig.OUTPUTFOLDER : out_dir;
+            // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
             // set the absolute path for the file to be save
-            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.STATETIMELINE_NAME_DEFAULT : Name));
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.StateTimeline.STATETIMELINE_NAME_DEFAULT : Name));
             // Validate (if file with same name exists already, append index)
             file_path_out = Helper.ValidFileName(file_path_out);
 
@@ -156,11 +166,11 @@ namespace Modulartistic.Core
 
             switch (type)
             {
-                case AnimationType.None:
+                case AnimationFormat.None:
                     {
                         throw new Exception("No AnimationType was specified. ");
                     }
-                case AnimationType.Gif:
+                case AnimationFormat.Gif:
                     {
                         if (keepframes)
                         {
@@ -173,7 +183,7 @@ namespace Modulartistic.Core
                         }
                         return file_path_out + @".gif";
                     }
-                case AnimationType.Mp4:
+                case AnimationFormat.Mp4:
                     {
                         if (keepframes)
                         {
@@ -201,7 +211,7 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateMp4(GenerationOptions args, int max_threads, string absolute_out_filepath)
+        private async Task CreateMp4(StateOptions args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
@@ -238,7 +248,7 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateGif(GenerationOptions args, int max_threads, string absolute_out_filepath)
+        private async Task CreateGif(StateOptions args, int max_threads, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
@@ -273,7 +283,7 @@ namespace Modulartistic.Core
         /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <param name="out_dir">the output directory</param>
         /// <returns>returns outdir</returns>
-        private string GenerateFrames(GenerationOptions args, int max_threads, string out_dir)
+        private string GenerateFrames(StateOptions args, int max_threads, string out_dir)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -309,15 +319,15 @@ namespace Modulartistic.Core
 
                 // Make a list with all current states of the active events
                 List<State> states = new List<State>();
-                for (int j = 0; j < activeEvents.Count; )
+                for (int j = 0; j < activeEvents.Count;)
                 {
                     StateEvent se = activeEvents[j];
-                    if (se.IsActive(time)) 
+                    if (se.IsActive(time))
                     {
                         // Console.WriteLine(time);
                         states.Add(se.CurrentState(time, Base));
                     }
-                    else 
+                    else
                     {
                         activeEvents.RemoveAt(j);
                         continue;
@@ -347,7 +357,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="args">The GenerationArgs</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateGif(GenerationOptions args, string folder)
+        private async Task CreateGif(StateOptions args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
@@ -391,7 +401,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// /// <param name="args">The GenerationArgs</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateMp4(GenerationOptions args, string folder)
+        private async Task CreateMp4(StateOptions args, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
@@ -435,7 +445,7 @@ namespace Modulartistic.Core
             string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",padding} {Name} \n";
             details += $"{"Total Frame Count: ",padding} {TotalFrameCount(framerate)} \n";
             details += $"{"Length in Seconds: ",padding} {LengthInSeconds} \n\n";
-            
+
             details += $"{"Base State: ",padding} \n";
             details += Base.GetDetailsString() + "\n\n";
 
@@ -470,16 +480,77 @@ namespace Modulartistic.Core
             return details;
         }
         #endregion
+
+        #region json
+        /// <summary>
+        /// Returns true if the passed JsonElement is a valid StateTimeline representation
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static bool IsJsonElementValid(JsonElement element)
+        {
+            return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        /// <summary>
+        /// Load StateTimeline properties from Json
+        /// </summary>
+        /// <param name="element">Json Element for GenerationOption</param>
+        /// /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public void LoadJson(JsonElement element, StateOptions opts)
+        {
+            foreach (JsonProperty jTLineProp in element.EnumerateObject())
+            {
+                switch (jTLineProp.Name)
+                {
+                    case nameof(Name):
+                        Name = jTLineProp.Value.GetString();
+                        break;
+                    case nameof(Length):
+                        Length = jTLineProp.Value.GetUInt32();
+                        break;
+                    case nameof(Base):
+                        Base = State.FromJson(jTLineProp.Value, opts);
+                        break;
+                    case nameof(Events):
+                        Events.Clear();
+                        foreach (JsonElement jEvent in jTLineProp.Value.EnumerateArray())
+                        {
+                            StateEvent sEvent = StateEvent.FromJson(jEvent, opts);
+                            Events.Add(sEvent);
+                        }
+                        break;
+                    default:
+                        throw new KeyNotFoundException($"Property '{jTLineProp.Name}' does not exist on type '{GetType().Name}'.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Load StateTimeline from Json
+        /// </summary>
+        /// <param name="element">Json Element for GenerationOption</param>
+        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public static StateTimeline FromJson(JsonElement element, StateOptions opts)
+        {
+            StateTimeline stateTimeline = new StateTimeline();
+            stateTimeline.LoadJson(element, opts);
+
+            return stateTimeline;
+        }
+        #endregion
     }
 
     /// <summary>
     /// The StateEvent with Envelope Properties
     /// </summary>
-    public class StateEvent
+    public class StateEvent : IndexableBase
     {
         #region Properties
         // All times in milliseconds!
-        
+
         /// <summary>
         /// StartTime of Event in Milliseconds
         /// </summary>
@@ -494,43 +565,49 @@ namespace Modulartistic.Core
         /// AttackTime in Milliseconds
         /// </summary>
         public uint AttackTime { get; set; }
+
         /// <summary>
         /// Easing Function the Attack uses
         /// </summary>
         [JsonIgnore]
         public Easing AttackEasing { get; set; }
-        public string AttackEasingType { get => AttackEasing.Type; set => AttackEasing = Easing.FromString(value); }
+        public EasingType AttackEasingType { get => AttackEasing.Type; set => AttackEasing = Easing.FromType(value); }
+        
         /// <summary>
         /// DecayTime in Millisecond
         /// </summary>
         public uint DecayTime { get; set; }
+        
         /// <summary>
         /// Easing Function the Decay uses
         /// </summary>
         [JsonIgnore]
         public Easing DecayEasing { get; set; }
-        public string DecayEasingType { get => DecayEasing.Type; set => DecayEasing = Easing.FromString(value); }
+        public EasingType DecayEasingType { get => DecayEasing.Type; set => DecayEasing = Easing.FromType(value); }
+        
         /// <summary>
         /// ReleaseTime in Milliseconds
         /// </summary>
         public uint ReleaseTime { get; set; }
+        
         /// <summary>
         /// Easing Function the Release uses
         /// </summary>
         [JsonIgnore]
         public Easing ReleaseEasing { get; set; }
-        public string ReleaseEasingType { get => ReleaseEasing.Type; set => ReleaseEasing = Easing.FromString(value); }
+        public EasingType ReleaseEasingType { get => ReleaseEasing.Type; set => ReleaseEasing = Easing.FromType(value); }
 
         /// <summary>
         /// Dictionary of Peak Values
         /// </summary>
         public Dictionary<StateProperty, double> PeakValues { get; set; }
+
         /// <summary>
         /// Dictionary of Susatain Values
         /// </summary>
         public Dictionary<StateProperty, double> SustainValues { get; set; }
         #endregion
-        
+
         [JsonIgnore]
         private State pre_release_state;
 
@@ -542,7 +619,7 @@ namespace Modulartistic.Core
             PeakValues = new Dictionary<StateProperty, double>();
             SustainValues = new Dictionary<StateProperty, double>();
 
-            StartTime = 0; 
+            StartTime = 0;
             Length = 0;
             AttackTime = 0;
             AttackEasing = Easing.Linear();
@@ -575,7 +652,7 @@ namespace Modulartistic.Core
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     if (!PeakValues.ContainsKey(i)) { result[i] = BaseState[i]; }
-                    else { result[i] = easing.Ease(BaseState[i], PeakValues[i], Convert.ToInt32(t_active), Convert.ToInt32(AttackTime)); }
+                    else { result[i] = easing.Ease(BaseState[i], PeakValues[i], Convert.ToDouble(t_active)/(Convert.ToDouble(AttackTime))); }
                 }
 
                 pre_release_state = result;
@@ -595,8 +672,7 @@ namespace Modulartistic.Core
                         result[i] = easing.Ease(
                             PeakValues.ContainsKey(i) ? PeakValues[i] : BaseState[i],
                             SustainValues.ContainsKey(i) ? SustainValues[i] : BaseState[i],
-                            Convert.ToInt32(t_active - AttackTime),
-                            Convert.ToInt32(DecayTime));
+                            Convert.ToDouble(t_active - AttackTime)/Convert.ToDouble(DecayTime));
                     }
                 }
 
@@ -621,14 +697,13 @@ namespace Modulartistic.Core
                     result[i] = easing.Ease(
                         pre_release_state[i],
                         BaseState[i],
-                        Convert.ToInt32(t_active - AttackTime - Length),
-                        Convert.ToInt32(ReleaseTime));
+                        Convert.ToDouble(t_active - AttackTime - Length)/Convert.ToDouble(ReleaseTime));
                 }
             }
             else
             {
                 // Console.WriteLine(currentTime);
-                
+
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     result[i] = BaseState[i];
@@ -652,5 +727,99 @@ namespace Modulartistic.Core
             if (t_active >= Length + ReleaseTime) { return false; }
             else { return true; }
         }
+
+        #region json
+        /// <summary>
+        /// Returns true if the passed JsonElement is a valid StateEvent representation
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static bool IsJsonElementValid(JsonElement element)
+        {
+            return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        /// <summary>
+        /// Load StateEvent properties from Json
+        /// </summary>
+        /// <param name="element">Json Element for GenerationOption</param>
+        /// /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public void LoadJson(JsonElement element, StateOptions opts)
+        {
+            foreach (JsonProperty jSEventProp in element.EnumerateObject())
+            {
+                switch (jSEventProp.Name)
+                {
+                    case nameof(StartTime):
+                    case nameof(Length):
+                    case nameof(AttackTime):
+                    case nameof(DecayTime):
+                    case nameof(ReleaseTime):
+                        this[jSEventProp.Name] = jSEventProp.Value.GetUInt32();
+                        break;
+                    case nameof(AttackEasingType):
+                    case nameof(DecayEasingType):
+                    case nameof(ReleaseEasingType):
+                        this[jSEventProp.Name] = Enum.Parse<EasingType>(jSEventProp.Value.GetString());
+                        break;
+                    case nameof(PeakValues):
+                        PeakValues.Clear();
+                        foreach (JsonProperty jEventval in jSEventProp.Value.EnumerateObject())
+                        {
+                            if (jEventval.Name == nameof(State.Parameters))
+                            {
+                                int i = 0;
+                                foreach(JsonElement para in jEventval.Value.EnumerateArray())
+                                {
+                                    PeakValues.Add(Enum.Parse<StateProperty>("i" + i.ToString()), para.GetDouble());
+                                    i++;
+                                }
+                            }
+                            else
+                            {
+                                PeakValues.Add(Enum.Parse<StateProperty>(jEventval.Name), jEventval.Value.GetDouble());
+                            }
+                        }
+                        break;
+                    case nameof(SustainValues):
+                        SustainValues.Clear();
+                        foreach (JsonProperty jEventval in jSEventProp.Value.EnumerateObject())
+                        {
+                            if (jEventval.Name == nameof(State.Parameters))
+                            {
+                                int i = 0;
+                                foreach (JsonElement para in jEventval.Value.EnumerateArray())
+                                {
+                                    SustainValues.Add(Enum.Parse<StateProperty>("i" + i.ToString()), para.GetDouble());
+                                    i++;
+                                }
+                            }
+                            else
+                            {
+                                SustainValues.Add(Enum.Parse<StateProperty>(jEventval.Name), jEventval.Value.GetDouble());
+                            }
+                        }
+                        break;
+                    default:
+                        throw new KeyNotFoundException($"Property '{jSEventProp.Name}' does not exist on type '{GetType().Name}'.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Load StateEvent from Json
+        /// </summary>
+        /// <param name="element">Json Element for GenerationOption</param>
+        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public static StateEvent FromJson(JsonElement element, StateOptions opts)
+        {
+            StateEvent stateEvent = new StateEvent();
+            stateEvent.LoadJson(element, opts);
+
+            return stateEvent;
+        }
+        #endregion
     }
 }

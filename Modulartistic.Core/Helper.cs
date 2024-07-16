@@ -21,8 +21,8 @@ namespace Modulartistic.Core
             return filename;
         }
 
-        
-        public static double mod(double d1, double d2)
+
+        public static double Mod(double d1, double d2)
         {
             if (d2 <= 0)
                 throw new DivideByZeroException();
@@ -30,16 +30,16 @@ namespace Modulartistic.Core
                 return d1 - d2 * Math.Floor(d1 / d2);
         }
 
-        public static double inclusiveMod(double d1, double d2)
+        public static double InclusiveMod(double d1, double d2)
         {
-            double result = mod(d1, d2);
+            double result = Mod(d1, d2);
             return d1 != 0 && result == 0 ? d2 : result;
         }
 
-        public static double circ(double d1, double d2)
+        public static double CircularMod(double d1, double d2)
         {
-            double result = mod(d1, 2*d2);
-            return result < d2 ? result : 2*d2-result;
+            double result = Mod(d1, 2 * d2);
+            return result < d2 ? result : 2 * d2 - result;
         }
 
         public static string GetAbsolutePath(string path)
@@ -69,22 +69,22 @@ namespace Modulartistic.Core
 
             expr.Parameters["modnum"] = s.Mod;
             expr.Parameters["num"] = s.Mod;
-            expr.Parameters["modlimlow"] = s.ModLimLow;
-            expr.Parameters["modlimup"] = s.ModLimUpp;
+            expr.Parameters["modlimlow"] = s.ModLowerLimit;
+            expr.Parameters["modlimup"] = s.ModUpperLimit;
 
-            expr.Parameters["col_rh"] = s.ColorRH;
-            expr.Parameters["col_gs"] = s.ColorGS;
-            expr.Parameters["col_bv"] = s.ColorBV;
-            expr.Parameters["col_alp"] = s.ColorAlp;
+            expr.Parameters["col_rh"] = s.ColorRedHue;
+            expr.Parameters["col_gs"] = s.ColorGreenSaturation;
+            expr.Parameters["col_bv"] = s.ColorBlueValue;
+            expr.Parameters["col_alp"] = s.ColorAlpha;
 
-            expr.Parameters["inv_col_rh"] = s.InvColorRH;
-            expr.Parameters["inv_col_gs"] = s.InvColorGS;
-            expr.Parameters["inv_col_bv"] = s.InvColorBV;
-            expr.Parameters["inv_col_alp"] = s.InvColorAlp;
+            expr.Parameters["inv_col_rh"] = s.InvalidColorRedHue;
+            expr.Parameters["inv_col_gs"] = s.InvalidColorGreenSaturation;
+            expr.Parameters["inv_col_bv"] = s.InvalidColorBlueValue;
+            expr.Parameters["inv_col_alp"] = s.InvalidColorAlpha;
 
-            expr.Parameters["col_fact_rh"] = s.ColorFactorRH;
-            expr.Parameters["col_fact_gs"] = s.ColorFactorGS;
-            expr.Parameters["col_fact_bv"] = s.ColorFactorBV;
+            expr.Parameters["col_fact_rh"] = s.ColorFactorRedHue;
+            expr.Parameters["col_fact_gs"] = s.ColorFactorGreenSaturation;
+            expr.Parameters["col_fact_bv"] = s.ColorFactorBlueValue;
 
             expr.Parameters["i_0"] = s.Parameters[0];
             expr.Parameters["i"] = s.Parameters[0];
@@ -100,7 +100,7 @@ namespace Modulartistic.Core
             expr.Parameters["i_9"] = s.Parameters[9];
         }
 
-        public static void ExprRegisterGenArgs(ref Expression expr, GenerationOptions args)
+        public static void ExprRegisterStateOptions(ref Expression expr, StateOptions args)
         {
             expr.Parameters["img_width"] = (double)args.Width;
             expr.Parameters["img_height"] = (double)args.Height;

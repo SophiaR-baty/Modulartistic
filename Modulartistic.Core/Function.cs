@@ -2,53 +2,85 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Modulartistic.AddOns;
 
 namespace Modulartistic.Core
 {
     public class Function
     {
-        private Expression m_expression;
+        private Expression _expression;
 
+        #region constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Function"/> class using an existing <see cref="Expression"/> object.
+        /// </summary>
+        /// <param name="expression">The <see cref="Expression"/> object to be used for this function.</param>
         public Function(Expression expression)
         {
-            m_expression = expression;
+            _expression = expression;
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Function"/> class by creating a new <see cref="Expression"/> object from the specified string.
+        /// </summary>
+        /// <param name="expression">A string representing the expression to be evaluated.</param>
         public Function(string expression)
         {
-            m_expression = new Expression(expression);
-            m_expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            _expression = new Expression(expression);
+            _expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
         }
+        #endregion
+
 
         public double Evaluate(double x, double y)
         {
 
-            m_expression.Parameters["x"] = x;
-            m_expression.Parameters["y"] = y;
-            m_expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
-            m_expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
+            _expression.Parameters["x"] = x;
+            _expression.Parameters["y"] = y;
+            _expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
+            _expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
 
-            // Console.WriteLine((double)m_expression.Evaluate());
-            return (double)m_expression.Evaluate();
+            object res = _expression.Evaluate();
+
+            if (res is int)
+            {
+                return Convert.ToDouble((int)res);
+            }
+            else if (res is double)
+            {
+                return (double)res;
+            }
+            else
+            {
+                throw new InvalidOperationException("The result is neither an int nor a double.");
+            }
         }
 
-        public void RegisterStateProperties(State s, GenerationOptions args)
+        public void RegisterStateProperties(State s, StateOptions args)
         {
-            Helper.ExprRegisterStateProperties(ref m_expression, s);
-            Helper.ExprRegisterGenArgs(ref m_expression, args);
+            Helper.ExprRegisterStateProperties(ref _expression, s);
+            Helper.ExprRegisterStateOptions(ref _expression, args);
         }
 
+        /// <summary>
+        /// Load AddOns from a dll file. The dll should contain a type marked with the AddOn Attribute from Modulartistic.AddOns, All public static of these types are exposed to the parser
+        /// </summary>
+        /// <param name="dll_path"></param>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public void LoadAddOn(string dll_path)
         {
-
-            if (!File.Exists(dll_path)) { return; }
+            if (!File.Exists(dll_path)) 
+            { 
+                throw new FileNotFoundException($"Error loading AddOn: {dll_path} - file not found"); 
+            }
 
             Assembly testDLL = Assembly.LoadFile(dll_path);
 
             // enumerates all public classes/interfaces/enums/etc. 
             // -> Classes in a plugin should only be public if they should expose functions to the parser
-            foreach (Type type in testDLL.GetTypes())
+            foreach (Type type in testDLL.GetTypes().Where(type => type.GetCustomAttribute(typeof(AddOnAttribute)) is not null))
             {
                 // gets all public static methods of the type
                 // -> only methods that should be exposed to the parser should be public static
@@ -59,7 +91,7 @@ namespace Modulartistic.Core
                 {
                     if (methodInfo.ReturnType == typeof(double))
                     {
-                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -69,14 +101,14 @@ namespace Modulartistic.Core
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
 
-                                args.Result = (double)methodInfo.Invoke(null, parameters);
+                                args.Result = methodInfo.Invoke(null, parameters) as double?;
                             }
                         };
                     }
 
                     else if (methodInfo.ReturnType == typeof(int))
                     {
-                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -86,14 +118,14 @@ namespace Modulartistic.Core
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
 
-                                args.Result = (int)methodInfo.Invoke(null, parameters);
+                                args.Result = methodInfo.Invoke(null, parameters) as int?;
                             }
                         };
                     }
 
                     else if (methodInfo.ReturnType == typeof(string))
                     {
-                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -103,14 +135,14 @@ namespace Modulartistic.Core
                                 object[] parameters = new object[args.Parameters.Length];
                                 for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
 
-                                args.Result = (string)methodInfo.Invoke(null, parameters);
+                                args.Result = methodInfo.Invoke(null, parameters) as string;
                             }
                         };
                     }
 
                     else if (methodInfo.ReturnType == typeof(bool))
                     {
-                        m_expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                         {
                             if (name == methodInfo.Name)
                             {
@@ -130,36 +162,16 @@ namespace Modulartistic.Core
             }
         }
 
-        public void LoadAddOns(string[] dll_paths)
+        /// <summary>
+        /// Load AddOns from a Collection of strings containing paths to dll_files
+        /// </summary>
+        /// <param name="dll_paths"></param>
+        public void LoadAddOns(IEnumerable<string> dll_paths)
         {
             foreach (string dll in dll_paths)
             {
                 LoadAddOn(Helper.GetAbsolutePath(dll));
             }
-        }
-
-        public bool IsValid()
-        {
-            m_expression.Parameters["x"] = 1;
-            m_expression.Parameters["y"] = 1;
-            m_expression.Parameters["Th"] = 1;
-            m_expression.Parameters["r"] = 1;
-            m_expression.Parameters["num"] = 1;
-
-            m_expression.Parameters["i_0"] = 1;
-            m_expression.Parameters["i"] = 1;
-            m_expression.Parameters["i_1"] = 1;
-            m_expression.Parameters["j"] = 1;
-            m_expression.Parameters["i_2"] = 1;
-            m_expression.Parameters["i_3"] = 1;
-            m_expression.Parameters["i_4"] = 1;
-            m_expression.Parameters["i_5"] = 1;
-            m_expression.Parameters["i_6"] = 1;
-            m_expression.Parameters["i_7"] = 1;
-            m_expression.Parameters["i_8"] = 1;
-            m_expression.Parameters["i_9"] = 1;
-            m_expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-            return !m_expression.HasErrors();
         }
     }
 }

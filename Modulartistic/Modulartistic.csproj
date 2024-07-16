@@ -3,17 +3,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
-    <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo &quot;$(ProjectDir)&quot;&#xD;&#xA;echo &quot;$(OutDir)&quot;&#xD;&#xA;&#xD;&#xA;call $(ProjectDir)\postbuild.bat $(ProjectDir)\modulartistic_generation_data_schema.json $(OutDir)" />
-  </Target>
-	
-	
-	
+  <ItemGroup>
+    <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
+  </ItemGroup>
+
 </Project>

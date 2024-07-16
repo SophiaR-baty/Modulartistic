@@ -71,7 +71,7 @@ namespace Modulartistic.Drawing
             //Create the file.
             using (FileStream fs = File.Create(destination))
             {
-                success = _bm.Encode(fs, SKEncodedImageFormat.Png, 100) ;
+                success = _bm.Encode(fs, SKEncodedImageFormat.Png, 100);
             }
 
             return success;

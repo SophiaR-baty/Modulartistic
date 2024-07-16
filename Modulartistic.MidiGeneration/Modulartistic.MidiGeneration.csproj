@@ -4,11 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="CoreCLR-NCalc" Version="3.1.253" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
   </ItemGroup>
 
 </Project>
