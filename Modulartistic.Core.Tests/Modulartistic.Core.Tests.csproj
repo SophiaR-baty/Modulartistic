@@ -4,38 +4,21 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-<<<<<<< HEAD
 	
-=======
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.9.0" />
-<<<<<<< HEAD
-=======
-    <PackageReference Include="xunit.runner.console" Version="2.9.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-<<<<<<< HEAD
-=======
-	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
-<<<<<<< HEAD
     <ProjectReference Include="..\Modulartistic\Modulartistic.csproj" />
 	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-=======
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
   </ItemGroup>
 
 </Project>

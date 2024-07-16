@@ -41,12 +41,7 @@ namespace Modulartistic.Core
             _expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
             _expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
 
-<<<<<<< HEAD
             object res = _expression.Evaluate();
-=======
-            // Console.WriteLine((double)m_expression.Evaluate());
-            object res = m_expression.Evaluate();
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
 
             if (res is int)
             {

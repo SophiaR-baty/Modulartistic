@@ -26,11 +26,7 @@ namespace Modulartistic.Core.Tests
         [InlineData(-2, 6, 4)]
         public void ModTest(double a, double b, double res)
         {
-<<<<<<< HEAD
             Assert.Equal(res, Helper.Mod(a, b), 0.00000001);
-=======
-            Assert.Equal(res, Helper.mod(a, b), 0.00000001);
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
         }
 
         [Theory]
@@ -49,11 +45,7 @@ namespace Modulartistic.Core.Tests
         [InlineData(-2, 6, 4)]
         public void InclusiveModTest(double a, double b, double res)
         {
-<<<<<<< HEAD
             Assert.Equal(res, Helper.InclusiveMod(a, b), 0.00000001);
-=======
-            Assert.Equal(res, Helper.inclusiveMod(a, b), 0.00000001);
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
         }
 
         [Theory]
@@ -67,11 +59,7 @@ namespace Modulartistic.Core.Tests
         [InlineData(5, 4.2, 3.4)]
         public void CircTest(double a, double b, double res)
         {
-<<<<<<< HEAD
             Assert.Equal(res, Helper.CircularMod(a, b), 0.00000001);
-=======
-            Assert.Equal(res, Helper.circ(a, b), 0.00000001);
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
         }
 
         [Theory]
@@ -84,11 +72,7 @@ namespace Modulartistic.Core.Tests
         [InlineData(0, -0.5)]
         public void ModZeroThrowsException(double a, double b)
         {
-<<<<<<< HEAD
             Assert.Throws<DivideByZeroException>(() => Helper.Mod(a, b));
-=======
-            Assert.Throws<DivideByZeroException>(() => Helper.mod(a, b));
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
         }
     }
 }

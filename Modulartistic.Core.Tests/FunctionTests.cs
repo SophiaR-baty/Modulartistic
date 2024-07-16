@@ -24,16 +24,11 @@ namespace Modulartistic.Core.Tests
         [InlineData("12", 100000000, 31, 12)]
         [InlineData("12", 0.00000000001, 0.000000003, 12)]
         [InlineData("x+y", 1000000000000, 1000000000000, 2000000000000)]
-<<<<<<< HEAD
         public void Evaluate_BasicOperations_ReturnsCorrectResult(string expression, double x, double y, double expected)
-=======
-        public void ExpressionTest(string expression, double x, double y, double expected)
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
         {
             Function f = new Function(expression);
             Assert.Equal(expected, f.Evaluate(x, y), 0.00001);
         }
-<<<<<<< HEAD
 
         private string test_dll_path = @"C:\personal-root\workspaces\programming\projects\c-sharp\Modulartistic_v2\Modulartistic.AddOns.TestFunctions\bin\Debug\net8.0\Modulartistic.AddOns.TestFunctions.dll";
 
@@ -47,7 +42,5 @@ namespace Modulartistic.Core.Tests
 
             Assert.IsType(type, f.Evaluate(0, 0));
         }
-=======
->>>>>>> 7b7e6fbe81380a6166298393c317ff4ed76eef5c
     }
 }
