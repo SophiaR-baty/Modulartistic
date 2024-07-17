@@ -111,15 +111,31 @@ namespace Modulartistic
         private static int RunGenerateAndReturnExitCode(GenerateOptions options)
         {
             // setting global options
-            GlobalFFOptions.Configure(new FFOptions { BinaryFolder = PathProvider.GetFFmpegPath() });
+            GlobalFFOptions.Configure(new FFOptions { BinaryFolder = Path.GetDirectoryName(PathProvider.GetFFmpegPath()) });
 
             foreach (string file in options.InputFiles) 
             {
                 try
                 {
-                    GenerationData generationData = GenerationData.FromFile(file);
-                    Task task = generationData.GenerateAll(options.OutputDirectory);
-                    task.Wait();
+                    AnsiConsole.Status()
+                        .Start("Generating...", ctx =>
+                        {
+                            ctx.Spinner(Spinner.Known.Dots);
+                            GenerationData generationData = GenerationData.FromFile(file);
+
+                            GenerationOptions genOptions = new GenerationOptions()
+                            {
+                                OutputPath = options.OutputDirectory,
+                                KeepAnimationFrames = options.KeepFrames,
+                                AnimationFormat = options.AnimationFormat == "mp4" ? AnimationFormat.Mp4 : AnimationFormat.Gif,
+                                MaxThreads = options.Faster ?? 1,
+                                PrintDebugInfo = options.Debug,
+                                Logger = new Logger(),
+                            };
+
+                            Task task = generationData.GenerateAll(genOptions);
+                            task.Wait();
+                        });
                 }
                 catch (Exception ex) 
                 {

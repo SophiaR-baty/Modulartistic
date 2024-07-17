@@ -163,7 +163,7 @@ namespace Modulartistic.Core
                 await FFMpegArguments
                 .FromPipeInput(videoFramesSource)
                 .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
-                    .WithVideoCodec(VideoCodec.LibX265)
+                    // .WithVideoCodec(VideoCodec.LibX265)
                     // .WithVideoBitrate(16000) // find a balance between quality and file size
                     .WithFramerate(framerate))
                 .ProcessAsynchronously();
@@ -211,20 +211,13 @@ namespace Modulartistic.Core
             }
         }
 
-        /// <summary>
-        /// Generates Animation for this StateSequence and Saves it to a file. 
-        /// </summary>
-        /// <param name="args">The GenerationArgs</param>
-        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <param name="type">The file type to be saved (mp4 or gif) </param>
-        /// <param name="keepframes">Whether to keep single frames. Otherwise only the animation is saved. Not implemented yet -> must be false. </param>
-        /// <param name="out_dir">Absolute path of a directory where to save the generated file. If this is an empty string the default output is used. </param>
-        /// <returns>The absolute path of the generated file. </returns>
-        /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
-        /// <exception cref="Exception"></exception>
-        /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(StateOptions args, int max_threads, AnimationFormat type, bool keepframes, string out_dir)
+        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options)
         {
+            string out_dir = options.OutputPath;
+            AnimationFormat type = options.AnimationFormat;
+            bool keepframes = options.KeepAnimationFrames;
+            int max_threads = options.MaxThreads;
+            
             // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
@@ -243,7 +236,8 @@ namespace Modulartistic.Core
                     {
                         if (keepframes)
                         {
-                            string folder = GenerateFrames(args, max_threads, file_path_out);
+                            // the folder where the frames are saved
+                            string folder = GenerateFrames(args, file_path_out, options);
                             await CreateGif(args, folder);
                         }
                         else
@@ -256,7 +250,8 @@ namespace Modulartistic.Core
                     {
                         if (keepframes)
                         {
-                            string folder = GenerateFrames(args, max_threads, file_path_out);
+                            // the folder where the frames are saved
+                            string folder = GenerateFrames(args, file_path_out, options);
                             await CreateMp4(args, folder);
                         }
                         else
@@ -308,6 +303,36 @@ namespace Modulartistic.Core
             }
 
             return out_dir;
+        }
+
+        private string GenerateFrames(StateOptions args, string frames_dir, GenerationOptions options)
+        {
+            // parses GenerationArgs
+            uint framerate = args.Framerate;
+
+            // create Directory for frames if not exist
+            if (!Directory.Exists(frames_dir)) { Directory.CreateDirectory(frames_dir); }
+
+            // loops through the scenes
+            for (int i = 0; i < Count; i++)
+            {
+                Scene current = Scenes[i];
+                Scene next = Scenes[(i + 1) % Scenes.Count];
+
+                // creates the directory for the scene
+                string scene_out_dir = Helper.ValidFileName(Path.Combine(frames_dir, current.State.Name == "" ? Constants.StateSequence.SCENE_NAME_DEFAULT : current.State.Name));
+                if (!Directory.Exists(scene_out_dir)) { Directory.CreateDirectory(scene_out_dir); }
+
+                // iterate over all Frames and create the corresponding images
+                int frames = (int)(current.Length * framerate);
+                for (int j = 0; j < frames; j++)
+                {
+                    State frameState = new State(current.State, next.State, current.Easing, j, frames);
+                    frameState.GenerateImage(args, scene_out_dir, options);
+                }
+            }
+
+            return frames_dir;
         }
 
         /// <summary>
@@ -437,34 +462,6 @@ namespace Modulartistic.Core
                 throw new Exception("Error generating animation. ", e);
             }
         }
-        #endregion
-
-        #region Other Methods
-        /// <summary>
-        /// Gets details about this StateSequence. Useful for debugging. 
-        /// </summary>
-        /// <returns>A formatted details string</returns>
-        public string GetDetailsString(uint framerate = 12)
-        {
-            const int padding = -30;
-            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",padding} {Name} \n";
-            details += $"{"Scene Count: ",padding} {Count} \n";
-            details += $"{"Total Frame Count: ",padding} {TotalFrameCount(framerate)} \n";
-            details += $"{"Length in Seconds: ",padding} {LengthInSeconds()} \n\n";
-            details += $"{"Scenes: ",padding} \n\n";
-
-            for (int i = 0; i < Count; i++)
-            {
-                details +=
-                    $"Scene {i}: \n" +
-                    $"{"Easing: ",padding} {Scenes[i].EasingType} \n" +
-                    Scenes[i].State.GetDetailsString() + "\n\n";
-            }
-
-            return details;
-        }
-
-
         #endregion
 
         #region json

@@ -17,6 +17,11 @@ namespace Modulartistic.Core
 {
     public class GenerationData : IList<object>
     {
+        #region subscribable event
+        public event EventHandler? GenerationProgressChanged;
+        #endregion
+
+
         #region Properties
         /// <summary>
         /// Collection of StateOptions, State, StateSequence and StateTimeline Objects
@@ -290,35 +295,21 @@ namespace Modulartistic.Core
         /// <summary>
         /// Generates all States, StateSequences and StateTimelines in the Collection
         /// </summary>
-        /// <param name="path_out">the folder to save in</param>
-        /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
-        public async Task GenerateAll(string path_out = @"")
-        {
-            await GenerateAll(GenerationDataFlags.None, path_out);
-        }
-
-        /// <summary>
-        /// Generates all States, StateSequences and StateTimelines in the Collection
-        /// </summary>
         /// <param name="flags">Generation flags</param>
         /// <param name="path_out">the folder to save in</param>
         /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
-        public async Task GenerateAll(GenerationDataFlags flags, string path_out = @"")
+        public async Task GenerateAll(GenerationOptions options)
         {
+            ILogger logger = options.Logger;
+
             // initiates a stopwatch for the whole execution and for each iteration
             Stopwatch totalTime = Stopwatch.StartNew();
             Stopwatch iterationTime = new Stopwatch();
 
-            // convert the flags to boolean variables
-            bool Show = (flags & GenerationDataFlags.Show) == GenerationDataFlags.Show;
-            bool Debug = (flags & GenerationDataFlags.Debug) == GenerationDataFlags.Debug;
-            bool Faster = (flags & GenerationDataFlags.Faster) == GenerationDataFlags.Faster;
-            bool MP4 = (flags & GenerationDataFlags.MP4) == GenerationDataFlags.MP4;
-            bool KeepFrames = (flags & GenerationDataFlags.KeepFrames) == GenerationDataFlags.KeepFrames;
+            logger.Log("Start generating all. ");
 
-            // set initial GenerationArgs
+            // set initial StateOptions
             StateOptions currentArgs = new StateOptions();
-
             // loop over all objects in collection
             for (int i = 0; i < Count; i++)
             {
@@ -327,53 +318,25 @@ namespace Modulartistic.Core
 
                 object obj = Data[i];
 
-                // if the object is GenerationArgs update the current GenerationArgs
+                // if the object is StateOptions update the current StateOptions
                 if (obj.GetType() == typeof(StateOptions))
                 {
                     currentArgs = (StateOptions)obj;
-
-                    // Print Debug Information
-                    if (Debug)
-                    {
-                        Console.WriteLine(currentArgs.GetDebugInfo());
-                        Console.WriteLine();
-                    }
+                    logger.Log("Set new StateOptions. ");
+                    continue;
                 }
 
                 // else if the object is a state, generate said state
                 else if (obj.GetType() == typeof(State))
                 {
                     State S = obj as State;
-
-                    // print Debug Information Pre-Generating
-                    if (Debug)
-                    {
-                        Console.WriteLine("Generating Image for State: ");
-                        Console.WriteLine(S.GetDetailsString());
-                        Console.WriteLine();
-                    }
-
-                    // generate Image, if Faster Flag use Multithreaded
-                    int max_threads = Faster ? -1 : 1;
+                    logger.Log($"Generating State {S.Name}. ");
 
                     // Generate the Image
                     try
                     {
-                        string filename = S.GenerateImage(currentArgs, max_threads, path_out);
-
-                        // print Debug Information Post Generating
-                        if (Debug)
-                        {
-                            Console.WriteLine($"Done Generating \"{filename}\"\n");
-                        }
-
-                        // if Show Flag, show Image
-                        if (Show)
-                        {
-                            var p = new Process();
-                            p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
-                            p.Start();
-                        }
+                        string filename = S.GenerateImage(currentArgs, options);
+                        logger.Log($"Finished Generating State {S.Name}. ");
                     }
                     catch (Exception e)
                     {
@@ -385,51 +348,18 @@ namespace Modulartistic.Core
                 else if (obj.GetType() == typeof(StateSequence))
                 {
                     StateSequence SS = obj as StateSequence;
-
-                    // print Debug Information Pre Generating
-                    if (Debug)
-                    {
-                        Console.WriteLine("Generating Animation for StateSequence: ");
-                        Console.WriteLine(SS.GetDetailsString(currentArgs.Framerate));
-
-                        Console.WriteLine();
-                    }
-
-                    AnimationFormat type = MP4 ? AnimationFormat.Mp4 : AnimationFormat.Gif;
-                    int max_threads = Faster ? -1 : 1;
+                    logger.Log($"Generating StateSequence {SS.Name}. ");
+                    logger.Log($"Total Frames: {SS.TotalFrameCount(currentArgs.Framerate)}. ");
 
                     // generate Animation
                     try
                     {
-                        string filename = await SS.GenerateAnimation(currentArgs, max_threads, type, KeepFrames, path_out);
-                        //print Debug Information Post Generating
-                        if (Debug)
-                        {
-                            Console.WriteLine($"Done Generating \"{filename}\"\n");
-                        }
-
-                        // if Show Flag, show Image
-                        if (Show)
-                        {
-                            var p = new Process();
-                            p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
-                            p.Start();
-                        }
+                        string filename = await SS.GenerateAnimation(currentArgs, options);
+                        logger.Log($"Finished Generating StateSequence {SS.Name}. ");
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Error Generating \"{SS.Name}\"\n");
-                        if (Debug)
-                        {
-                            Console.Error.WriteLine(e.StackTrace);
-                            Exception ex = e;
-                            while (ex != null)
-                            {
-                                Console.Error.WriteLine(e.Message);
-                                e = e.InnerException;
-                            }
-                            continue;
-                        }
+                        throw;
                     }
                 }
 
@@ -437,51 +367,18 @@ namespace Modulartistic.Core
                 else if (obj.GetType() == typeof(StateTimeline))
                 {
                     StateTimeline ST = obj as StateTimeline;
-
-                    // print Debug Information Pre Generating
-                    if (Debug)
-                    {
-                        Console.WriteLine("Generating Animation for StateTimeline: ");
-                        Console.WriteLine(ST.GetDetailsString(currentArgs.Framerate));
-
-                        Console.WriteLine();
-                    }
-
-                    AnimationFormat type = MP4 ? AnimationFormat.Mp4 : AnimationFormat.Gif;
-                    int max_threads = Faster ? -1 : 1;
+                    logger.Log($"Generating StateTimeline {ST.Name}. ");
+                    logger.Log($"Total Frames: {ST.TotalFrameCount(currentArgs.Framerate)}. ");
 
                     // generate Animation
                     try
                     {
-                        string filename = await ST.GenerateAnimation(currentArgs, max_threads, type, KeepFrames, path_out);
-                        //print Debug Information Post Generating
-                        if (Debug)
-                        {
-                            Console.WriteLine($"Done Generating \"{filename}\"\n");
-                        }
-
-                        // if Show Flag, show Image
-                        if (Show)
-                        {
-                            var p = new Process();
-                            p.StartInfo = new ProcessStartInfo(filename) { UseShellExecute = true };
-                            p.Start();
-                        }
+                        string filename = await ST.GenerateAnimation(currentArgs, options);
+                        logger.Log($"Finished Generating StateTimeline {ST.Name}. ");
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Error Generating \"{ST.Name}\"\n");
-                        if (Debug)
-                        {
-                            Console.Error.WriteLine(e.StackTrace);
-                            Exception ex = e;
-                            while (ex != null)
-                            {
-                                Console.Error.WriteLine(e.Message);
-                                e = e.InnerException;
-                            }
-                            continue;
-                        }
+                        throw;
                     }
                 }
                 else
@@ -489,28 +386,11 @@ namespace Modulartistic.Core
                     throw new Exception();
                 }
 
-                if (Debug)
-                {
-                    Console.WriteLine("Took " + iterationTime.Elapsed.ToString());
-                }
+                logger.Log($"Took {iterationTime.Elapsed}. ");
             }
-            Console.WriteLine("Generating all took: " + totalTime.Elapsed.ToString());
+
+            logger.Log($"Generating all took {totalTime.Elapsed}. ");
         }
-        #endregion
-    }
-
-
-    /// <summary>
-    /// Enum console argument flags
-    /// </summary>
-    [Flags]
-    public enum GenerationDataFlags
-    {
-        None = 0b_0000_0000,
-        Show = 0b_0000_0001,
-        Debug = 0b_0000_0010,
-        Faster = 0b_0000_0100,
-        MP4 = 0b_0000_1000,
-        KeepFrames = 0b_0001_0000,
+            #endregion
     }
 }

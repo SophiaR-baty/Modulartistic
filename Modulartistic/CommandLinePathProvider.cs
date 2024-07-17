@@ -9,6 +9,7 @@ using System.Reflection;
 using static Modulartistic.Core.Constants;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.IO;
 
 namespace Modulartistic
 {
@@ -42,8 +43,18 @@ namespace Modulartistic
 
             // set path it not currently set
             if (ConfigurationManager.AppSettings[_addonPathKey] == null) 
-            { 
-                SetAddonPath(Path.Combine(appdir, "addons")); 
+            {
+                // define dir
+                string dir = Path.Combine(appdir, "addons");
+
+                // create dir if neccessairy
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                // set dir
+                SetAddonPath(dir); 
             }
             // return path to addon directory
             return _config.AppSettings.Settings[_addonPathKey].Value;
@@ -108,7 +119,7 @@ namespace Modulartistic
 
                 // add if ffmpeg found, otherwise throw an error
                 if (ffmpegPath is not null) { SetConfig(_ffmpegPathKey, ffmpegPath); }
-                else { throw new KeyNotFoundException($"FFmpeg path has not configured and couldn't be found automatically. "); }
+                else { throw new KeyNotFoundException($"FFmpeg path has not been configured and couldn't be found automatically. "); }
             }
             
             // return path

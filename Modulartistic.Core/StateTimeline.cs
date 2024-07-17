@@ -145,8 +145,13 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(StateOptions args, int max_threads, AnimationFormat type, bool keepframes, string out_dir)
+        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options)
         {
+            string out_dir = options.OutputPath;
+            AnimationFormat type = options.AnimationFormat;
+            bool keepframes = options.KeepAnimationFrames;
+            int max_threads = options.MaxThreads;
+            
             // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
@@ -439,46 +444,6 @@ namespace Modulartistic.Core
             }
         }
 
-        internal string GetDetailsString(uint framerate)
-        {
-            const int padding = -30;
-            string details = string.IsNullOrEmpty(Name) ? "" : $"{"Name: ",padding} {Name} \n";
-            details += $"{"Total Frame Count: ",padding} {TotalFrameCount(framerate)} \n";
-            details += $"{"Length in Seconds: ",padding} {LengthInSeconds} \n\n";
-
-            details += $"{"Base State: ",padding} \n";
-            details += Base.GetDetailsString() + "\n\n";
-
-            details += $"{"Events: ",padding} \n\n";
-
-            for (int i = 0; i < Events.Count; i++)
-            {
-                StateEvent e = Events[i];
-                details +=
-                    $"Event {i}: \n" +
-                    $"{"Start Time: ",padding} {e.StartTime} \n" +
-                    $"{"Length: ",padding} {e.Length} \n" +
-                    $"{"Attack Time: ",padding} {e.AttackTime} \n" +
-                    $"{"Attack Easing: ",padding} {e.AttackEasingType} \n" +
-                    $"{"Decay Time: ",padding} {e.DecayTime} \n" +
-                    $"{"Decay Easing: ",padding} {e.DecayEasingType} \n" +
-                    $"{"Release Time: ",padding} {e.ReleaseTime} \n" +
-                    $"{"Release Easing: ",padding} {e.ReleaseEasingType} \n";
-                details += "Sustain Values: \n";
-                foreach (StateProperty prop in e.SustainValues.Keys)
-                {
-                    details += $"{prop + ": ",padding} {e.SustainValues[prop]} \n";
-                }
-                details += "Peak Values: \n";
-                foreach (StateProperty prop in e.PeakValues.Keys)
-                {
-                    details += $"{prop + ": ",padding} {e.PeakValues[prop]} \n";
-                }
-                details += "\n";
-            }
-
-            return details;
-        }
         #endregion
 
         #region json

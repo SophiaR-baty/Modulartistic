@@ -70,6 +70,44 @@ namespace Modulartistic.Drawing
         }
 
         /// <summary>
+        /// Creates a Color Object from HSV values
+        /// </summary>
+        /// <param name="hue">Hue of the Color</param>
+        /// <param name="saturation">Saturation of the Color</param>
+        /// <param name="value">Value of the Color</param>
+        /// <param name="a">Alpha channel of the Color</param>
+        /// <returns>new Color Object</returns>
+        public static Color FromHSV(float hue, float saturation, float value, float a)
+        {
+            saturation = saturation % 360;
+            float chroma = saturation * value;
+            float Hi = hue / 60;
+            float X = chroma * (1 - Math.Abs(Hi % 2 - 1));
+
+            float[] rgb;
+
+            if (0 <= Hi && Hi < 1)
+                rgb = new float[3] { chroma, X, 0 };
+            else if (1 <= Hi && Hi < 2)
+                rgb = new float[3] { X, chroma, 0 };
+            else if (2 <= Hi && Hi < 3)
+                rgb = new float[3] { 0, chroma, X };
+            else if (3 <= Hi && Hi < 4)
+                rgb = new float[3] { 0, X, chroma };
+            else if (4 <= Hi && Hi < 5)
+                rgb = new float[3] { X, 0, chroma };
+            else if (5 <= Hi && Hi < 6)
+                rgb = new float[3] { chroma, 0, X };
+            else
+                rgb = new float[3] { 0, 0, 0 };
+            byte r = (byte)(255 * (rgb[0] + (value - chroma)));
+            byte g = (byte)(255 * (rgb[1] + (value - chroma)));
+            byte b = (byte)(255 * (rgb[2] + (value - chroma)));
+
+            return new Color(r, g, b, (byte)(a*255));
+        }
+
+        /// <summary>
         /// Creates a Color Object from ARGB values
         /// </summary>
         /// <param name="a">Alpha value of the Color</param>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Modulartistic": {
+      "commandName": "Project",
+      "commandLineArgs": "generate -i D:\\mgeo\\projects\\Modulartistic\\test.json -o D:\\mgeo --debug --faster 1"
+    }
+  }
+}

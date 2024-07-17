@@ -367,6 +367,8 @@ namespace Modulartistic.Core
             bool invalGlobal = args.InvalidColorGlobal;
             bool circ = args.CircularMod;
             bool useRGB = args.UseRGB;
+            // if rgb is not used c_r_h will be expected to be an input from 0-360, however for calculation a value 0-1 is expected
+            if (!useRGB) { col_r_h /= 360; }
             // instanciate the functions
             Function? Func_R_H = null;
             Function? Func_G_S = null;
@@ -459,20 +461,15 @@ namespace Modulartistic.Core
                         pixel_b_v = 0,    // blue or value
                         pixel_alp = 0;    // alpha
 
-                    if (x_ == 3 && y_ == 4)
-                    {
-                        Console.WriteLine(1);
-                    }
-
                     #region Evaluating Functions
-                    void calculatePixelValue(Function? func, out double pixel_val)
+                    void calculatePixelValue(Function? func, double offset, bool circ, out double pixel_val)
                     {
                         double n;
                         // not trying to catch exceptions here anymore! 
                         // if there is an exception, it has to do with the function and/or addons
                         // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
-                        n = func.Evaluate(x_, y_);
-                        pixel_val = n.IsFinite() ? Helper.Mod(n, mod) : -1;
+                        n = mod*offset + func.Evaluate(x_, y_);
+                        pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.Mod(n, mod)) : -1;
                     }
 
                     // calculate color values
@@ -480,16 +477,20 @@ namespace Modulartistic.Core
                     // Yes, using gotos now (instead of do{}while(false)),
                     // I think its more readable and shouldn't come with any risks
 
-                    if (!Func_R_H_null) { calculatePixelValue(Func_R_H, out pixel_r_h); }
+                    if (!Func_R_H_null) { calculatePixelValue(Func_R_H, col_r_h, circ && useRGB, out pixel_r_h); }
+                    else { pixel_r_h = mod * col_r_h; }
                     if (all_inval && (pixel_r_h == -1)) { goto FinishCalculation; }
 
-                    if (!Func_G_S_null) { calculatePixelValue(Func_G_S, out pixel_g_s); }
+                    if (!Func_G_S_null) { calculatePixelValue(Func_G_S, col_g_s, circ, out pixel_g_s); }
+                    else { pixel_g_s = mod * col_g_s; }
                     if (all_inval && (pixel_g_s == -1)) { goto FinishCalculation; }
 
-                    if (!Func_B_V_null) { calculatePixelValue(Func_B_V, out pixel_b_v); }
+                    if (!Func_B_V_null) { calculatePixelValue(Func_B_V, col_b_v, circ, out pixel_b_v); }
+                    else { pixel_b_v = mod * col_b_v; }
                     if (all_inval && (pixel_b_v == -1)) { goto FinishCalculation; }
 
-                    if (!Func_Alp_null) { calculatePixelValue(Func_Alp, out pixel_alp); }
+                    if (!Func_Alp_null) { calculatePixelValue(Func_Alp, col_alp, circ, out pixel_alp); }
+                    else { pixel_alp = mod * col_alp; }
                     if (all_inval &= (pixel_alp == -1)) { goto FinishCalculation; }
 
                 FinishCalculation:
@@ -551,33 +552,26 @@ namespace Modulartistic.Core
                         if (pixel_alp == -1) { a = (int)(255 * inv_col_alp); }
                         else
                         {
-                            a = (int)(circ ?
-                            Helper.CircularMod(col_alp + pixel_alp / mod, 1) * 255 :
-                            Helper.InclusiveMod(col_alp + pixel_alp / mod, 1) * 255);
+                            a = (int)(Helper.InclusiveMod(pixel_alp / mod, 1) * 255);
                         }
 
                         if (pixel_r_h == -1) { r = (int)(255 * inv_col_r_h); }
                         else
                         {
-                            r = (int)(circ ?
-                            Helper.CircularMod(col_r_h + pixel_r_h / mod, 1) * 255 :
-                            Helper.InclusiveMod(col_r_h + pixel_r_h / mod, 1) * 255);
+
+                            r = (int)(Helper.InclusiveMod(pixel_r_h / mod, 1) * 255);
                         }
 
                         if (pixel_g_s == -1) { g = (int)(255 * inv_col_g_s); }
                         else
                         {
-                            g = (int)(circ ?
-                            Helper.CircularMod(col_g_s + pixel_g_s / mod, 1) * 255 :
-                            Helper.InclusiveMod(col_g_s + pixel_g_s / mod, 1) * 255);
+                            g = (int)(Helper.InclusiveMod(pixel_g_s / mod, 1) * 255);
                         }
 
                         if (pixel_b_v == -1) { b = (int)(255 * inv_col_b_v); }
                         else
                         {
-                            b = (int)(circ ?
-                            Helper.CircularMod(col_b_v + pixel_b_v / mod, 1) * 255 :
-                            Helper.InclusiveMod(col_b_v + pixel_b_v / mod, 1) * 255);
+                            b = (int)(Helper.InclusiveMod(pixel_b_v / mod, 1) * 255);
                         }
 
                         // Validate the Colors (range 0-255)
@@ -597,7 +591,7 @@ namespace Modulartistic.Core
                         if (s > 1) { s = 1; } else if (g < 0) { s = 0; }
                         if (v > 1) { v = 1; } else if (b < 0) { v = 0; }
 
-                        color = Color.FromHSV(h, s, v);
+                        color = Color.FromHSV(h, s, v, a / 255);
                     }
                     #endregion
 
@@ -608,32 +602,26 @@ namespace Modulartistic.Core
                         if (pixel_alp == -1) { a = inv_col_alp; }
                         else
                         {
-                            a = circ ?
-                            Helper.CircularMod(col_alp + pixel_alp / mod, 1) :
-                            Helper.InclusiveMod(col_alp + pixel_alp / mod, 1);
+                            a = Helper.InclusiveMod(pixel_alp / mod, 1);
                         }
 
                         if (pixel_r_h == -1) { h = inv_col_r_h; }
                         else
                         {
                             // this used inclusive mod before, which caused problems with animations. In case that happens in any other sections refer to this comment :)
-                            h = Helper.Mod(col_r_h / 360 + pixel_r_h / mod, 1) * 360;
+                            h = Helper.Mod(pixel_r_h / mod, 1) * 360;
                         }
 
                         if (pixel_g_s == -1) { s = inv_col_g_s; }
                         else
                         {
-                            s = circ ?
-                            Helper.CircularMod(col_g_s + pixel_g_s / mod, 1) :
-                            Helper.InclusiveMod(col_g_s + pixel_g_s / mod, 1);
+                            s = Helper.InclusiveMod(pixel_g_s / mod, 1);
                         }
 
                         if (pixel_b_v == -1) { v = inv_col_b_v; }
                         else
                         {
-                            v = circ ?
-                            Helper.CircularMod(col_b_v + pixel_b_v / mod, 1) :
-                            Helper.InclusiveMod(col_b_v + pixel_b_v / mod, 1);
+                            v = Helper.InclusiveMod(pixel_b_v / mod, 1);
                         }
 
                         color = Color.FromHSV((float)h, (float)s, (float)v);
@@ -656,7 +644,6 @@ namespace Modulartistic.Core
 
                     // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
-
                 }
             }
         }
@@ -671,6 +658,49 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException">thrown if path_out does not exist</exception>
         public string GenerateImage(StateOptions args, int max_threads, string out_dir)
         {
+            // If out-dir is empty set to default, then check if it exists
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.State.STATENAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.ValidFileName(file_path_out);
+
+            // Generate the image
+            Bitmap image = GetBitmap(args, max_threads);
+            // Save the image
+            image.Save(file_path_out + @".png");
+
+            return file_path_out + @".png";
+        }
+
+        public string GenerateImage(StateOptions args, GenerationOptions options)
+        {
+            string out_dir = options.OutputPath;
+            int max_threads = options.MaxThreads;
+            if (max_threads < 1) { max_threads = 1; }
+
+            // If out-dir is empty set to default, then check if it exists
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.State.STATENAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.ValidFileName(file_path_out);
+
+            // Generate the image
+            Bitmap image = GetBitmap(args, max_threads);
+            // Save the image
+            image.Save(file_path_out + @".png");
+
+            return file_path_out + @".png";
+        }
+
+        public string GenerateImage(StateOptions args, string out_dir, GenerationOptions options)
+        {
+            int max_threads = options.MaxThreads;
+            if (max_threads < 1) { max_threads = 1; }
+
             // If out-dir is empty set to default, then check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
@@ -742,44 +772,6 @@ namespace Modulartistic.Core
         #endregion
 
         #region Other Methods
-        /// <summary>
-        /// Gets details about this state. Useful for debugging. 
-        /// </summary>
-        /// <returns>A formatted details string</returns>
-        public string GetDetailsString()
-        {
-            const int padding = -30;
-            string details = $"{"Name: ",padding} {Name} \n";
-
-            details += $"{"X0 Coordinate: ",padding} {X0} \n";
-            details += $"{"Y0 Coordinate: ",padding} {Y0} \n";
-            details += $"{"X Rotation Center: ",padding} {XRotationCenter} \n";
-            details += $"{"Y Rotation Center: ",padding} {YRotationCenter} \n";
-            details += $"{"X Factor: ",padding} {XFactor} \n";
-            details += $"{"Y Factor: ",padding} {YFactor} \n";
-            details += $"{"Rotation: ",padding} {Rotation} \n";
-
-            details += $"{"Modulus Number: ",padding} {Mod} \n";
-            details += $"{"Modulus Lower Limit: ",padding} {ModLowerLimit} \n";
-            details += $"{"Modulus Upper Limit: ",padding} {ModUpperLimit} \n";
-
-            details += $"{"Red/Hue Offset: ",padding} {ColorRedHue} \n";
-            details += $"{"Green/Saturation Offset: ",padding} {ColorGreenSaturation} \n";
-            details += $"{"Blue/Color Value Offset: ",padding} {ColorBlueValue} \n";
-
-            details += $"{"Invalid Red/Hue: ",padding} {InvalidColorRedHue} \n";
-            details += $"{"Invalid Green/Saturation: ",padding} {InvalidColorGreenSaturation} \n";
-            details += $"{"Invalid Blue/Color Value: ",padding} {InvalidColorBlueValue} \n";
-
-            details += $"{"Alpha Offset: ",padding} {ColorAlpha} \n";
-            details += $"{"Invalid Alpha Offset: ",padding} {InvalidColorAlpha} \n";
-
-            details += $"{"Color Factors: ",padding} {ColorFactorRedHue} {ColorFactorGreenSaturation} {ColorFactorBlueValue} \n";
-            details += $"{"Parameters: ",-30} {Parameters[0]} {Parameters[1]} {Parameters[2]} {Parameters[3]} {Parameters[4]} {Parameters[5]} {Parameters[6]} {Parameters[7]} {Parameters[8]} {Parameters[9]}";
-
-            return details;
-        }
-
         /// <summary>
         /// Fills the Dictionary containing String to StateProperty Values
         /// </summary>

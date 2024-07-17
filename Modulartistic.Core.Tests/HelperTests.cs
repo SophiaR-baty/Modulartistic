@@ -49,14 +49,15 @@ namespace Modulartistic.Core.Tests
         }
 
         [Theory]
-        [InlineData(5, 2, 1)]
-        [InlineData(5, 3, 1)]
-        [InlineData(3, 3, 3)]
-        [InlineData(5, 5, 5)]
-        [InlineData(5, 1, 1)]
-        [InlineData(4.2, 2, 0.2)]
-        [InlineData(4.2, 3, 1.8)]
-        [InlineData(5, 4.2, 3.4)]
+        [InlineData(5, 2, 2)]
+        [InlineData(5, 3, 2)]
+        [InlineData(3, 3, 0)]
+        [InlineData(5, 5, 0)]
+        [InlineData(5, 1, 0)]
+        [InlineData(4.2, 2, 0.4)]
+        [InlineData(4.2, 3, 2.4)]
+        [InlineData(5, 4.2, 1.6)]
+        [InlineData(1, 1, 0)]
         public void CircTest(double a, double b, double res)
         {
             Assert.Equal(res, Helper.CircularMod(a, b), 0.00000001);

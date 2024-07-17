@@ -15,7 +15,7 @@ namespace Modulartistic.Core
 {
     public static class Schemas
     {
-        public static string GetGenerationDataSchema()
+        public static JsonObject GetGenerationDataSchemaObject()
         {
             // set general structure of Schema
             JsonObject schema = new JsonObject() {
@@ -358,25 +358,58 @@ namespace Modulartistic.Core
             possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(StateSequence)}" });
             possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(StateTimeline)}" });
 
+            return schema;
+        }
+
+        public static string GetGenerationDataSchema()
+        {
             var options = new JsonSerializerOptions
             {
                 TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
                 WriteIndented = true
             };
 
-            return schema.ToJsonString(new JsonSerializerOptions(options)); ;
+            return GetGenerationDataSchemaObject().ToJsonString(new JsonSerializerOptions(options));
         }
+
+        private static string GetTypeDataSchema(Type type)
+        {
+            JsonObject typeDataSchema = new JsonObject()
+            {
+                ["$schema"] = "https://json-schema.org/draft/2020-12/schema",
+                ["$id"] = "http://modulartistic.com/",
+
+                ["$defs"] = new JsonObject() { },
+
+                ["$ref"] = $"#/$defs/{type.Name}"
+            };
+            JsonObject generationDataSchema = GetGenerationDataSchemaObject();
+
+            foreach (KeyValuePair<string, JsonNode> kvp in generationDataSchema["$defs"].AsObject())
+            {
+                typeDataSchema["$defs"].AsObject()[kvp.Key] = kvp.Value.DeepClone();
+            }
+
+
+            var options = new JsonSerializerOptions
+            {
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+                WriteIndented = true
+            };
+
+            return typeDataSchema.ToJsonString(new JsonSerializerOptions(options));
+        }
+        
     
         public static bool IsElementValid(JsonElement el, Type elementType)
         {
+            string s = GetTypeDataSchema(elementType);
+
             // Get Schema
-            JsonSchema stateSchema;
-            JsonSchema generationDataSchema = JsonSchema.FromText(Schemas.GetGenerationDataSchema());
-            // Get State def from Schema
-            generationDataSchema.GetDefs().TryGetValue(elementType.Name, out stateSchema);
+            JsonSchema typeDataSchema = JsonSchema.FromText(s);
 
             // evaluate and return valid
-            return stateSchema.Evaluate(el).IsValid;
+            return typeDataSchema.Evaluate(el).IsValid;
         }
     
     }

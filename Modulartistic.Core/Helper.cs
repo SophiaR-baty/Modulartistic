@@ -38,8 +38,8 @@ namespace Modulartistic.Core
 
         public static double CircularMod(double d1, double d2)
         {
-            double result = Mod(d1, 2 * d2);
-            return result < d2 ? result : 2 * d2 - result;
+            double result = Mod(d1, d2);
+            return result < d2 / 2 ? 2*result : 2*(d2 - result);
         }
 
         public static string GetAbsolutePath(string path)

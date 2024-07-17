@@ -1,0 +1,96 @@
+[
+  {
+    "FunctionRedHue": "x*y",
+    "Width": 500,
+    "Height": 500,
+    "Framerate": 12,
+	"UseRGB": false,
+	"CircularMod": true
+  },
+  {
+    "Name": "CircularTest",
+    "Scenes": 
+    [
+      {
+        "State": {
+          "Name": "CircularTest",
+          "Mod": 500,
+          "ModLowerLimit": 0,
+          "ModUpperLimit": 500,
+          "X0": 0,
+          "Y0": 0,
+          "XRotationCenter": 0,
+          "YRotationCenter": 0,
+          "XFactor": 1,
+          "YFactor": 1,
+          "Rotation": 0,
+          "ColorRedHue": 0,
+          "ColorGreenSaturation": 1,
+          "ColorBlueValue": 1,
+          "ColorAlpha": 1,
+          "InvalidColorRedHue": 0,
+          "InvalidColorGreenSaturation": 0,
+          "InvalidColorBlueValue": 0,
+          "InvalidColorAlpha": 0,
+          "ColorFactorRedHue": 1,
+          "ColorFactorGreenSaturation": 1,
+          "ColorFactorBlueValue": 1,
+          "Parameters": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "Length": 3,
+        "EasingType": "Linear"
+      },
+      {
+        "State": {
+          "Name": "CircularTest",
+          "Mod": 500,
+          "ModLowerLimit": 0,
+          "ModUpperLimit": 500,
+          "X0": 0,
+          "Y0": 0,
+          "XRotationCenter": 0,
+          "YRotationCenter": 0,
+          "XFactor": 1,
+          "YFactor": 1,
+          "Rotation": 0,
+          "ColorRedHue": 360,
+          "ColorGreenSaturation": 1,
+          "ColorBlueValue": 1,
+          "ColorAlpha": 1,
+          "InvalidColorRedHue": 0,
+          "InvalidColorGreenSaturation": 0,
+          "InvalidColorBlueValue": 0,
+          "InvalidColorAlpha": 0,
+          "ColorFactorRedHue": 1,
+          "ColorFactorGreenSaturation": 1,
+          "ColorFactorBlueValue": 1,
+          "Parameters": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "Length": 3,
+        "EasingType": "Linear"
+      }
+    ]
+  }
+]
