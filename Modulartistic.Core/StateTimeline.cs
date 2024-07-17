@@ -87,7 +87,7 @@ namespace Modulartistic.Core
         /// <param name="args">The GenerationArgs. </param>
         /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <returns></returns>
-        private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, int max_threads)
+        private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, GenerationOptions options)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -128,8 +128,7 @@ namespace Modulartistic.Core
 
                 // Create Image of state
                 FrameState.Name = "Frame_" + i.ToString().PadLeft(frames.ToString().Length, '0');
-                if (max_threads == 0 || max_threads == 1) { yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, 1)); }
-                else { yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, max_threads)); }
+                yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, options));
             }
         }
 
@@ -145,12 +144,10 @@ namespace Modulartistic.Core
         /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options)
+        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options, string out_dir)
         {
-            string out_dir = options.OutputPath;
             AnimationFormat type = options.AnimationFormat;
             bool keepframes = options.KeepAnimationFrames;
-            int max_threads = options.MaxThreads;
             
             // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
@@ -179,12 +176,12 @@ namespace Modulartistic.Core
                     {
                         if (keepframes)
                         {
-                            string folder = GenerateFrames(args, max_threads, file_path_out);
-                            await CreateGif(args, folder);
+                            string folder = GenerateFrames(args, options, file_path_out);
+                            await CreateGifFromFolder(args, options, folder);
                         }
                         else
                         {
-                            await CreateGif(args, max_threads, file_path_out);
+                            await CreateGif(args, options, file_path_out);
                         }
                         return file_path_out + @".gif";
                     }
@@ -192,12 +189,12 @@ namespace Modulartistic.Core
                     {
                         if (keepframes)
                         {
-                            string folder = GenerateFrames(args, max_threads, file_path_out);
-                            await CreateMp4(args, folder);
+                            string folder = GenerateFrames(args, options, file_path_out);
+                            await CreateMp4FromFolder(args, options, folder);
                         }
                         else
                         {
-                            await CreateMp4(args, max_threads, file_path_out);
+                            await CreateMp4(args, options, file_path_out);
                         }
                         return file_path_out + @".mp4";
                     }
@@ -216,11 +213,11 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateMp4(StateOptions args, int max_threads, string absolute_out_filepath)
+        private async Task CreateMp4(StateOptions args, GenerationOptions options, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, options))
             {
                 FrameRate = framerate, // set source frame rate
             };
@@ -253,11 +250,11 @@ namespace Modulartistic.Core
         /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
         /// <returns></returns>
         /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateGif(StateOptions args, int max_threads, string absolute_out_filepath)
+        private async Task CreateGif(StateOptions args, GenerationOptions options, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, max_threads))
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, options))
             {
                 FrameRate = framerate, // set source frame rate
             };
@@ -288,7 +285,7 @@ namespace Modulartistic.Core
         /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
         /// <param name="out_dir">the output directory</param>
         /// <returns>returns outdir</returns>
-        private string GenerateFrames(StateOptions args, int max_threads, string out_dir)
+        private string GenerateFrames(StateOptions args, GenerationOptions options, string out_dir)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -351,7 +348,7 @@ namespace Modulartistic.Core
 
                 // Create Image of state
                 FrameState.Name = "Frame_" + frame.ToString().PadLeft(frames.ToString().Length, '0');
-                FrameState.GenerateImage(args, max_threads, out_dir);
+                FrameState.GenerateImage(args, options, out_dir);
             }
 
             return out_dir;
@@ -362,7 +359,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="args">The GenerationArgs</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateGif(StateOptions args, string folder)
+        private async Task CreateGifFromFolder(StateOptions args, GenerationOptions options, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
@@ -406,7 +403,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// /// <param name="args">The GenerationArgs</param>
         /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateMp4(StateOptions args, string folder)
+        private async Task CreateMp4FromFolder(StateOptions args, GenerationOptions options, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();

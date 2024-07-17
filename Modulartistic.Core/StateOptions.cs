@@ -108,41 +108,6 @@ namespace Modulartistic.Core
             m_addons = new List<string>();
         }
 
-        public string GetDebugInfo()
-        {
-            const int padding = -30;
-            string result =
-            $"{"Size: ",padding} {Width}x{Height} \n" +
-            $"{"Framerate: ",padding} {Framerate} \n";
-
-            if (UseRGB)
-            {
-                result += $"{"RedFunction: ",padding} {FunctionRedHue} \n" +
-                    $"{"GreenFunction: ",-30} {FunctionGreenSaturation} \n" +
-                    $"{"BlueFunction: ",padding} {FunctionBlueValue} \n";
-            }
-            else
-            {
-                result += $"{"HueFunction: ",padding} {FunctionRedHue} \n" +
-                    $"{"SaturationFunction: ",padding} {FunctionGreenSaturation} \n" +
-                    $"{"ValueFunction: ",padding} {FunctionBlueValue} \n";
-            }
-
-            result += $"{"AlphaFunction: ",padding} {FunctionAlpha} \n" +
-
-            $"{"InvalidColorGlobal: ",padding} {InvalidColorGlobal} \n" +
-            $"{"Circular: ",padding} {CircularMod} \n" +
-            $"{"UseRGB: ",padding} {UseRGB} \n";
-
-            if (AddOns.Count != 0)
-            {
-                result += $"{"Addons: ",padding} \n";
-                for (int i = 0; i < AddOns.Count; i++) { result += AddOns[i] + "\n"; }
-            }
-
-            return result;
-        }
-
         #region json
         /// <summary>
         /// Returns true if the passed JsonElement is a valid StateOptions representation

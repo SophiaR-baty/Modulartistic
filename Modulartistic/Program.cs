@@ -125,7 +125,6 @@ namespace Modulartistic
 
                             GenerationOptions genOptions = new GenerationOptions()
                             {
-                                OutputPath = options.OutputDirectory,
                                 KeepAnimationFrames = options.KeepFrames,
                                 AnimationFormat = options.AnimationFormat == "mp4" ? AnimationFormat.Mp4 : AnimationFormat.Gif,
                                 MaxThreads = options.Faster ?? 1,
@@ -133,7 +132,7 @@ namespace Modulartistic
                                 Logger = new Logger(),
                             };
 
-                            Task task = generationData.GenerateAll(genOptions);
+                            Task task = generationData.GenerateAll(genOptions, options.OutputDirectory);
                             task.Wait();
                         });
                 }

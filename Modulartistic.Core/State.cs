@@ -648,15 +648,7 @@ namespace Modulartistic.Core
             }
         }
 
-        /// <summary>
-        /// Generates an Image of this State with a given a Size and a Function for the Color calculation. If max_threads = -1 the max number is used
-        /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <param name="max_threads">The maximum number of threads this will use</param>
-        /// <param name="out_dir">The Path to save the image at</param>
-        /// <returns>the filepath of the generated image</returns>
-        /// <exception cref="DirectoryNotFoundException">thrown if path_out does not exist</exception>
-        public string GenerateImage(StateOptions args, int max_threads, string out_dir)
+        public string GenerateImage(StateOptions args, GenerationOptions options, string out_dir)
         {
             // If out-dir is empty set to default, then check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
@@ -667,50 +659,7 @@ namespace Modulartistic.Core
             file_path_out = Helper.ValidFileName(file_path_out);
 
             // Generate the image
-            Bitmap image = GetBitmap(args, max_threads);
-            // Save the image
-            image.Save(file_path_out + @".png");
-
-            return file_path_out + @".png";
-        }
-
-        public string GenerateImage(StateOptions args, GenerationOptions options)
-        {
-            string out_dir = options.OutputPath;
-            int max_threads = options.MaxThreads;
-            if (max_threads < 1) { max_threads = 1; }
-
-            // If out-dir is empty set to default, then check if it exists
-            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
-
-            // set the absolute path for the file to be save
-            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.State.STATENAME_DEFAULT : Name));
-            // Validate (if file with same name exists already, append index)
-            file_path_out = Helper.ValidFileName(file_path_out);
-
-            // Generate the image
-            Bitmap image = GetBitmap(args, max_threads);
-            // Save the image
-            image.Save(file_path_out + @".png");
-
-            return file_path_out + @".png";
-        }
-
-        public string GenerateImage(StateOptions args, string out_dir, GenerationOptions options)
-        {
-            int max_threads = options.MaxThreads;
-            if (max_threads < 1) { max_threads = 1; }
-
-            // If out-dir is empty set to default, then check if it exists
-            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
-
-            // set the absolute path for the file to be save
-            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.State.STATENAME_DEFAULT : Name));
-            // Validate (if file with same name exists already, append index)
-            file_path_out = Helper.ValidFileName(file_path_out);
-
-            // Generate the image
-            Bitmap image = GetBitmap(args, max_threads);
+            Bitmap image = GetBitmap(args, options);
             // Save the image
             image.Save(file_path_out + @".png");
 
@@ -723,8 +672,11 @@ namespace Modulartistic.Core
         /// <param name="args">The GenrationArgs containing Size and Function Data</param>
         /// <param name="max_threads">The maximum number of threads this will use</param>
         /// <returns>The generated Bitmap</returns>
-        public Bitmap GetBitmap(StateOptions args, int max_threads)
+        public Bitmap GetBitmap(StateOptions args, GenerationOptions options)
         {
+            int max_threads = options.MaxThreads;
+            if (max_threads < 1) { max_threads = 1; }
+
             if (max_threads == 0 || max_threads == 1)
             {
                 GetPartialBitmap(args, out Bitmap image);

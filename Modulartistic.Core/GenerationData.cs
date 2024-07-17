@@ -298,7 +298,7 @@ namespace Modulartistic.Core
         /// <param name="flags">Generation flags</param>
         /// <param name="path_out">the folder to save in</param>
         /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
-        public async Task GenerateAll(GenerationOptions options)
+        public async Task GenerateAll(GenerationOptions options, string path_out)
         {
             ILogger logger = options.Logger;
 
@@ -335,7 +335,7 @@ namespace Modulartistic.Core
                     // Generate the Image
                     try
                     {
-                        string filename = S.GenerateImage(currentArgs, options);
+                        string filename = S.GenerateImage(currentArgs, options, path_out);
                         logger.Log($"Finished Generating State {S.Name}. ");
                     }
                     catch (Exception e)
@@ -354,7 +354,7 @@ namespace Modulartistic.Core
                     // generate Animation
                     try
                     {
-                        string filename = await SS.GenerateAnimation(currentArgs, options);
+                        string filename = await SS.GenerateAnimation(currentArgs, options, path_out);
                         logger.Log($"Finished Generating StateSequence {SS.Name}. ");
                     }
                     catch (Exception e)
@@ -373,7 +373,7 @@ namespace Modulartistic.Core
                     // generate Animation
                     try
                     {
-                        string filename = await ST.GenerateAnimation(currentArgs, options);
+                        string filename = await ST.GenerateAnimation(currentArgs, options, path_out);
                         logger.Log($"Finished Generating StateTimeline {ST.Name}. ");
                     }
                     catch (Exception e)

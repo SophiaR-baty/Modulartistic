@@ -11,7 +11,6 @@ namespace Modulartistic.Core
         private int _maxthreads;
         private bool _debug;
         private bool _keepframes;
-        private string _pathout;
         private AnimationFormat _aniformat;
         private ILogger? _logger;
         private IPathProvider? _pathProvider;
@@ -50,12 +49,6 @@ namespace Modulartistic.Core
         {
             get => _pathProvider;
             set => _pathProvider = value;
-        }
-
-        public string OutputPath
-        {
-            get => _pathout;
-            set => _pathout = value;
         }
 
         public GenerationOptions() 
