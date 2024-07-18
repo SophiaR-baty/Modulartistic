@@ -675,7 +675,6 @@ namespace Modulartistic.Core
         public Bitmap GetBitmap(StateOptions args, GenerationOptions options)
         {
             int max_threads = options.MaxThreads;
-            if (max_threads < 1) { max_threads = 1; }
 
             if (max_threads == 0 || max_threads == 1)
             {
