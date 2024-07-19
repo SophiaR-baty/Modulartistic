@@ -13,6 +13,7 @@ namespace Modulartistic.Core
         private bool _keepframes;
         private AnimationFormat _aniformat;
         private ILogger? _logger;
+        private IProgressReporter? _progressReporter;
         private IPathProvider? _pathProvider;
 
         public int MaxThreads
@@ -43,6 +44,12 @@ namespace Modulartistic.Core
         {
             get => _logger;
             set => _logger = value;
+        }
+
+        public IProgressReporter? ProgressReporter
+        {
+            get => _progressReporter;
+            set => _progressReporter = value;
         }
 
         public IPathProvider? PathProvider

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using AnimatedGif;
 using NCalc;
 
 namespace Modulartistic.Core
@@ -21,6 +22,20 @@ namespace Modulartistic.Core
             return filename;
         }
 
+        public static string GetAnimationFormatExtension(AnimationFormat type)
+        {
+            switch (type)
+            {
+                case AnimationFormat.None:
+                    throw new ArgumentException("No AnimationFormat specified");
+                case AnimationFormat.Gif:
+                    return "gif";
+                case AnimationFormat.Mp4:
+                    return "mp4";
+                default:
+                    throw new NotImplementedException("Only gif and mpp4 are supported AnimationFormats");
+            }
+        }
 
         public static double Mod(double d1, double d2)
         {

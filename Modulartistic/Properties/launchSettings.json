@@ -3,7 +3,7 @@
     "Modulartistic": {
       "commandName": "Project",
       "commandLineArgs": "generate -i test.json -o . --debug --faster -1",
-      "workingDirectory": "C:\\personal-root\\workspaces\\programming\\projects\\c-sharp\\Modulartistic\\Modulartistic\\bin\\Debug\\net8.0"
+      "workingDirectory": "D:\\mgeo"
     }
   }
 }

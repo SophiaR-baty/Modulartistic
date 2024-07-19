@@ -300,96 +300,124 @@ namespace Modulartistic.Core
         /// <exception cref="Exception">If an object is neither State, StateSequence nor StateTimeline</exception>
         public async Task GenerateAll(GenerationOptions options, string path_out)
         {
-            ILogger logger = options.Logger;
+            ILogger? logger = options.Logger;
 
-            // initiates a stopwatch for the whole execution and for each iteration
-            Stopwatch totalTime = Stopwatch.StartNew();
-            Stopwatch iterationTime = new Stopwatch();
+            
+            Progress? loopProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid().ToString()}", $"Generating all generatable objects in GenerationData", Count);
 
-            logger.Log("Start generating all. ");
 
             // set initial StateOptions
             StateOptions currentArgs = new StateOptions();
+            logger?.LogInfo("Generating all generatable objects in GenerationData");
+
             // loop over all objects in collection
             for (int i = 0; i < Count; i++)
             {
-                // set clock
-                iterationTime.Restart();
-
                 object obj = Data[i];
 
                 // if the object is StateOptions update the current StateOptions
                 if (obj.GetType() == typeof(StateOptions))
                 {
+                    logger?.Log("Set new StateOptions. ");
                     currentArgs = (StateOptions)obj;
-                    logger.Log("Set new StateOptions. ");
+
+                    loopProgress?.IncrementProgress();
                     continue;
                 }
 
                 // else if the object is a state, generate said state
                 else if (obj.GetType() == typeof(State))
                 {
-                    State S = obj as State;
-                    logger.Log($"Generating State {S.Name}. ");
-
+                    State S = (State)obj;
+                    
                     // Generate the Image
-                    try
+                    try 
                     {
+
+                        logger?.LogInfo($"Generating State: {S.Name}");
+
                         string filename = S.GenerateImage(currentArgs, options, path_out);
-                        logger.Log($"Finished Generating State {S.Name}. ");
+
+                        logger?.LogInfo($"Finished Generating State: {S.Name}");
+                        loopProgress?.IncrementProgress();
+                        continue;
                     }
                     catch (Exception e)
                     {
-                        throw;
+                        logger?.LogError($"Error Generating State: {S.Name}");
+                        if (options.PrintDebugInfo) { logger?.LogException(e); }
+                        logger?.LogInfo("Skipping...");
+                        loopProgress?.IncrementProgress();
+                        continue;
                     }
                 }
 
                 // if the object is a StateSequence, generate that StateSequence
                 else if (obj.GetType() == typeof(StateSequence))
                 {
-                    StateSequence SS = obj as StateSequence;
-                    logger.Log($"Generating StateSequence {SS.Name}. ");
-                    logger.Log($"Total Frames: {SS.TotalFrameCount(currentArgs.Framerate)}. ");
+                    StateSequence SS = (StateSequence)obj;
 
                     // generate Animation
                     try
                     {
+                        logger?.LogInfo($"Generating StateSequence: {SS.Name}");
+                        logger?.Log($"Total Scenes: {SS.Count}");
+                        logger?.Log($"Total Frames: {SS.TotalFrameCount(currentArgs.Framerate)}");
+                        
                         string filename = await SS.GenerateAnimation(currentArgs, options, path_out);
-                        logger.Log($"Finished Generating StateSequence {SS.Name}. ");
+
+                        logger?.LogInfo($"Finished Generating StateSequence: {SS.Name}");
+                        loopProgress?.IncrementProgress();
+                        continue;
                     }
                     catch (Exception e)
                     {
-                        throw;
+                        logger?.LogError($"Generating StateSequence:  {SS.Name}");
+                        if (options.PrintDebugInfo) { logger?.LogException(e); }
+                        logger?.LogInfo("Skipping...");
+                        loopProgress?.IncrementProgress();
+                        continue;
                     }
                 }
 
                 // if the object is a StateTimeline
                 else if (obj.GetType() == typeof(StateTimeline))
                 {
-                    StateTimeline ST = obj as StateTimeline;
-                    logger.Log($"Generating StateTimeline {ST.Name}. ");
-                    logger.Log($"Total Frames: {ST.TotalFrameCount(currentArgs.Framerate)}. ");
+                    StateTimeline ST = (StateTimeline)obj;
 
                     // generate Animation
                     try
                     {
+                        logger?.LogInfo($"Generating StateTimeline: {ST.Name}");
+                        logger?.Log($"Total Frames: {ST.TotalFrameCount(currentArgs.Framerate)}");
+
                         string filename = await ST.GenerateAnimation(currentArgs, options, path_out);
-                        logger.Log($"Finished Generating StateTimeline {ST.Name}. ");
+
+                        logger?.LogInfo($"Finished Generating StateTimeline: {ST.Name}");
+                        loopProgress?.IncrementProgress();
+                        continue;
                     }
                     catch (Exception e)
                     {
-                        throw;
+                        logger?.LogError($"Generating StateTimeline:  {ST.Name}");
+                        if (options.PrintDebugInfo) { logger?.LogException(e); }
+                        logger?.LogInfo("Skipping...");
+                        loopProgress?.IncrementProgress();
+                        continue;
                     }
                 }
+
                 else
                 {
-                    throw new Exception();
+                    logger?.LogError($"Unrecognized object at index {i}");
+                    logger?.LogInfo("Skipping...");
+                    loopProgress?.IncrementProgress();
+                    continue;
                 }
-
-                logger.Log($"Took {iterationTime.Elapsed}. ");
             }
 
-            logger.Log($"Generating all took {totalTime.Elapsed}. ");
+            options.ProgressReporter?.RemoveTask(loopProgress.Key);
+            logger?.LogInfo("Finished generating all generatable objects in GenerationData");
         }
             #endregion
     }

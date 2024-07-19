@@ -6,12 +6,14 @@ using Modulartistic.Core;
 using CommandLine.Text;
 using FFMpegCore;
 using FFMpegCore.Helpers;
+using Antlr4.Runtime.Misc;
 
 namespace Modulartistic
 {
     internal class Program
     {
         static readonly CommandLinePathProvider PathProvider = new CommandLinePathProvider();
+        static readonly Logger Logger = new Logger();
 
         static int Main(string[] args)
         {
@@ -21,8 +23,6 @@ namespace Modulartistic
                     (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                     errs => 1);
         }
-
-        
 
         [Verb("config", HelpText = "configure paths for the application")]
         class ConfigOptions
@@ -86,25 +86,26 @@ namespace Modulartistic
         }
 
 
+
         [Verb("generate", HelpText = "generate a <generation_data>.json file")]
         class GenerateOptions
         {
-            [Option('d', "debug", HelpText = "Prints useful information while generating")]
+            [Option('d', "debug", Default = false, HelpText = "Prints useful information while generating")]
             public bool Debug { get; set; }
 
-            [Option('k', "keepframes", HelpText = "Saves individual frames for Animations")]
+            [Option('k', "keepframes", Default = false, HelpText = "Saves individual frames for Animations")]
             public bool KeepFrames { get; set; }
 
-            [Option("faster", HelpText = "Speeds up generating images by utilizing multiple threads. 1 and 0 both utilize 1 thread, -1 will use the maximum available", Default = -1)]
+            [Option('f', "faster", Default = -1, HelpText = "Speeds up generating images by utilizing multiple threads. 1 and 0 both utilize 1 thread, -1 will use the maximum available")]
             public int? Faster {  get; set; }
 
-            [Option('f', "animation-format", HelpText = "What file format to save animations in (mp4 or gif)")]
+            [Option('a', "animation-format", Default = "gif", HelpText = "What file format to save animations in (mp4 or gif)")]
             public string AnimationFormat { get; set; }
 
-            [Option('o', "output", HelpText = "Path to the directory where output files should be saved to")]
+            [Option('o', "output", Default = ".", HelpText = "Path to the directory where output files should be saved to")]
             public string OutputDirectory {  get; set; }
 
-            [Option('i', "input", HelpText = "one or more input files, must be valid json files")]
+            [Option('i', "input", Required = true, HelpText = "one or more input files, must be valid json files")]
             public IEnumerable<string> InputFiles { get; set; }
         }
 
@@ -112,15 +113,55 @@ namespace Modulartistic
         {
             // setting global options
             GlobalFFOptions.Configure(new FFOptions { BinaryFolder = Path.GetDirectoryName(PathProvider.GetFFmpegPath()) });
-
-            foreach (string file in options.InputFiles) 
+            
+            string[] files = options.InputFiles.ToArray();
+            // checking if input files specified
+            if (files.Length == 0)
             {
-                try
+                Logger.LogError("No input files specified. please specify at least one input file to generate using the -i or --input option. ");
+                return -1;
+            }
+
+            int errorcode = 0;
+            ProgressReporter reporter = new ProgressReporter();
+            AnsiConsole.Progress()
+                .HideCompleted(true)
+                .Columns(new ProgressColumn[]
                 {
-                    AnsiConsole.Status()
-                        .Start("Generating...", ctx =>
+                    new TaskDescriptionColumn(),    // Task description
+                    new ProgressBarColumn(),        // Progress bar
+                    new PercentageColumn(),         // Percentage
+                    new RemainingTimeColumn(),      // Remaining time
+                    new SpinnerColumn()
+                })
+                .Start(
+                ctx =>
+                {
+                    
+                    Dictionary<string, ProgressTask> tasks = new Dictionary<string, ProgressTask>();
+                    reporter.TaskAdded += (sender, args) => 
+                    {
+                        ProgressTask a = ctx.AddTask(args.Description, true, args.MaxProgress);
+                        tasks.Add(args.Key, a);
+                    };
+                    reporter.ProgressChanged += (sender, args) => { tasks[args.Key].Value = args.CurrentProgress; };
+                    reporter.TaskRemoved += (sender, args) => { tasks[args.Key].StopTask(); };
+
+                    int length = files.Length;
+                    Core.Progress? loopProgress = null;
+                    if (length > 1) { reporter.AddTask("fileloop", "Generating all files...", length); }
+                    foreach (string file in files)
+                    {
+                        if (!File.Exists(file))
                         {
-                            ctx.Spinner(Spinner.Known.Dots);
+                            Logger.LogError($"The specified file {file} does not exist. ");
+                            Logger.LogInfo($"Skipping file {file}");
+                            loopProgress?.IncrementProgress();
+                            continue;
+                        }
+
+                        try
+                        {
                             GenerationData generationData = GenerationData.FromFile(file);
 
                             GenerationOptions genOptions = new GenerationOptions()
@@ -130,27 +171,31 @@ namespace Modulartistic
                                 MaxThreads = options.Faster ?? 1,
                                 PrintDebugInfo = options.Debug,
                                 Logger = new Logger(),
+                                ProgressReporter = reporter,
                             };
 
                             Task task = generationData.GenerateAll(genOptions, options.OutputDirectory);
                             task.Wait();
-                        });
-                }
-                catch (Exception ex) 
-                {
-                    if (options.Debug)
-                    {
-                        AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+
+                            loopProgress?.IncrementProgress();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (options.Debug) { Logger.LogException(ex); } else { Logger.LogError(ex.Message); }
+                            Logger.LogInfo($"Skipping file {file}");
+                            loopProgress?.IncrementProgress();
+                            continue;
+                        }
                     }
-                    else
-                    {
-                        // AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
-                        AnsiConsole.MarkupInterpolated($"[red]{ex.Message}[/]");
-                    }
-                    
-                    // AnsiConsole.Markup($"[red]{ex.Message}[/]");
+                    reporter.RemoveTask(loopProgress?.Key);
+
+
+
                 }
-            }
+            );
+
+
+            
 
             return 0;
 
