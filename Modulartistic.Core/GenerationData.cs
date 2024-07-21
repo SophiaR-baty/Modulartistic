@@ -445,7 +445,7 @@ namespace Modulartistic.Core
         {
             ILogger? logger = options.Logger;
 
-            string guid = options.GenerationDataGuid;
+            string guid = options.GenerationDataGuid.ToString();
 
             string? backups_folder = options.PathProvider?.GetBackUpPath();
             if (backups_folder is not null) SaveJson(backups_folder, DateTime.Now.ToString("yyyyMMdd-HHmmss")+"-"+guid);

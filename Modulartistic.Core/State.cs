@@ -715,6 +715,8 @@ namespace Modulartistic.Core
             // Save the image
             image.Save(file_path_out + @".png");
 
+            Helper.EmbedGuid(file_path_out + @".png", options.GenerationDataGuid);
+
             return file_path_out + @".png";
         }
 

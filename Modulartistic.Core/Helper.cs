@@ -178,5 +178,152 @@ namespace Modulartistic.Core
             expr.Parameters["img_height"] = (double)args.Height;
             expr.Parameters["ani_framerate"] = (double)args.Framerate;
         }
+    
+        public static void EmbedGuid(string file_path, Guid guid)
+        {
+            if (!File.Exists(file_path)) { throw new FileNotFoundException($"the specified file {file_path} was not found."); }
+
+            string format = Path.GetExtension(file_path);
+            switch (format)
+            {
+                case (".png"):
+                    EmbedGuidInPng(file_path, guid);
+                    break;
+                case (".gif"):
+                    EmbedGuidInGif(file_path, guid);
+                    break;
+                case (".mp4"):
+                    EmbedGuidInMp4(file_path, guid);
+                    break;
+            }
+        }
+
+        private static void EmbedGuidInPng(string file_path, Guid guid)
+        {
+            byte[] guidBytes = guid.ToByteArray();
+
+            // Read the original PNG file
+            byte[] originalFileBytes = File.ReadAllBytes(file_path);
+
+            using (FileStream fs = new FileStream(file_path, FileMode.Open, FileAccess.Write))
+            {
+                // Write the original file content
+                fs.Write(originalFileBytes, 0, originalFileBytes.Length);
+
+                // Add a custom chunk with the GUID
+                byte[] chunkType = { 0x67, 0x75, 0x69, 0x64 }; // Chunk type "guid"
+                byte[] chunkDataLength = BitConverter.GetBytes(guidBytes.Length);
+                byte[] chunkCRC = { 0x00, 0x00, 0x00, 0x00 }; // Placeholder CRC
+
+                // Write the custom chunk to the file
+                fs.Write(chunkDataLength, 0, chunkDataLength.Length);
+                fs.Write(chunkType, 0, chunkType.Length);
+                fs.Write(guidBytes, 0, guidBytes.Length);
+                fs.Write(chunkCRC, 0, chunkCRC.Length);
+            }
+        }
+        
+        private static void EmbedGuidInGif(string file_path, Guid guid)
+        {
+            byte[] guidBytes = guid.ToByteArray();
+
+            string tmp_out = Path.Join(Path.GetDirectoryName(file_path), "_"+Path.GetFileName(file_path));
+
+            using (FileStream inputFileStream = new FileStream(file_path, FileMode.Open, FileAccess.Read))
+            using (FileStream outputFileStream = new FileStream(tmp_out, FileMode.Create))
+            {
+                byte[] header = new byte[6];
+                inputFileStream.Read(header, 0, header.Length);
+                outputFileStream.Write(header, 0, header.Length);
+
+                // Write the rest of the file until the extension block
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                bool foundExtension = false;
+                while ((bytesRead = inputFileStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    int i;
+                    for (i = 0; i < bytesRead; i++)
+                    {
+                        if (buffer[i] == 0x21) // Extension introducer
+                        {
+                            if (buffer[i + 1] == 0xFF) // Application extension
+                            {
+                                foundExtension = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundExtension)
+                    {
+                        outputFileStream.Write(buffer, 0, i + 2); // Write up to the extension block
+                                                                  // Write the custom extension data
+                        outputFileStream.Write(new byte[] { 0x21, 0xFF, 0x0B, (byte)'G', (byte)'U', (byte)'I', (byte)'D', 0x00 }, 0, 8);
+                        outputFileStream.Write(guidBytes, 0, guidBytes.Length);
+                        outputFileStream.Write(new byte[] { 0x00 }, 0, 1); // Terminate extension block
+                    }
+                    else
+                    {
+                        outputFileStream.Write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+
+            File.Copy(tmp_out, file_path, true);
+            File.Delete(tmp_out);
+        }
+    
+        private static void EmbedGuidInMp4(string file_path, Guid guid)
+        {
+            byte[] guidBytes = guid.ToByteArray();
+
+            string tmp_out = Path.Join(Path.GetDirectoryName(file_path), "_" + Path.GetFileName(file_path));
+
+            using (FileStream inputFileStream = new FileStream(file_path, FileMode.Open, FileAccess.Read))
+            using (FileStream outputFileStream = new FileStream(tmp_out, FileMode.Create))
+            {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                bool foundMoov = false;
+                while ((bytesRead = inputFileStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    int i;
+                    for (i = 0; i < bytesRead; i++)
+                    {
+                        if (buffer[i] == 'm' && buffer[i + 1] == 'o' && buffer[i + 2] == 'o' && buffer[i + 3] == 'v')
+                        {
+                            foundMoov = true;
+                            break;
+                        }
+                    }
+
+                    if (foundMoov)
+                    {
+                        outputFileStream.Write(buffer, 0, i);
+                        // Write custom udta box
+                        byte[] customBox = new byte[]
+                        {
+                        // Box size (data size + 8 bytes for box header)
+                        0x00, 0x00, 0x00, 0x14, // Replace 0x14 with the size of the box
+                        // Box type 'udta'
+                        (byte)'u', (byte)'d', (byte)'t', (byte)'a',
+                        // Custom data (example: GUID)
+                        0x00, 0x00, 0x00, 0x0C, (byte)'G', (byte)'U', (byte)'I', (byte)'D', 0x00
+                        };
+                        outputFileStream.Write(customBox, 0, customBox.Length);
+                        outputFileStream.Write(guidBytes, 0, guidBytes.Length);
+                    }
+                    else
+                    {
+                        outputFileStream.Write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+
+            File.Copy(tmp_out, file_path, true);
+            File.Delete(tmp_out);
+        }
+    
     }
 }

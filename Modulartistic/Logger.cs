@@ -27,6 +27,7 @@ namespace Modulartistic
             _writer = new StreamWriter(_file, true);
         }
         
+
         public void Dispose()
         {
             _writer.Write("---------------------------------------------\n");

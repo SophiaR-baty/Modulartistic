@@ -20,7 +20,7 @@ namespace Modulartistic.Core
         private ILogger? _logger;
         private IProgressReporter? _progressReporter;
         private IPathProvider _pathProvider;
-        private string _generationDataGuid;
+        private Guid _generationDataGuid;
 
         #endregion
 
@@ -107,7 +107,7 @@ namespace Modulartistic.Core
         /// <summary>
         /// Gets or sets the guid for a GenerationData object
         /// </summary>
-        public string GenerationDataGuid
+        public Guid GenerationDataGuid
         {
             get => _generationDataGuid;
         }
@@ -121,7 +121,7 @@ namespace Modulartistic.Core
         /// </summary>
         public GenerationOptions() 
         { 
-            _generationDataGuid = Guid.NewGuid().ToString();
+            _generationDataGuid = Guid.NewGuid();
         }
 
         #endregion
