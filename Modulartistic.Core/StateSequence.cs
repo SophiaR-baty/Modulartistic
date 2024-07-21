@@ -19,63 +19,84 @@ using System.Runtime.InteropServices;
 namespace Modulartistic.Core
 {
     /// <summary>
-    /// A Sequence of States (in Scenes) to generate animation or batch images
+    /// Represents a sequence of <see cref="Scene"/> objects in an animation or graphical sequence. A StateSequence contains multiple <see cref="Scene"/> objects containing <see cref="State"/>s and provides functionality to generate frames and animations between these.
     /// </summary>
     public class StateSequence
     {
         #region Fields & properties
+
         /// <summary>
-        /// The Name of this State Sequence.
+        /// Gets or sets the name of this state sequence.
         /// </summary>
+        /// <value>
+        /// A <see cref="string"/> representing the name of the state sequence.
+        /// </value>
         public string Name { get; set; }
 
         /// <summary>
-        /// The list of Scenes.
+        /// Gets or sets the list of scenes in this state sequence.
         /// </summary>
+        /// <value>
+        /// A <see cref="List{Scene}"/> containing the scenes in this state sequence.
+        /// </value>
         public List<Scene> Scenes { get; set; }
 
         /// <summary>
-        /// Returns the Number of Scenes in this StateSequence
+        /// Gets the number of scenes in this state sequence.
         /// </summary>
+        /// <value>
+        /// An <see cref="int"/> representing the number of scenes.
+        /// </value>
         [JsonIgnore]
         public int Count
         {
             get => Scenes.Count;
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
-        /// Constructor of StateSequence with an Array of Scenes and a name.
+        /// Initializes a new instance of the <see cref="StateSequence"/> class with the specified scenes and name.
         /// </summary>
-        /// <param name="sequence">An Array of Scenes.</param>
-        /// <param name="name">The Name of this StateSequence.</param>
-        public StateSequence(Scene[] sequence, string name = "")
+        /// <param name="sequence">An enumerable of <see cref="Scene"/> objects representing the scenes in this state sequence.</param>
+        /// <param name="name">The name of this state sequence. Defaults to an empty string.</param>
+        public StateSequence(IEnumerable<Scene> sequence, string name = "")
         {
             Scenes = sequence.ToList();
             Name = name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : name;
         }
+
         /// <summary>
-        /// Constructor for an empty StateSequence
+        /// Initializes a new instance of the <see cref="StateSequence"/> class with the specified name and an empty list of scenes.
         /// </summary>
+        /// <param name="name">The name of this state sequence.</param>
         public StateSequence(string name) : this()
         {
             Name = name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : name;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StateSequence"/> class with an empty list of scenes and the default name.
+        /// </summary>
         public StateSequence()
         {
             Scenes = new List<Scene>();
             Name = Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT;
         }
+
         #endregion
 
-        #region Some Functions (Turn into properties maybe)
+        #region Methods to get lengths
+
         /// <summary>
-        /// Returns how many Frames will be created in total when starting the animation
+        /// Calculates the total number of frames that will be created for the animation based on the specified framerate.
         /// </summary>
-        /// <param name="framerate">The framerate for which to calculate the frames</param>
-        /// <returns>int</returns>
+        /// <param name="framerate">The framerate (frames per second) for the animation.</param>
+        /// <returns>
+        /// An <see cref="int"/> representing the total number of frames.
+        /// </returns>
         public int TotalFrameCount(uint framerate)
         {
             int total = 0;
@@ -87,9 +108,11 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// The Total Length of this StateSequence in Seconds
+        /// Calculates the total length of this state sequence in seconds.
         /// </summary>
-        /// <returns>double, in Seconds</returns>
+        /// <returns>
+        /// A <see cref="double"/> representing the total length of the state sequence in seconds.
+        /// </returns>
         public double LengthInSeconds()
         {
             double total = 0;
@@ -101,30 +124,36 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Gets the amount of Frames to create for the scene at a specific index
+        /// Gets the number of frames for the <see cref="Scene"/> at a specific index based on the specified framerate.
         /// </summary>
-        /// <param name="idx">the index for which to get the number of frames</param>
-        /// <param name="framerate">The framerate for which to calculate</param>
-        /// <returns>int</returns>
+        /// <param name="idx">The index of the scene in the sequence.</param>
+        /// <param name="framerate">The framerate (frames per second) for the animation.</param>
+        /// <returns>
+        /// An <see cref="int"/> representing the number of frames for the scene at the specified index.
+        /// </returns>
         public int Framecount(int idx, int framerate)
         {
             return (int)Scenes[idx].Length * framerate;
         }
+
         #endregion
 
         #region Animation Generation
+
         /// <summary>
-        /// Enumerates Frames of this StateSequence as IViedeoframes
+        /// Enumerates the frames of this state sequence as <see cref="IVideoFrame"/> objects.
         /// </summary>
-        /// <param name="args">The GenerationArgs. </param>
-        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <returns></returns>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for frame generation.</param>
+        /// <returns>
+        /// An <see cref="IEnumerable{IVideoFrame}"/> that represents the frames of the animation.
+        /// </returns>
         private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, GenerationOptions options)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
 
-            Progress? sequenceProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid().ToString()}", $"Generating scenes of {Name}", Count);
+            Progress? sequenceProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid()}", $"Generating scenes of {Name}", Count);
             // loops through the scenes
             for (int i = 0; i < Count; i++)
             {
@@ -133,26 +162,28 @@ namespace Modulartistic.Core
 
                 // iterate over all Frames and create the corresponding images
                 int frames = (int)(current.Length * framerate);
-                Progress? sceneProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid().ToString()}", $"Generating frames for scene {i + 1}", frames);
+                Progress? sceneProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid()}", $"Generating frames for scene {i + 1}", frames);
                 for (int j = 0; j < frames; j++)
                 {
                     State frameState = new State(current.State, next.State, current.Easing, j, frames);
                     sceneProgress?.IncrementProgress();
                     yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, options));
                 }
-                options.ProgressReporter?.RemoveTask(sceneProgress.Key);
+                options.ProgressReporter?.RemoveTask(sceneProgress);
                 sequenceProgress?.IncrementProgress();
             }
-            options.ProgressReporter?.RemoveTask(sequenceProgress.Key);
+            options.ProgressReporter?.RemoveTask(sequenceProgress);
         }
 
         /// <summary>
-        /// Generate all frames and save them in the specified out_dir
+        /// Generates all frames and saves them in the specified output directory.
         /// </summary>
-        /// <param name="args">GenerationArgs</param>
-        /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <param name="out_dir">the output directory</param>
-        /// <returns>returns outdir</returns>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for frame generation.</param>
+        /// <param name="frames_dir">The directory where the frames will be saved.</param>
+        /// <returns>
+        /// The path to the directory where the frames were saved.
+        /// </returns>
         private string GenerateFrames(StateOptions args, GenerationOptions options, string frames_dir)
         {
             // parses GenerationArgs
@@ -169,7 +200,7 @@ namespace Modulartistic.Core
                 Scene next = Scenes[(i + 1) % Scenes.Count];
 
                 // creates the directory for the scene
-                string scene_out_dir = Helper.ValidFileName(Path.Combine(frames_dir, current.State.Name == "" ? Constants.StateSequence.SCENE_NAME_DEFAULT : current.State.Name));
+                string scene_out_dir = Helper.GetValidFileName(Path.Combine(frames_dir, current.State.Name == "" ? Constants.StateSequence.SCENE_NAME_DEFAULT : current.State.Name));
                 if (!Directory.Exists(scene_out_dir)) { Directory.CreateDirectory(scene_out_dir); }
 
                 // iterate over all Frames and create the corresponding images
@@ -181,23 +212,26 @@ namespace Modulartistic.Core
                     frameState.GenerateImage(args, options, scene_out_dir);
                     sceneProgress?.IncrementProgress();
                 }
-                options.ProgressReporter?.RemoveTask(sceneProgress.Key);
+                options.ProgressReporter?.RemoveTask(sceneProgress);
 
                 sequenceProgress?.IncrementProgress();
             }
-            options.ProgressReporter?.RemoveTask(sequenceProgress.Key);
+            options.ProgressReporter?.RemoveTask(sequenceProgress);
 
             return frames_dir;
         }
 
-
         /// <summary>
-        /// Create Animation for this StateSequence and Saves it to the specified file. 
+        /// Generates Frames, creates an animation from the generated frames and saves it to the specified file.
         /// </summary>
-        /// <param name="args">The GenerationArgs</param>
-        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
-        /// <returns></returns>
-        /// <exception cref="Exception">If generation fails</exception>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for animation creation.</param>
+        /// <param name="type">The format of the animation to be created (e.g., GIF or MP4).</param>
+        /// <param name="absolute_out_filepath">The absolute path to the file where the animation will be saved.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// </returns>
+        /// <exception cref="Exception">Thrown if an error occurs during animation generation.</exception>
         private async Task CreateAnimation(StateOptions args, GenerationOptions options, AnimationFormat type, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
@@ -251,10 +285,15 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Create Animation after having generated all frames beforehand
+        /// Creates an animation from previously generated frames located in the specified folder.
         /// </summary>
-        /// <param name="framerate">The framerate</param>
-        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for animation creation.</param>
+        /// <param name="type">The format of the animation to be created (e.g., GIF or MP4).</param>
+        /// <param name="folder">The folder containing the generated frames.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// </returns>
         private async Task CreateAnimationFromFolder(StateOptions args, GenerationOptions options, AnimationFormat type, string folder)
         {
             // Creating the image list
@@ -287,9 +326,10 @@ namespace Modulartistic.Core
                 Progress? joinProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid().ToString()}", $"Joining frames of {Name}", imgPaths.Count);
                 for (int i = 0; i < imgPaths.Count; i++)
                 {
-
+                    joinProgress?.IncrementProgress();
                     yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
                 }
+                options.ProgressReporter?.RemoveTask(joinProgress);
             }
 
             uint framerate = args.Framerate;
@@ -342,7 +382,15 @@ namespace Modulartistic.Core
             }
         }
 
-
+        /// <summary>
+        /// Generates an animation and saves it to the specified output directory.
+        /// </summary>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation and animation creation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for animation creation.</param>
+        /// <param name="out_dir">The directory where the animation will be saved.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. Returns the path to the generated animation file.
+        /// </returns>
         public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options, string out_dir)
         {
             // check if it exists
@@ -355,7 +403,7 @@ namespace Modulartistic.Core
             // set the absolute path for the file to be save
             string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : Name));
             // Validate (if file with same name exists already, append index)
-            file_path_out = Helper.ValidFileName(file_path_out);
+            file_path_out = Helper.GetValidFileName(file_path_out);
 
             if (keepframes)
             {
@@ -371,26 +419,28 @@ namespace Modulartistic.Core
             return file_path_out + $".{Helper.GetAnimationFormatExtension(type)}";
         }
 
-        
         #endregion
 
-        #region json
+        #region JSON Methods
+
         /// <summary>
-        /// Returns true if the passed JsonElement is a valid StateSequence representation
+        /// Determines whether the specified JSON element is a valid representation of a <see cref="StateSequence"/>.
         /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
+        /// <param name="element">The JSON element to validate.</param>
+        /// <returns>
+        /// <c>true</c> if the JSON element is valid; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsJsonElementValid(JsonElement element)
         {
             return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <summary>
-        /// Load StateSequence properties from Json
+        /// Loads the properties of this <see cref="StateSequence"/> from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state sequence data.</param>
+        /// <param name="opts">The <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <exception cref="KeyNotFoundException">Thrown if a property is not found in the JSON element.</exception>
         public void LoadJson(JsonElement element, StateOptions opts)
         {
             foreach (JsonProperty jSeqProp in element.EnumerateObject())
@@ -415,11 +465,14 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Load StateSequence from Json
+        /// Creates a new <see cref="StateSequence"/> instance from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for StateSequence</param>
-        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state sequence data.</param>
+        /// <param name="opts">The <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <returns>
+        /// A new <see cref="StateSequence"/> instance populated with data from the JSON element.
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">Thrown if a property is not found in the JSON element.</exception>
         public static StateSequence FromJson(JsonElement element, StateOptions opts)
         {
             StateSequence stateSequence = new StateSequence();
@@ -431,33 +484,55 @@ namespace Modulartistic.Core
     }
 
     /// <summary>
-    /// Scene class consisting of a state, a length (in seconds) and an easing.
+    /// Represents a scene in an <see cref="StateSequence"/> animation . A scene includes the starting state, the duration of the scene, and an easing function to transition to the next scene.
     /// </summary>
     public class Scene
     {
         #region Properties
+
         /// <summary>
-        /// The (Beginning-) State of this scene.
+        /// Gets or sets the starting state of this scene.
         /// </summary>
+        /// <value>
+        /// The <see cref="Core.State"/> object representing the beginning state of the scene.
+        /// </value>
         public State State { get; set; }
 
         /// <summary>
-        /// The Length of this Scene in Seconds. (Time it takes to get to the next Scene)
+        /// Gets or sets the length of this scene in seconds. This determines the duration before transitioning to the next scene.
         /// </summary>
+        /// <value>
+        /// A <see cref="double"/> representing the length of the scene in seconds.
+        /// </value>
         public double Length { get; set; }
 
         /// <summary>
-        /// Easing Function to Transform this to the next Scene.
+        /// Gets the easing function used to transform this scene to the next scene.
         /// </summary>
+        /// <value>
+        /// An <see cref="Core.Easing"/> object representing the easing function.
+        /// </value>
         [JsonIgnore]
         public Easing Easing { get; private set; }
 
-        public EasingType EasingType { get => Easing.Type; set => Easing = Easing.FromType(value); }
+        /// <summary>
+        /// Gets or sets the type of easing function used to transition to the next scene.
+        /// </summary>
+        /// <value>
+        /// An <see cref="Core.EasingType"/> enumeration value representing the type of easing function.
+        /// </value>
+        public EasingType EasingType 
+        { 
+            get => Easing.Type; 
+            set => Easing = Easing.FromType(value); 
+        }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
-        /// Standard Constructor with 0 Args
+        /// Initializes a new instance of the <see cref="Scene"/> class with default values.
         /// </summary>
         public Scene()
         {
@@ -467,11 +542,11 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Standard constructor taking arguments for all 3 Properties
+        /// Initializes a new instance of the <see cref="Scene"/> class with the specified state, length, and easing function.
         /// </summary>
-        /// <param name="state">The (Beginning-) State of this scene.</param>
-        /// <param name="length">The Length of this Scene in Seconds. (Time it takes to get to the next Scene)</param>
-        /// <param name="easing">Easing Function to Transform this to the next Scene.</param>
+        /// <param name="state">The starting <see cref="Core.State"/> of this scene.</param>
+        /// <param name="length">The length of this scene in seconds.</param>
+        /// <param name="easing">The <see cref="Core.Easing"/> function used to transform this scene to the next scene.</param>
         public Scene(State state, double length, Easing easing)
         {
             State = state;
@@ -480,36 +555,42 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Standard constructor taking arguments for all 3 Properties
+        /// Initializes a new instance of the <see cref="Scene"/> class with the specified state, length, and easing function.
         /// </summary>
-        /// <param name="state">The (Beginning-) State of this scene.</param>
-        /// <param name="length">The Length of this Scene in Seconds. (Time it takes to get to the next Scene)</param>
-        /// <param name="easingType">EasingType as EasingType enum to Transform this to the next Scene.</param>
+        /// <param name="state">The starting <see cref="Core.State"/> of this scene.</param>
+        /// <param name="length">The length of this scene in seconds.</param>
+        /// <param name="easingType">The <see cref="Core.EasingType"/> used to transform this scene to the next scene.</param>
         public Scene(State state, double length, EasingType easingType)
         {
             State = state;
             Length = length;
             EasingType = easingType;
         }
+
         #endregion
 
-        #region json
+        #region JSON Methods
+
         /// <summary>
-        /// Returns true if the passed JsonElement is a valid State representation
+        /// Validates whether the given <see cref="JsonElement"/> represents a valid <see cref="Scene"/> representation.
         /// </summary>
-        /// <param name="el">JsonElement for State</param>
-        /// <returns></returns>
+        /// <param name="element">The <see cref="JsonElement"/> to validate.</param>
+        /// <returns>
+        /// <c>true</c> if the <paramref name="element"/> is valid; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsJsonElementValid(JsonElement element)
         {
             return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <summary>
-        /// Load Scene properties from Json
+        /// Loads the scene properties from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for State</param>
-        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the scene properties.</param>
+        /// <param name="opts">The current <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <exception cref="KeyNotFoundException">
+        /// Thrown if a property in the JSON element does not exist on the <see cref="Scene"/> type.
+        /// </exception>
         public void LoadJson(JsonElement element, StateOptions opts)
         {
             foreach (JsonProperty jSceneProp in element.EnumerateObject())
@@ -532,11 +613,16 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Load Scene from Json
+        /// Creates a <see cref="Scene"/> instance from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for State</param>
-        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the scene properties.</param>
+        /// <param name="opts">The current <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <returns>
+        /// A new <see cref="Scene"/> instance populated with the data from the JSON element.
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">
+        /// Thrown if a property in the JSON element does not exist on the <see cref="Scene"/> type.
+        /// </exception>
         public static Scene FromJson(JsonElement element, StateOptions opts)
         {
             Scene scene = new Scene();
@@ -544,6 +630,7 @@ namespace Modulartistic.Core
 
             return scene;
         }
+        
         #endregion
     }
 }

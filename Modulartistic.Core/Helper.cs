@@ -5,9 +5,20 @@ using NCalc;
 
 namespace Modulartistic.Core
 {
+    /// <summary>
+    /// Provides utility methods for various operations related to file handling, animation formats, mathematical operations, and expression registration.
+    /// </summary>
     public class Helper
     {
-        public static string ValidFileName(string filename)
+        /// <summary>
+        /// Generates a valid file name by appending an index if a file or directory with the same name already exists.
+        /// </summary>
+        /// <param name="filename">The base name of the file or directory.</param>
+        /// <returns>A unique file or directory name by appending an index if necessary.</returns>
+        /// <remarks>
+        /// The method checks for existing files with common extensions and directories. If a file or directory with the given name already exists, it appends an index to generate a unique name.
+        /// </remarks>
+        public static string GetValidFileName(string filename)
         {
             if (File.Exists(filename + @".mp4") || File.Exists(filename + @".png") || File.Exists(filename + @".gif") || File.Exists(filename + @".txt") || File.Exists(filename + @".json") || Directory.Exists(filename))
             {
@@ -22,6 +33,13 @@ namespace Modulartistic.Core
             return filename;
         }
 
+        /// <summary>
+        /// Gets the file extension for a given <see cref="AnimationFormat"/>.
+        /// </summary>
+        /// <param name="type">The animation format type.</param>
+        /// <returns>The file extension associated with the specified animation format.</returns>
+        /// <exception cref="ArgumentException">Thrown if the <paramref name="type"/> is <see cref="AnimationFormat.None"/>.</exception>
+        /// <exception cref="NotImplementedException">Thrown if the <paramref name="type"/> is not supported.</exception>
         public static string GetAnimationFormatExtension(AnimationFormat type)
         {
             switch (type)
@@ -37,6 +55,13 @@ namespace Modulartistic.Core
             }
         }
 
+        /// <summary>
+        /// Calculates the modulus of two double values.
+        /// </summary>
+        /// <param name="d1">The dividend.</param>
+        /// <param name="d2">The divisor.</param>
+        /// <returns>The remainder after dividing <paramref name="d1"/> by <paramref name="d2"/>.</returns>
+        /// <exception cref="DivideByZeroException">Thrown if <paramref name="d2"/> is less than or equal to zero.</exception>
         public static double Mod(double d1, double d2)
         {
             if (d2 <= 0)
@@ -45,19 +70,41 @@ namespace Modulartistic.Core
                 return d1 - d2 * Math.Floor(d1 / d2);
         }
 
+        /// <summary>
+        /// Calculates the inclusive modulus of two double values.
+        /// </summary>
+        /// <param name="d1">The dividend.</param>
+        /// <param name="d2">The divisor.</param>
+        /// <returns>The remainder after dividing <paramref name="d1"/> by <paramref name="d2"/>. If the result is zero and <paramref name="d1"/> is not zero, returns <paramref name="d2"/> instead.</returns>
         public static double InclusiveMod(double d1, double d2)
         {
             double result = Mod(d1, d2);
             return d1 != 0 && result == 0 ? d2 : result;
         }
 
+        /// <summary>
+        /// Calculates a circular modulus to find the closest distance on a circular range.
+        /// </summary>
+        /// <param name="d1">The dividend.</param>
+        /// <param name="d2">The divisor, representing the circular range.</param>
+        /// <returns>The closest distance within a circular range defined by <paramref name="d2"/>.</returns>
         public static double CircularMod(double d1, double d2)
         {
             double result = Mod(d1, d2);
             return result < d2 / 2 ? 2*result : 2*(d2 - result);
         }
 
-        public static string GetAbsolutePath(string path)
+        /// <summary>
+        /// Gets the absolute path for an add-on, converting a relative path to an absolute path using the provided path provider.
+        /// </summary>
+        /// <param name="path">The relative path to convert.</param>
+        /// <param name="pathProvider">An object that provides the base directory for add-ons.</param>
+        /// <returns>The absolute path for the add-on.</returns>
+        /// <remarks>
+        /// If <paramref name="path"/> is already an absolute path, it is returned as-is. Otherwise, the method uses <paramref name="pathProvider"/> 
+        /// to obtain the base directory for add-ons and combines it with the relative <paramref name="path"/> to generate the absolute path.
+        /// </remarks>
+        public static string GetAddOnPath(string path, IPathProvider pathProvider)
         {
             if (Path.IsPathRooted(path))
             {
@@ -67,11 +114,16 @@ namespace Modulartistic.Core
             else
             {
                 // Convert to absolute using the current working directory
-                string addonDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "addons");
+                string addonDir = pathProvider.GetAddonPath();
                 return Path.Combine(addonDir, path);
             }
         }
 
+        /// <summary>
+        /// Registers state properties to an <see cref="Expression"/> object.
+        /// </summary>
+        /// <param name="expr">The <see cref="Expression"/> object to which properties are added.</param>
+        /// <param name="s">The <see cref="State"/> object containing the properties to register.</param>
         public static void ExprRegisterStateProperties(ref Expression expr, State s)
         {
             expr.Parameters["x_0"] = s.X0;
@@ -115,6 +167,11 @@ namespace Modulartistic.Core
             expr.Parameters["i_9"] = s.Parameters[9];
         }
 
+        /// <summary>
+        /// Registers state options to an <see cref="Expression"/> object.
+        /// </summary>
+        /// <param name="expr">The <see cref="Expression"/> object to which properties are added.</param>
+        /// <param name="args">The <see cref="StateOptions"/> object containing the properties to register.</param>
         public static void ExprRegisterStateOptions(ref Expression expr, StateOptions args)
         {
             expr.Parameters["img_width"] = (double)args.Width;

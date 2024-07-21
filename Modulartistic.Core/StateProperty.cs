@@ -1,8 +1,13 @@
 ﻿namespace Modulartistic.Core
 {
     /// <summary>
-    /// Enum for indexing state properties
+    /// Represents the different properties available in a <see cref="State"/> configuration.
     /// </summary>
+    /// <remarks>
+    /// This enumeration defines various properties that can be used to configure a <see cref="State"/>. 
+    /// Each member corresponds to a specific property, including position, rotation, color attributes, and additional parameters.
+    /// The members are used for indexing and referring to <see cref="State"/> properties in a structured manner.
+    /// </remarks>
     public enum StateProperty : int
     {
         X0,

@@ -23,41 +23,51 @@ namespace Modulartistic.Core
     public class StateTimeline
     {
         #region Properties
+
         /// <summary>
-        /// The Name of this StateTimeline
+        /// Gets or sets the name of this state timeline.
         /// </summary>
+        /// <value>
+        /// A <see cref="string"/> representing the name of the state sequence.
+        /// </value>
         public string Name { get; set; }
 
         /// <summary>
-        /// Length in Milliseconds
+        /// Gets or sets the Length of this state timeline in milliseconds.
         /// </summary>
         public uint Length { get; set; }
 
         /// <summary>
-        /// Base State
+        /// Gets or sets the Base State of this state timeline
         /// </summary>
         public State Base { get; set; }
 
         /// <summary>
-        /// List of StateEvents with their start Timings (in Milliseconds)
+        /// Gets or sets a List of <see cref="StateEvent"/> objects of this state timeline
         /// </summary>
         public List<StateEvent> Events { get; set; }
 
+        /// <summary>
+        /// Gets the Length of this state timeline in seconds.
+        /// </summary>
         [JsonIgnore]
         public double LengthInSeconds { get => Length / 1000.0; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
-        /// Creates an Empty StateTimeline
+        /// Initializes a new instance of the <see cref="StateTimeline"/> class with zero duration an empty list of <see cref="StateEvent"/> objects, a default Base <see cref="State"/> and a specified name
         /// </summary>
+        /// <param name="name">The name of this state sequence.</param>
         public StateTimeline(string name) : this()
         {
             Name = name == "" ? Constants.StateTimeline.STATETIMELINE_NAME_DEFAULT : name;
         }
 
         /// <summary>
-        /// Creates an Empty StateTimeline
+        /// Initializes a new instance of the <see cref="StateTimeline"/> class with zero duration an empty list of <see cref="StateEvent"/> objects, a default Base <see cref="State"/> and the default name.
         /// </summary>
         public StateTimeline()
         {
@@ -66,27 +76,35 @@ namespace Modulartistic.Core
             Base = new State();
             Events = new List<StateEvent>();
         }
+
         #endregion
 
-        #region Other Methods
+        #region Methods to get lengths
+
         /// <summary>
-        /// Gets the total amount of frames for a given framerate
+        /// Calculates the total number of frames that will be created for the animation based on the specified framerate.
         /// </summary>
-        /// <param name="framerate">framerate</param>
-        /// <returns></returns>
+        /// <param name="framerate">The framerate (frames per second) for the animation.</param>
+        /// <returns>
+        /// An <see cref="int"/> representing the total number of frames.
+        /// </returns>
         public int TotalFrameCount(uint framerate)
         {
             return (int)(framerate * Length / 1000);
         }
+
         #endregion
 
         #region Animation Generation
+
         /// <summary>
-        /// Enumerates Frames of this StateTimeline as IViedeoframes
+        /// Enumerates the frames of this state timline as <see cref="IVideoFrame"/> objects.
         /// </summary>
-        /// <param name="args">The GenerationArgs. </param>
-        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <returns></returns>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for frame generation.</param>
+        /// <returns>
+        /// An <see cref="IEnumerable{IVideoFrame}"/> that represents the frames of the animation.
+        /// </returns>
         private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, GenerationOptions options)
         {
             // parses GenerationArgs
@@ -95,6 +113,7 @@ namespace Modulartistic.Core
             // loops through the frames
             List<StateEvent> activeEvents = new List<StateEvent>();
             ulong frames = framerate * Length / 1000;
+            Progress? timelineProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid()}", $"Generating scenes of {Name}", frames);
             for (uint i = 0; i < frames; i++)
             {
                 // Get Time in Seconds and milliseconds
@@ -128,170 +147,28 @@ namespace Modulartistic.Core
 
                 // Create Image of state
                 FrameState.Name = "Frame_" + i.ToString().PadLeft(frames.ToString().Length, '0');
+                timelineProgress?.IncrementProgress();
                 yield return new BitmapVideoFrameWrapper(FrameState.GetBitmap(args, options));
             }
+            options.ProgressReporter?.RemoveTask(timelineProgress);
         }
 
         /// <summary>
-        /// Generates Animation for this StateTimeline and Saves it to a file. 
+        /// Generates all frames and saves them in the specified output directory.
         /// </summary>
-        /// <param name="args">The GenerationArgs</param>
-        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <param name="type">The file type to be saved (mp4 or gif) </param>
-        /// <param name="keepframes">Whether to keep single frames. Otherwise only the animation is saved. Not implemented yet -> must be false. </param>
-        /// <param name="out_dir">Absolute path of a directory where to save the generated file. If this is an empty string the default output is used. </param>
-        /// <returns>The absolute path of the generated file. </returns>
-        /// <exception cref="DirectoryNotFoundException">thrown if out_dir doesn't exist</exception>
-        /// <exception cref="Exception"></exception>
-        /// <exception cref="NotImplementedException">thrown if keepframes is true</exception>
-        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options, string out_dir)
-        {
-            AnimationFormat type = options.AnimationFormat;
-            bool keepframes = options.KeepAnimationFrames;
-            
-            // check if it exists
-            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
-
-            // set the absolute path for the file to be save
-            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.StateTimeline.STATETIMELINE_NAME_DEFAULT : Name));
-            // Validate (if file with same name exists already, append index)
-            file_path_out = Helper.ValidFileName(file_path_out);
-
-            // Order Events
-            Events = Events.OrderBy((a) => a.StartTime).ToList();
-
-            // set Length if Length == 0
-            if (Length == 0)
-            {
-                Length = Events.Max(x => x.StartTime + x.Length + x.ReleaseTime) + 500;
-            }
-
-            switch (type)
-            {
-                case AnimationFormat.None:
-                    {
-                        throw new Exception("No AnimationType was specified. ");
-                    }
-                case AnimationFormat.Gif:
-                    {
-                        if (keepframes)
-                        {
-                            string folder = GenerateFrames(args, options, file_path_out);
-                            await CreateGifFromFolder(args, options, folder);
-                        }
-                        else
-                        {
-                            await CreateGif(args, options, file_path_out);
-                        }
-                        return file_path_out + @".gif";
-                    }
-                case AnimationFormat.Mp4:
-                    {
-                        if (keepframes)
-                        {
-                            string folder = GenerateFrames(args, options, file_path_out);
-                            await CreateMp4FromFolder(args, options, folder);
-                        }
-                        else
-                        {
-                            await CreateMp4(args, options, file_path_out);
-                        }
-                        return file_path_out + @".mp4";
-                    }
-                default:
-                    {
-                        throw new Exception("Unrecognized AnimationType");
-                    }
-            }
-        }
-
-        /// <summary>
-        /// Create Animation for this StateTimeline and Saves it to a mp4 file. 
-        /// </summary>
-        /// <param name="args">The GenerationArgs</param>
-        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
-        /// <returns></returns>
-        /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateMp4(StateOptions args, GenerationOptions options, string absolute_out_filepath)
-        {
-            // parsing framerate and setting piping source
-            uint framerate = args.Framerate;
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, options))
-            {
-                FrameRate = framerate, // set source frame rate
-            };
-
-            // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
-
-            // generate the mp4 file
-            try
-            {
-                await FFMpegArguments
-                .FromPipeInput(videoFramesSource)
-                .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
-                    .WithVideoCodec(VideoCodec.LibX265)
-                    // .WithVideoBitrate(16000) // find a balance between quality and file size
-                    .WithFramerate(framerate))
-                .ProcessAsynchronously();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error generating animation. ", e);
-            }
-        }
-
-        /// <summary>
-        /// Create Animation for this StateTimeline and Saves it to a gif file. 
-        /// </summary>
-        /// <param name="args">The GenerationArgs</param>
-        /// <param name="max_threads">The maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <param name="absolute_out_filepath">Absolute path to file that shall be generated. </param>
-        /// <returns></returns>
-        /// <exception cref="Exception">If generation fails</exception>
-        private async Task CreateGif(StateOptions args, GenerationOptions options, string absolute_out_filepath)
-        {
-            // parsing framerate and setting piping source
-            uint framerate = args.Framerate;
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, options))
-            {
-                FrameRate = framerate, // set source frame rate
-            };
-
-            // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
-
-            // generate the gif file
-            try
-            {
-                await FFMpegArguments
-                .FromPipeInput(videoFramesSource)
-                .OutputToFile(absolute_out_filepath + @".gif", false, options => options
-                    .WithGifPaletteArgument(0, size, (int)framerate)
-                    .WithFramerate(framerate))
-                .ProcessAsynchronously();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error generating animation. ", e);
-            }
-        }
-
-        /// <summary>
-        /// Generate all frames and save them in the specified out_dir
-        /// </summary>
-        /// <param name="args">GenerationArgs</param>
-        /// <param name="max_threads">Maximum number of threads to use. If -1 -> uses maximum number available. If 0 or 1 -> uses single thread algorithm. If > 1 uses at most that many threads. </param>
-        /// <param name="out_dir">the output directory</param>
-        /// <returns>returns outdir</returns>
-        private string GenerateFrames(StateOptions args, GenerationOptions options, string out_dir)
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for frame generation.</param>
+        /// <param name="frames_dir">The directory where the frames will be saved.</param>
+        /// <returns>
+        /// The path to the directory where the frames were saved.
+        /// </returns>
+        private string GenerateFrames(StateOptions args, GenerationOptions options, string frames_dir)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
 
             // create Directory for frames if not exist
-            if (!Directory.Exists(out_dir)) { Directory.CreateDirectory(out_dir); }
+            if (!Directory.Exists(frames_dir)) { Directory.CreateDirectory(frames_dir); }
 
             // Order Events
             List<StateEvent> event_list = Events.OrderBy(a => a.StartTime).ToList();
@@ -307,6 +184,7 @@ namespace Modulartistic.Core
 
             // iterate over all frames
             int frames = TotalFrameCount(framerate);
+            Progress? framesProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid()}", $"Generating frames of {Name}", frames);
             for (int frame = 0; frame < frames; frame++)
             {
                 // Get Time in Milliseconds
@@ -348,18 +226,88 @@ namespace Modulartistic.Core
 
                 // Create Image of state
                 FrameState.Name = "Frame_" + frame.ToString().PadLeft(frames.ToString().Length, '0');
-                FrameState.GenerateImage(args, options, out_dir);
+                FrameState.GenerateImage(args, options, frames_dir);
+                framesProgress?.IncrementProgress();
             }
+            options.ProgressReporter?.RemoveTask(framesProgress);
 
-            return out_dir;
+            return frames_dir;
         }
 
         /// <summary>
-        /// Create Animation after having generated all frames beforehand and save as gif
+        /// Generates Frames, creates an animation from the generated frames and saves it to the specified file.
         /// </summary>
-        /// <param name="args">The GenerationArgs</param>
-        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateGifFromFolder(StateOptions args, GenerationOptions options, string folder)
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for animation creation.</param>
+        /// <param name="type">The format of the animation to be created (e.g., GIF or MP4).</param>
+        /// <param name="absolute_out_filepath">The absolute path to the file where the animation will be saved.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// </returns>
+        /// <exception cref="Exception">Thrown if an error occurs during animation generation.</exception>
+        private async Task CreateAnimation(StateOptions args, GenerationOptions options, AnimationFormat type, string absolute_out_filepath)
+        {
+            // parsing framerate and setting piping source
+            uint framerate = args.Framerate;
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, options))
+            {
+                FrameRate = framerate, // set source frame rate
+            };
+
+            switch (type)
+            {
+                case AnimationFormat.Gif:
+                    // parsing size
+                    System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
+
+                    // generate the gif file
+                    try
+                    {
+                        await FFMpegArguments
+                        .FromPipeInput(videoFramesSource)
+                        .OutputToFile(absolute_out_filepath + @".gif", false, options => options
+                            .WithGifPaletteArgument(0, size, (int)framerate)
+                            .WithFramerate(framerate))
+                        .ProcessAsynchronously();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("Error generating animation. ", e);
+                    }
+                    break;
+                case AnimationFormat.Mp4:
+                    // generate the mp4 file
+                    try
+                    {
+                        await FFMpegArguments
+                        .FromPipeInput(videoFramesSource)
+                        .OutputToFile(absolute_out_filepath + @".mp4", false, options => options
+                            .WithVideoCodec(VideoCodec.LibX265)
+                            // .WithVideoBitrate(16000) // find a balance between quality and file size
+                            .WithFramerate(framerate))
+                        .ProcessAsynchronously();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("Error generating animation. ", e);
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException("only gif and mp4 are supported for animation cration");
+            }
+        }
+
+        /// <summary>
+        /// Creates an animation from previously generated frames located in the specified folder.
+        /// </summary>
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for animation creation.</param>
+        /// <param name="type">The format of the animation to be created (e.g., GIF or MP4).</param>
+        /// <param name="folder">The folder containing the generated frames.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// </returns>
+        private async Task CreateAnimationFromFolder(StateOptions args, GenerationOptions options, AnimationFormat type, string folder)
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
@@ -367,10 +315,13 @@ namespace Modulartistic.Core
             IEnumerable<IVideoFrame> EnumerateFrames()
             {
                 // loops through the all img paths
+                Progress? joinProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid()}", $"Joining frames of {Name}", imgPaths.Count);
                 for (int i = 0; i < imgPaths.Count; i++)
                 {
+                    joinProgress?.IncrementProgress();
                     yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
                 }
+                options.ProgressReporter?.RemoveTask(joinProgress);
             }
 
             uint framerate = args.Framerate;
@@ -379,87 +330,108 @@ namespace Modulartistic.Core
                 FrameRate = framerate, // set source frame rate
             };
 
-            // parsing size
-            System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
+            switch (type)
+            {
+                case AnimationFormat.Gif:
+                    // parsing size
+                    System.Drawing.Size size = new System.Drawing.Size(args.Width, args.Height);
 
-            // generate the gif file
-            try
-            {
-                await FFMpegArguments
-                .FromPipeInput(videoFramesSource)
-                .OutputToFile(folder + @".gif", false, options => options
-                    .WithGifPaletteArgument(0, size, (int)framerate)
-                    .WithFramerate(framerate))
-                .ProcessAsynchronously();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error generating animation. ", e);
+                    // generate the gif file
+                    try
+                    {
+                        await FFMpegArguments
+                        .FromPipeInput(videoFramesSource)
+                        .OutputToFile(folder + @".gif", false, options => options
+                            .WithGifPaletteArgument(0, size, (int)framerate)
+                            .WithFramerate(framerate))
+                        .ProcessAsynchronously();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("Error generating animation. ", e);
+                    }
+                    break;
+                case AnimationFormat.Mp4:
+                    // generate the mp4 file
+                    try
+                    {
+                        await FFMpegArguments
+                        .FromPipeInput(videoFramesSource)
+                        .OutputToFile(folder + @".mp4", false, options => options
+                            .WithVideoCodec(VideoCodec.LibX265)
+                            // .WithVideoBitrate(16000) // find a balance between quality and file size
+                            .WithFramerate(framerate))
+                        .ProcessAsynchronously();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("Error generating animation. ", e);
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException("only gif and mp4 are supported for animation cration");
             }
         }
 
         /// <summary>
-        /// Create Animation after having generated all frames beforehand and save as mp4
+        /// Generates an animation and saves it to the specified output directory.
         /// </summary>
-        /// /// <param name="args">The GenerationArgs</param>
-        /// <param name="folder">The absolute path to folder where the generated Scenes are</param>
-        private async Task CreateMp4FromFolder(StateOptions args, GenerationOptions options, string folder)
+        /// <param name="args">The <see cref="StateOptions"/> used for frame generation and animation creation.</param>
+        /// <param name="options">The <see cref="GenerationOptions"/> used for animation creation.</param>
+        /// <param name="out_dir">The directory where the animation will be saved.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. Returns the path to the generated animation file.
+        /// </returns>
+        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options, string out_dir)
         {
-            // Creating the image list
-            List<string> imgPaths = Directory.GetFiles(folder).ToList();
+            // check if it exists
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
 
-            // Enumerater for image files
-            IEnumerable<IVideoFrame> EnumerateFrames()
+            // parse options
+            bool keepframes = options.KeepAnimationFrames;
+            AnimationFormat type = options.AnimationFormat;
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.StateSequence.STATESEQUENCE_NAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.GetValidFileName(file_path_out);
+
+            if (keepframes)
             {
-                // loops through the all img paths
-                for (int i = 0; i < imgPaths.Count; i++)
-                {
-                    yield return new BitmapVideoFrameWrapper(new Bitmap(imgPaths[i]));
-                }
+                // the folder where the frames are saved
+                string folder = GenerateFrames(args, options, file_path_out);
+                await CreateAnimationFromFolder(args, options, type, folder);
+            }
+            else
+            {
+                await CreateAnimation(args, options, type, file_path_out);
             }
 
-            uint framerate = args.Framerate;
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames())
-            {
-                FrameRate = framerate, // set source frame rate
-            };
-
-            // generate the mp4 file
-            try
-            {
-                await FFMpegArguments
-                .FromPipeInput(videoFramesSource)
-                .OutputToFile(folder + @".mp4", false, options => options
-                    .WithVideoCodec(VideoCodec.LibX265)
-                    // .WithVideoBitrate(16000) // find a balance between quality and file size
-                    .WithFramerate(framerate))
-                .ProcessAsynchronously();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error generating animation. ", e);
-            }
+            return file_path_out + $".{Helper.GetAnimationFormatExtension(type)}";
         }
 
         #endregion
 
-        #region json
+        #region JSON Methods
+
         /// <summary>
-        /// Returns true if the passed JsonElement is a valid StateTimeline representation
+        /// Determines whether the specified JSON element is a valid representation of a <see cref="StateTimeline"/>.
         /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
+        /// <param name="element">The JSON element to validate.</param>
+        /// <returns>
+        /// <c>true</c> if the JSON element is valid; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsJsonElementValid(JsonElement element)
         {
             return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <summary>
-        /// Load StateTimeline properties from Json
+        /// Loads the properties of this <see cref="StateTimeline"/> from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state timeline data.</param>
+        /// <param name="opts">The <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <exception cref="KeyNotFoundException">Thrown if a property is not found in the JSON element.</exception>
         public void LoadJson(JsonElement element, StateOptions opts)
         {
             foreach (JsonProperty jTLineProp in element.EnumerateObject())
@@ -490,11 +462,14 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Load StateTimeline from Json
+        /// Creates a new <see cref="StateTimeline"/> instance from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state timeline data.</param>
+        /// <param name="opts">The <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <returns>
+        /// A new <see cref="StateSequence"/> instance populated with data from the JSON element.
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">Thrown if a property is not found in the JSON element.</exception>
         public static StateTimeline FromJson(JsonElement element, StateOptions opts)
         {
             StateTimeline stateTimeline = new StateTimeline();
@@ -502,79 +477,98 @@ namespace Modulartistic.Core
 
             return stateTimeline;
         }
+        
         #endregion
     }
 
     /// <summary>
-    /// The StateEvent with Envelope Properties
+    /// Represents an event that can occur at a specific time with various attributes like attack, decay, and release times.
     /// </summary>
     public class StateEvent : IndexableBase
     {
-        #region Properties
+        #region Properties and fields
+
         // All times in milliseconds!
 
         /// <summary>
-        /// StartTime of Event in Milliseconds
+        /// Start time of the event in milliseconds.
         /// </summary>
         public uint StartTime { get; set; }
 
         /// <summary>
-        /// Length of Event in Milliseconds
+        /// Duration of the event in milliseconds.
         /// </summary>
         public uint Length { get; set; }
 
+
         /// <summary>
-        /// AttackTime in Milliseconds
+        /// Attack time in milliseconds.
         /// </summary>
         public uint AttackTime { get; set; }
 
         /// <summary>
-        /// Easing Function the Attack uses
+        /// Easing function used during the attack phase.
         /// </summary>
         [JsonIgnore]
         public Easing AttackEasing { get; set; }
-        public EasingType AttackEasingType { get => AttackEasing.Type; set => AttackEasing = Easing.FromType(value); }
-        
         /// <summary>
-        /// DecayTime in Millisecond
+        /// Easing type used during the attack phase.
+        /// </summary>
+        public EasingType AttackEasingType { get => AttackEasing.Type; set => AttackEasing = Easing.FromType(value); }
+
+
+        /// <summary>
+        /// Decay time in milliseconds.
         /// </summary>
         public uint DecayTime { get; set; }
-        
+
         /// <summary>
-        /// Easing Function the Decay uses
+        /// Easing function used during the decay phase.
         /// </summary>
         [JsonIgnore]
         public Easing DecayEasing { get; set; }
-        public EasingType DecayEasingType { get => DecayEasing.Type; set => DecayEasing = Easing.FromType(value); }
-        
+
         /// <summary>
-        /// ReleaseTime in Milliseconds
+        /// Easing type used during the decay phase.
+        /// </summary>
+        public EasingType DecayEasingType { get => DecayEasing.Type; set => DecayEasing = Easing.FromType(value); }
+
+
+        /// <summary>
+        /// Release time in milliseconds.
         /// </summary>
         public uint ReleaseTime { get; set; }
-        
+
         /// <summary>
-        /// Easing Function the Release uses
+        /// Easing function used during the release phase.
         /// </summary>
         [JsonIgnore]
         public Easing ReleaseEasing { get; set; }
-        public EasingType ReleaseEasingType { get => ReleaseEasing.Type; set => ReleaseEasing = Easing.FromType(value); }
 
         /// <summary>
-        /// Dictionary of Peak Values
+        /// Easing type used during the release phase.
+        /// </summary>
+        public EasingType ReleaseEasingType { get => ReleaseEasing.Type; set => ReleaseEasing = Easing.FromType(value); }
+
+
+        /// <summary>
+        /// Dictionary of peak values for state properties during the event.
         /// </summary>
         public Dictionary<StateProperty, double> PeakValues { get; set; }
 
         /// <summary>
-        /// Dictionary of Susatain Values
+        /// Dictionary of sustain values for state properties during the event.
         /// </summary>
         public Dictionary<StateProperty, double> SustainValues { get; set; }
-        #endregion
 
-        [JsonIgnore]
         private State pre_release_state;
 
+        #endregion
+
+        #region Constructors
+
         /// <summary>
-        /// Creates a Standard StateEvent
+        /// Initializes a new instance of the <see cref="StateEvent"/> class with default values.
         /// </summary>
         public StateEvent()
         {
@@ -593,13 +587,17 @@ namespace Modulartistic.Core
             pre_release_state = new State();
         }
 
+        #endregion
+
+        #region Methods for Generation
+
         /// <summary>
-        /// Gets the Current State of this StateEvent
+        /// Calculates the current state of the event based on the provided time and base state.
         /// </summary>
-        /// <param name="currentTime">The Current Time (in Milliseconds)</param>
-        /// <param name="BaseState">The BaseState</param>
-        /// <returns>State</returns>
-        /// <exception cref="Exception">if Activation Time is before Current time</exception>
+        /// <param name="currentTime">The current time in milliseconds.</param>
+        /// <param name="BaseState">The base state to use for calculating changes.</param>
+        /// <returns>The state of the event at the given time.</returns>
+        /// <exception cref="Exception">Thrown if the current time is before the start time of the event.</exception>
         public State CurrentState(uint currentTime, State BaseState)
         {
             // Console.WriteLine(currentTime);
@@ -664,8 +662,6 @@ namespace Modulartistic.Core
             }
             else
             {
-                // Console.WriteLine(currentTime);
-
                 for (StateProperty i = 0; i < StateProperty.i9; i++)
                 {
                     result[i] = BaseState[i];
@@ -676,11 +672,11 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Whether this StateEvent is still Active
+        /// Determines if the event is still active at the given time.
         /// </summary>
-        /// <param name="currentTime">The Current Time in Milliseconds</param>
-        /// <returns>bool</returns>
-        /// <exception cref="Exception">If Activation Time is after Current Time</exception>
+        /// <param name="currentTime">The current time in milliseconds.</param>
+        /// <returns><c>true</c> if the event is still active; otherwise, <c>false</c>.</returns>
+        /// <exception cref="Exception">Thrown if the current time is before the start time of the event.</exception>
         public bool IsActive(uint currentTime)
         {
             long t_active = currentTime - StartTime;
@@ -690,23 +686,26 @@ namespace Modulartistic.Core
             else { return true; }
         }
 
-        #region json
+        #endregion
+
+        #region JSON Methods
+
         /// <summary>
-        /// Returns true if the passed JsonElement is a valid StateEvent representation
+        /// Checks if the provided JSON element is a valid representation of a <see cref="StateEvent"/>.
         /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
+        /// <param name="element">The JSON element to validate.</param>
+        /// <returns><c>true</c> if the JSON element is valid; otherwise, <c>false</c>.</returns>
         public static bool IsJsonElementValid(JsonElement element)
         {
             return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <summary>
-        /// Load StateEvent properties from Json
+        /// Loads the properties of this <see cref="StateEvent"/> from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the event data.</param>
+        /// <param name="opts">The <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <exception cref="KeyNotFoundException">Thrown if a property is not found in the JSON element.</exception>
         public void LoadJson(JsonElement element, StateOptions opts)
         {
             foreach (JsonProperty jSEventProp in element.EnumerateObject())
@@ -770,11 +769,12 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Load StateEvent from Json
+        /// Creates a <see cref="StateEvent"/> instance from the provided JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the event data.</param>
+        /// <param name="opts">The <see cref="StateOptions"/> used for evaluating state properties.</param>
+        /// <returns>A new <see cref="StateEvent"/> instance.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if a property is not found in the JSON element.</exception>
         public static StateEvent FromJson(JsonElement element, StateOptions opts)
         {
             StateEvent stateEvent = new StateEvent();
@@ -782,6 +782,7 @@ namespace Modulartistic.Core
 
             return stateEvent;
         }
+
         #endregion
     }
 }

@@ -44,14 +44,6 @@
         }
 
         /// <summary>
-        /// Constants and default values for GenerationData Objects
-        /// </summary>
-        public static class GenerationData
-        {
-            public const string GENERATIONDATA_NAME_DEFAULT = "generation_data";   // default for generationdata
-        }
-
-        /// <summary>
         /// Constants and default values for StateOptions Objects
         /// </summary>
         public static class StateOptions

@@ -21,6 +21,7 @@ namespace Modulartistic
         private Configuration _config;
         private readonly string _addonPathKey = "addonpath";
         private readonly string _ffmpegPathKey = "ffmpegpath";
+        private readonly string _logPathKey = "logpath";
 
         /// <summary>
         /// Creates a new CommandLinePathProvider
@@ -84,14 +85,14 @@ namespace Modulartistic
         /// Get the default demo path which is {appdir}/demos. if it doesn't exist, creates it
         /// </summary>
         /// <returns>Path to demo directory</returns>
-        public string GetDemoPath()
+        public string GetBackUpPath()
         {
             // get app directory
             string appdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
             if (appdir == string.Empty) { throw new Exception("Encountered error while getting app directory. "); }
 
             // get directory
-            string dir = Path.Combine(appdir, "demos");
+            string dir = Path.Combine(appdir, "backups");
             
             // create if doesn't exist
             if (!Directory.Exists(dir))
@@ -144,6 +145,72 @@ namespace Modulartistic
         }
 
         /// <summary>
+        /// Retrieves the log file path from the application settings. 
+        /// If the path does not exist in the settings, it initializes a default path.
+        /// </summary>
+        /// <returns>The log file path as a string.</returns>
+        public string GetLogFilePath()
+        {
+            // check if key exists
+            if (ConfigurationManager.AppSettings[_logPathKey] == null)
+            {
+                // get app directory
+                string appdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+                string default_path = Path.Combine(appdir, "logs");
+
+                File.WriteAllText(default_path, "");
+
+                SetConfig(_logPathKey, default_path);
+            }
+
+            // return path
+            return _config.AppSettings.Settings[_logPathKey].Value;
+        }
+
+        /// <summary>
+        /// Sets the log file path in the application settings. 
+        /// Ensures the path is absolute, the directory exists, and the file is empty.
+        /// </summary>
+        /// <param name="path">The log file path to set.</param>
+        public void SetLogFilePath(string path)
+        {
+            // if path is not absolute prepend cwd
+            if (!Path.IsPathRooted(path)) 
+            { 
+                path = Path.Combine(Directory.GetCurrentDirectory(), path); 
+            }
+
+            FileInfo fileInfo = new FileInfo(path);
+
+            // make sure the directory exists
+            if (fileInfo.Directory.Exists) 
+            { 
+                throw new Exception($"Directory {fileInfo.Directory} of file {path} does not exist."); 
+            }
+
+            // make sure the file does not exist OR is empty
+            if (fileInfo.Exists) 
+            { 
+                if (fileInfo.Length > 0) throw new Exception($"Log file must be empty, {path} is not empty");
+            }
+            else
+            {
+                File.WriteAllText(path, "");
+            }
+
+            SetConfig(_logPathKey, path);
+        }
+
+
+
+
+
+
+
+
+
+
+        /// <summary>
         /// Checks if a key exists in App Config. If so changes the value, if not adds it
         /// </summary>
         /// <param name="key">key of config</param>
@@ -169,7 +236,9 @@ namespace Modulartistic
             ConfigurationManager.RefreshSection("appSettings");
         }
 
-        static string ExecuteCommand(string command, string args)
+
+
+        private static string ExecuteCommand(string command, string args)
         {
             try
             {
@@ -199,7 +268,7 @@ namespace Modulartistic
             }
             catch (Exception ex)
             {
-                Console.WriteLine("An error occurred while trying to find ffmpeg: " + ex.Message);
+                Console.WriteLine($"An error occurred while executing the command: {command} {args}\nError: " + ex.Message);
             }
 
             return null;

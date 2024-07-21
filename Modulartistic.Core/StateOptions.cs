@@ -5,11 +5,20 @@ using System.Xml.Linq;
 using System.Reflection;
 using NCalc;
 using Json.Schema;
+using Modulartistic.AddOns;
 
 #nullable enable
 
 namespace Modulartistic.Core
 {
+    /// <summary>
+    /// Represents the options for configuring state properties including image dimensions, framerate, and color functions.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="StateOptions"/> class provides various settings to customize the behavior of state objects in an application.
+    /// It includes properties for image dimensions, framerate, color functions, and additional settings related to color processing.
+    /// This class also supports JSON serialization and deserialization for configuration purposes.
+    /// </remarks>
     public class StateOptions : IndexableBase
     {
         #region Fields
@@ -29,67 +38,71 @@ namespace Modulartistic.Core
         private List<string> m_addons;
         #endregion
 
-
         #region Properties
         /// <summary>
-        /// The Image/Animation Width.
+        /// Gets or sets the width of the image or animation.
         /// </summary>
         public int Width { get => m_width; set => m_width = value; }
 
         /// <summary>
-        /// The Image/Animation Height
+        /// Gets or sets the height of the image or animation.
         /// </summary>
         public int Height { get => m_height; set => m_height = value; }
 
         /// <summary>
-        /// The Framerate for Animations.
+        /// Gets or sets the framerate for animations.
         /// </summary>
         public uint Framerate { get => m_framerate; set => m_framerate = value; }
 
 
         /// <summary>
-        /// The Function to calculate Hue.
+        /// Gets or sets the function used to calculate the red or hue.
         /// </summary>
         public string FunctionRedHue { get => m_func_r_h; set => m_func_r_h = value; }
 
         /// <summary>
-        /// The Function to calculate Saturation.
+        /// Gets or sets the function used to calculate the green or saturation.
         /// </summary>
         public string FunctionGreenSaturation { get => m_func_g_s; set => m_func_g_s = value; }
 
         /// <summary>
-        /// The Function to calculate Value.
+        /// Gets or sets the function used to calculate the blue or value.
         /// </summary>
         public string FunctionBlueValue { get => m_func_b_v; set => m_func_b_v = value; }
 
         /// <summary>
-        /// The Function to calculate Alpha.
+        /// Gets or sets the function used to calculate the alpha value.
         /// </summary>
         public string FunctionAlpha { get => m_func_alp; set => m_func_alp = value; }
 
 
         /// <summary>
-        /// Whether to use all Invalid color values when only one function is invalid.
+        /// Gets or sets a value indicating whether to use all invalid color values when only one function is invalid.
         /// </summary>
         public bool InvalidColorGlobal { get => m_inval_col_glob; set => m_inval_col_glob = value; }
 
         /// <summary>
-        /// If true, values like alpha that range from 0-1 will have their max at num/2, otherwise at num.
+        /// Gets or sets a value indicating whether values like alpha ranging from 0-1 will have their maximum at num/2 instead of num.
         /// </summary>
         public bool CircularMod { get => m_circular; set => m_circular = value; }
 
         /// <summary>
-        /// If true, uses rgb for functions instead of hsv.
+        /// Gets or sets a value indicating whether to use RGB for functions instead of HSV.
         /// </summary>
         public bool UseRGB { get => m_use_rgb; set => m_use_rgb = value; }
 
         /// <summary>
-        /// AddOns to load.
+        /// Gets the list of add-ons to load.
         /// </summary>
         public List<string> AddOns { get => m_addons; }
 
         #endregion
 
+        #region constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StateOptions"/> class with default values.
+        /// </summary>
         public StateOptions()
         {
             m_width = Constants.StateOptions.WIDTH_DEFAULT;
@@ -108,22 +121,78 @@ namespace Modulartistic.Core
             m_addons = new List<string>();
         }
 
-        #region json
+        #endregion
+
+        #region Methods for debugging
+        
+        public void TestLoadingAddOns(GenerationOptions options)
+        {
+            ILogger? logger = options.Logger;
+            IPathProvider pathProvider = options.PathProvider;
+
+            foreach (string path in  m_addons)
+            {
+                string dll_path = Helper.GetAddOnPath(path, options.PathProvider);
+                if (!File.Exists(dll_path))
+                {
+                    throw new FileNotFoundException($"Error loading AddOn: {dll_path} - file not found");
+                }
+
+                // log addons path name
+                options.Logger?.LogDebug($"AddOns defined in {path}: ");
+
+                // load assembly and iterate types
+                Assembly testDLL = Assembly.LoadFile(dll_path);
+                Type[] types = testDLL.GetTypes().Where(type => type.GetCustomAttribute(typeof(AddOnAttribute)) is not null).ToArray();
+                if (types.Length == 0) options.Logger?.LogDebug($"  None");
+                foreach (Type type in types)
+                {
+                    // log class name
+                    options.Logger?.LogDebug($"  Functions in {type.Name}: ");
+
+                    // gets all public static methods of the type
+                    // -> only methods that should be exposed to the parser should be public static
+                    MethodInfo[] methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                    if (methodInfos.Length == 0) options.Logger?.LogDebug($"    None");
+                    // iterates over all such methods
+                    foreach (MethodInfo methodInfo in methodInfos)
+                    {
+
+                        // Get return type
+                        string returnType = methodInfo.ReturnType.Name;
+
+                        // Get method name
+                        string methodName = methodInfo.Name;
+
+                        // Get parameter information
+                        var parameters = methodInfo.GetParameters();
+                        string parametersString = string.Join(", ", parameters.Select(p => $"{p.ParameterType.Name} {p.Name}"));
+
+                        options.Logger?.LogDebug($"    {returnType} {methodName}({parametersString})");
+                    }
+                }
+            }
+        }
+        
+        #endregion
+
+        #region JSON Methods
+
         /// <summary>
-        /// Returns true if the passed JsonElement is a valid StateOptions representation
+        /// Determines whether the specified <see cref="JsonElement"/> is a valid representation of <see cref="StateOptions"/>.
         /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
+        /// <param name="element">The JSON element to validate.</param>
+        /// <returns><c>true</c> if the JSON element is valid; otherwise, <c>false</c>.</returns>
         public static bool IsJsonElementValid(JsonElement element)
         {
             return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <summary>
-        /// Load StateOptions properties from Json
+        /// Loads the <see cref="StateOptions"/> properties from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state options data.</param>
+        /// <exception cref="KeyNotFoundException">Thrown when a property in the JSON element does not match any known properties of <see cref="StateOptions"/>.</exception>
         public void LoadJson(JsonElement element)
         {
             foreach (JsonProperty elem in element.EnumerateObject())
@@ -158,10 +227,11 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Load StateOptions from Json
+        /// Creates a new instance of <see cref="StateOptions"/> from the specified JSON element.
         /// </summary>
-        /// <param name="element">Json Element for GenerationOption</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state options data.</param>
+        /// <returns>A new <see cref="StateOptions"/> instance populated with data from the JSON element.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown when a property in the JSON element does not match any known properties of <see cref="StateOptions"/>.</exception>
         public static StateOptions FromJson(JsonElement element)
         {
             StateOptions stateOptions = new StateOptions();
@@ -171,10 +241,11 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Get Value from JsonProperty
+        /// Gets the value of a JSON property or evaluates it if it's a string.
         /// </summary>
-        /// <param name="elem">The JsonProperty</param>
-        /// <exception cref="Exception"></exception>
+        /// <param name="elem">The JSON property element.</param>
+        /// <returns>The evaluated value as a double.</returns>
+        /// <exception cref="Exception">Thrown when the JSON property is neither a string nor a number.</exception>
         private double GetValueOrEvaluate(JsonProperty elem)
         {
 

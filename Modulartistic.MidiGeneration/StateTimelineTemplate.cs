@@ -50,7 +50,7 @@ namespace Modulartistic.MidiGeneration
             path += Path.DirectorySeparatorChar + (name == "" ? "timelinetemplate_tests" : name + "_tests");
 
             // Validate and Create the Output Path
-            path = Helper.ValidFileName(path);
+            path = Helper.GetValidFileName(path);
             Directory.CreateDirectory(path);
 
             // Generate the Base State

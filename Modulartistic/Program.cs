@@ -13,15 +13,36 @@ namespace Modulartistic
     internal class Program
     {
         static readonly CommandLinePathProvider PathProvider = new CommandLinePathProvider();
-        static readonly Logger Logger = new Logger();
+        static Logger Logger;
 
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<ConfigOptions,GenerateOptions>(args)
+            try
+            {
+                Logger = new Logger(PathProvider.GetLogFilePath());
+            }
+            catch (Exception e)
+            {
+                AnsiConsole.WriteException(e);
+            }
+
+            int errorcode = 0;
+            try
+            {
+                errorcode = Parser.Default.ParseArguments<ConfigOptions, GenerateOptions>(args)
                 .MapResult(
-                    (ConfigOptions opts) => RunConfigAndReturnExitCode(opts), 
+                    (ConfigOptions opts) => RunConfigAndReturnExitCode(opts),
                     (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                     errs => 1);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.Message);
+            }
+            
+
+            Logger.Dispose();
+            return errorcode;
         }
 
         [Verb("config", HelpText = "configure paths for the application")]
@@ -79,7 +100,8 @@ namespace Modulartistic
                     AnsiConsole.Markup($"[red]{e.Message}[/]\n");
                 }
 
-                AnsiConsole.Markup($"[blue]Demo: [/]{PathProvider.GetDemoPath()}\n");
+                AnsiConsole.Markup($"[blue]BackUp: [/]{PathProvider.GetBackUpPath()}\n");
+                AnsiConsole.Markup($"[blue]Log File: [/]{PathProvider.GetLogFilePath()}\n");
             }
 
             return 0;
@@ -113,8 +135,10 @@ namespace Modulartistic
         {
             // setting global options
             GlobalFFOptions.Configure(new FFOptions { BinaryFolder = Path.GetDirectoryName(PathProvider.GetFFmpegPath()) });
+            Logger.WriteDebugToConsole = options.Debug;
             
             string[] files = options.InputFiles.ToArray();
+
             // checking if input files specified
             if (files.Length == 0)
             {
@@ -149,7 +173,8 @@ namespace Modulartistic
 
                     int length = files.Length;
                     Core.Progress? loopProgress = null;
-                    if (length > 1) { reporter.AddTask("fileloop", "Generating all files...", length); }
+                    // if (length > 1) 
+                    { loopProgress = reporter.AddTask("fileloop", "Generating all files...", length); }
                     foreach (string file in files)
                     {
                         if (!File.Exists(file))
@@ -170,8 +195,9 @@ namespace Modulartistic
                                 AnimationFormat = options.AnimationFormat == "mp4" ? AnimationFormat.Mp4 : AnimationFormat.Gif,
                                 MaxThreads = options.Faster ?? 1,
                                 PrintDebugInfo = options.Debug,
-                                Logger = new Logger(),
+                                Logger = Logger,
                                 ProgressReporter = reporter,
+                                PathProvider = PathProvider,
                             };
 
                             Task task = generationData.GenerateAll(genOptions, options.OutputDirectory);
@@ -187,10 +213,11 @@ namespace Modulartistic
                             continue;
                         }
                     }
-                    reporter.RemoveTask(loopProgress?.Key);
+                    reporter.RemoveTask(loopProgress);
 
 
-
+                    double elapsed = tasks["fileloop"].ElapsedTime.Value.TotalMilliseconds;
+                    Logger.LogInfo($"{elapsed}");
                 }
             );
 

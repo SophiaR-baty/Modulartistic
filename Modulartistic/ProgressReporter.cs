@@ -30,20 +30,12 @@ namespace Modulartistic
             return p;
         }
 
-        public Progress RemoveTask(string key)
+        public void RemoveTask(Progress? progress)
         {
-            if (key == null) return null;
-            
-            Progress p;
-            if (Tasks.TryGetValue(key, out p))
-            {
-                p.ProgressChanged -= (s, e) => ProgressChanged?.Invoke(this, p);
-                Tasks.Remove(key);
-                TaskRemoved?.Invoke(this, p);
-                return p;
-            }
-            else { return null; }
-            
+            if (progress is null) return;
+            progress.ProgressChanged -= (s, e) => ProgressChanged?.Invoke(this, progress);
+            Tasks.Remove(progress.Key);
+            TaskRemoved?.Invoke(this, progress);
         }
     }
 }

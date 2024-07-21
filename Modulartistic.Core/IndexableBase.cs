@@ -9,14 +9,22 @@ using System.Threading.Tasks;
 
 namespace Modulartistic.Core
 {
+    /// <summary>
+    /// Provides a base class with indexer support for accessing and modifying properties by their name.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="IndexableBase"/> class allows derived classes to access their properties using a string indexer.
+    /// This can be useful for dynamic property access, such as in scenarios involving JSON serialization or dynamic object manipulation.
+    /// It provides a way to get or set property values using the property name, which should be specified as a string.
+    /// </remarks>
     public class IndexableBase
     {
         /// <summary>
-        /// Gets or Sets a Property using its name, using nameof is recommended
+        /// Gets or sets the value of a property identified by its name.
         /// </summary>
-        /// <param name="propertyName">The name of the Property</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException">If the propertyName was not recognized</exception>
+        /// <param name="propertyName">The name of the property to get or set.</param>
+        /// <returns>The value of the property if getting; otherwise, sets the value of the property if setting.</returns>
+        /// <exception cref="ArgumentException">Thrown when the specified <paramref name="propertyName"/> does not correspond to a valid property of the current type.</exception>
         [JsonIgnore]
         public object? this[string propertyName]
         {

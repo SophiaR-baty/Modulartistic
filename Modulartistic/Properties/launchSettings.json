@@ -2,8 +2,8 @@
   "profiles": {
     "Modulartistic": {
       "commandName": "Project",
-      "commandLineArgs": "generate -i test.json -o . --debug --faster -1",
-      "workingDirectory": "D:\\mgeo"
+      "commandLineArgs": "generate -i test.json -o . -f -1 -a gif --debug",
+      "workingDirectory": "C:\\personal-root\\workspaces\\programming\\projects\\c-sharp\\Modulartistic\\Modulartistic\\bin\\Release\\net8.0"
     }
   }
 }

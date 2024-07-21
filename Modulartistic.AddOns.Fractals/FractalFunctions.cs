@@ -3,9 +3,9 @@
 namespace Modulartistic.AddOns.Fractals
 {
     [AddOn]
-    public class FractalFunctios
+    public class FractalFunctions
     {
-        public static double Mandelbrot(double x, double y, int depth)
+        public static double Mandelbrot(double x, double y, int depth = 10)
         {
             Complex z_0 = new Complex(x, y);
             Complex z = 0;
@@ -39,5 +39,29 @@ namespace Modulartistic.AddOns.Fractals
             }
             return Complex.Abs(z);
         }
+
+        public static double BurningShip(double x, double y, int depth)
+        {
+            double zx = x;
+            double zy = y;
+            int i = 0;
+
+            while (i < depth)
+            {
+                double xtemp = zx*zx - zy*zy + x;
+                zy = Math.Abs(2*zx*zy) + y;
+                zx = xtemp;
+
+                if (zx*zx + zy*zy > 4)
+                {
+                    return double.NaN;
+                }
+
+                i++;
+            }
+
+            return zx * zx + zy * zy;
+        }
+
     }
 }

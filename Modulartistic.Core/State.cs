@@ -8,14 +8,19 @@ using NCalc;
 using Json.Schema;
 using System.Reflection;
 using System.Xml.Linq;
+using SkiaSharp;
 
 #nullable enable
 
 namespace Modulartistic.Core
 {
     /// <summary>
-    /// State Class to contain Data about Image States/Frames for Image Generation.
+    /// Represents a state with various properties that can be used to generate images or perform other operations.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="State"/> class encapsulates state properties such as position, rotation, color, and other parameters.
+    /// It provides methods to initialize, update, and load state properties from JSON, as well as to generate and save images.
+    /// </remarks>
     public class State : IndexableBase
     {
         #region Static
@@ -63,30 +68,37 @@ namespace Modulartistic.Core
         /// </summary>
         public string Name { get => m_name; set => m_name = value; }
 
+
         /// <summary>
         /// The x-Coordinate that will be in the middle of the screen. 
         /// </summary>
         public double X0 { get => m_x0; set => m_x0 = value; }
+
         /// <summary>
         /// The y-Coordinate that will be in the middle of the screen. 
         /// </summary>
         public double Y0 { get => m_y0; set => m_y0 = value; }
+
         /// <summary>
         /// The x-Coordinate around which is rotated. 
         /// </summary>
         public double XRotationCenter { get => m_x_rot_center; set => m_x_rot_center = value; }
+
         /// <summary>
         /// The y-Coordinate around which is rotated. 
         /// </summary>
         public double YRotationCenter { get => m_y_rot_center; set => m_y_rot_center = value; }
+
         /// <summary>
         /// The factor by which the x-Coordinates will be scaled.
         /// </summary>
         public double XFactor { get => m_x_factor; set => m_x_factor = value; }
+
         /// <summary>
         /// The factor by which the y-coordinates will be scaled.
         /// </summary>
         public double YFactor { get => m_y_factor; set => m_y_factor = value; }
+
         /// <summary>
         /// The Amount of degrees the image will be rotated.
         /// </summary>
@@ -97,10 +109,12 @@ namespace Modulartistic.Core
         /// The Modulus Number by which all functions are taken modulo.
         /// </summary>
         public double Mod { get => m_num; set => m_num = value; }
+
         /// <summary>
         /// The Lower Limit of the Modulus number. Values below will be treated as invalid.
         /// </summary>
         public double ModLowerLimit { get => m_lim_low; set => m_lim_low = value; }
+
         /// <summary>
         /// The Upper Limit of the Modulus number. Values above will be treated as invalid.
         /// </summary>
@@ -111,10 +125,12 @@ namespace Modulartistic.Core
         /// The Red or Hue Offset or Constant.
         /// </summary>
         public double ColorRedHue { get => m_r_h; set => m_r_h = value; }
+
         /// <summary>
         /// The Green or Saturation Offset or Constant. Has to be from 0-1.
         /// </summary>
         public double ColorGreenSaturation { get => m_g_s; set => m_g_s = value; }
+
         /// <summary>
         /// The Blue or Value Offset or Constant. Has to be from 0-1.
         /// </summary>
@@ -125,10 +141,12 @@ namespace Modulartistic.Core
         /// The Red or Hue Value for invalid results.
         /// </summary>
         public double InvalidColorRedHue { get => m_inv_r_h; set => m_inv_r_h = value; }
+
         /// <summary>
         /// The Green or Saturation Value for invalid results. Has to be from 0-1.
         /// </summary>
         public double InvalidColorGreenSaturation { get => m_inv_g_s; set => m_inv_g_s = value; }
+
         /// <summary>
         /// The Blue or Value Value for invalid results. Has to be from 0-1.
         /// </summary>
@@ -138,20 +156,22 @@ namespace Modulartistic.Core
         /// Factor by which red or hue is scaled at the end.
         /// </summary>
         public double ColorFactorRedHue { get => m_factor_r_h; set => m_factor_r_h = value; }
+
         /// <summary>
         /// Factor by which green or saturation is scaled at the end.
         /// </summary>
         public double ColorFactorGreenSaturation { get => m_factor_g_s; set => m_factor_g_s = value; }
+
         /// <summary>
         /// Factor by which blue or value is scaled at the end.
         /// </summary>
         public double ColorFactorBlueValue { get => m_factor_b_v; set => m_factor_b_v = value; }
 
-
         /// <summary>
         /// The Alpha Offset or Constant.
         /// </summary>
         public double ColorAlpha { get => m_alp; set => m_alp = value; }
+
         /// <summary>
         /// The Alpha Value for invalid results.
         /// </summary>
@@ -245,6 +265,12 @@ namespace Modulartistic.Core
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="State"/> class with default values.
+        /// </summary>
+        /// <remarks>
+        /// The constructor sets default values for various properties and initializes internal state variables.
+        /// </remarks>
         public State()
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
@@ -282,21 +308,31 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Constructs a new State that has default values.
+        /// Initializes a new instance of the <see cref="State"/> class with a specified name and default values for other properties.
         /// </summary>
+        /// <param name="name">The name of the state. If an empty string is provided, a default name will be used.</param>
+        /// <remarks>
+        /// This constructor calls the default constructor to initialize the state with default values, and then sets the state name
+        /// to the provided value or to a default value if the provided name is an empty string.
+        /// </remarks>
         public State(string name) : this()
         {
             Name = name == "" ? Constants.State.STATENAME_DEFAULT : name;
         }
 
         /// <summary>
-        /// Constructs an "inbetween" State between two states, given the current progress and an Easing
+        /// Initializes a new instance of the <see cref="State"/> class by interpolating between two states using an easing function.
         /// </summary>
-        /// <param name="startState">The State at idx=0 (at the start)</param>
-        /// <param name="endState">The State at idx=maxidx (at the end)</param>
-        /// <param name="easing">An Easing Funtion</param>
-        /// <param name="idx">The progress idx</param>
-        /// <param name="maxidx">The maximum progress idx</param>
+        /// <param name="startState">The initial state from which interpolation starts.</param>
+        /// <param name="endState">The final state to which interpolation ends.</param>
+        /// <param name="easing">The easing function used to interpolate between the start and end states.</param>
+        /// <param name="idx">The current index in the interpolation sequence.</param>
+        /// <param name="maxidx">The maximum index in the interpolation sequence.</param>
+        /// <remarks>
+        /// This constructor calls the default constructor to initialize the state with default values. It then interpolates each property
+        /// between the <paramref name="startState"/> and <paramref name="endState"/> using the specified <paramref name="easing"/> function 
+        /// and sets the name of the state to "Frame_" followed by the index padded with zeros to fit all possible indices.
+        /// </remarks>
         public State(State startState, State endState, Easing easing, int idx, int maxidx) : this()
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
@@ -317,13 +353,13 @@ namespace Modulartistic.Core
 
         #region Methods for Generating Image
         /// <summary>
-        /// Generates part of the Bitmap object of the state, given a size and Function for Color calculation and index of the thread and number of max threads.
+        /// Generates a partial bitmap image based on the provided state options and function definitions.
         /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <param name="idx">The number of the Thread</param>
-        /// <param name="max">The Total Number of Threads</param>
-        /// <param name="image">The Bitmap where the Data should be stored</param>
-        private void GetPartialBitmap(StateOptions args, out Bitmap image, int idx = 0, int max = 0)
+        /// <param name="args">The state options containing configuration parameters for bitmap generation.</param>
+        /// <param name="image">The generated bitmap image.</param>
+        /// <param name="idx">The index of the partial bitmap to generate.</param>
+        /// <param name="max">The total number of partial bitmaps.</param>
+        private void GetPartialBitmap(StateOptions args, GenerationOptions options, out Bitmap image, int idx = 0, int max = 0, Progress? progress = null)
         {
             #region Setting and validating State Properties
             // setting and validating State Properties
@@ -383,21 +419,21 @@ namespace Modulartistic.Core
             {
                 Func_R_H = new Function(args.FunctionRedHue);
                 Func_R_H.RegisterStateProperties(this, args);
-                if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray());
+                if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_R_H_null = false;
             }
             if (!string.IsNullOrEmpty(args.FunctionGreenSaturation))
             {
                 Func_G_S = new Function(args.FunctionGreenSaturation);
                 Func_G_S.RegisterStateProperties(this, args);
-                if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray());
+                if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_G_S_null = false;
             }
             if (!string.IsNullOrEmpty(args.FunctionBlueValue))
             {
                 Func_B_V = new Function(args.FunctionBlueValue);
                 Func_B_V.RegisterStateProperties(this, args);
-                if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray());
+                if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_B_V_null = false;
             }
 
@@ -405,7 +441,7 @@ namespace Modulartistic.Core
             {
                 Func_Alp = new Function(args.FunctionAlpha);
                 Func_Alp.RegisterStateProperties(this, args);
-                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray());
+                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_Alp_null = false;
             }
             #endregion
@@ -442,7 +478,6 @@ namespace Modulartistic.Core
             // Create instance of Bitmap for pixel data
             image = new Bitmap(partial_width, (int)size.Height);
 
-            // Iterate over every pixel
             for (int y = 0; y < size.Height; y++)
             {
                 for (int x = 0; x < partial_width; x++)
@@ -469,7 +504,8 @@ namespace Modulartistic.Core
                         // if there is an exception, it has to do with the function and/or addons
                         // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
                         n = mod*offset + func.Evaluate(x_, y_);
-                        pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.Mod(n, mod)) : -1;
+                        pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.InclusiveMod(n, mod)) : -1;
+                        // Inclusive mod above might need to be non inclusive - test
                     }
 
                     // calculate color values
@@ -644,19 +680,35 @@ namespace Modulartistic.Core
 
                     // set the pixel on the image bitmap
                     image.SetPixel(x, y, color);
+
+                    progress?.IncrementProgress();
                 }
             }
         }
 
+        /// <summary>
+        /// Generates a bitmap image using the specified state and generation options, saves it to the specified output directory, and returns the file path of the saved image.
+        /// </summary>
+        /// <param name="args">The state options that determine the parameters for bitmap generation.</param>
+        /// <param name="options">The generation options that control the bitmap generation process.</param>
+        /// <param name="out_dir">The output directory where the generated image will be saved.</param>
+        /// <returns>The file path of the saved image.</returns>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the specified output directory does not exist.</exception>
+        /// <remarks>
+        /// If the Name is empty, the method sets it to a default name.
+        /// If a file with the same name already exists in the output directory, an index is appended to the file name to make it unique.
+        /// The generated image is saved in PNG format.
+        /// </remarks>
         public string GenerateImage(StateOptions args, GenerationOptions options, string out_dir)
         {
-            // If out-dir is empty set to default, then check if it exists
-            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
+            // If out_dir is empty set to default, then check if it exists
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException($"The Directory {out_dir} was not found."); }
 
             // set the absolute path for the file to be save
             string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.State.STATENAME_DEFAULT : Name));
             // Validate (if file with same name exists already, append index)
-            file_path_out = Helper.ValidFileName(file_path_out);
+            file_path_out = Helper.GetValidFileName(file_path_out);
+
 
             // Generate the image
             Bitmap image = GetBitmap(args, options);
@@ -667,18 +719,27 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Generates the Bitmap object of the state, given a size and Function for Color calculation. If max_threads = -1 the max number is used
+        /// Generates a bitmap image using the specified state and generation options.
         /// </summary>
-        /// <param name="args">The GenrationArgs containing Size and Function Data</param>
-        /// <param name="max_threads">The maximum number of threads this will use</param>
-        /// <returns>The generated Bitmap</returns>
+        /// <param name="args">The state options that determine the parameters for bitmap generation.</param>
+        /// <param name="options">The generation options that control the number of threads used for bitmap generation.</param>
+        /// <returns>A bitmap image generated based on the specified parameters.</returns>
+        /// <remarks>
+        /// If <paramref name="options.MaxThreads"/> is set to 0 or 1, the method generates the bitmap using a single thread.
+        /// If <paramref name="options.MaxThreads"/> is greater than 1, the method generates the bitmap using multiple threads
+        /// to improve performance by dividing the work across available processors.
+        /// </remarks>
         public Bitmap GetBitmap(StateOptions args, GenerationOptions options)
         {
             int max_threads = options.MaxThreads;
 
+            // Set progrss tracker
+            double pixelCount = args.Width * args.Height;
+            Progress? stateProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid() + Name}", $"Generating State {Name}", pixelCount);
+
             if (max_threads == 0 || max_threads == 1)
             {
-                GetPartialBitmap(args, out Bitmap image);
+                GetPartialBitmap(args, options, out Bitmap image, progress: stateProgress);
                 return image;
             }
             else
@@ -698,23 +759,55 @@ namespace Modulartistic.Core
                 // Create the Threads
                 Thread[] threads = new Thread[threads_num];
 
+                // create a list of exceptions thrown at the and if there are any
+                List<Exception> exceptions = new List<Exception>();
+
                 // Run the threads
                 for (int i = 0; i < threads_num; i++)
                 {
                     // index needs to be made local for the lambda function
                     int local_i = i;
 
-                    threads[local_i] = new Thread(new ThreadStart(() => GetPartialBitmap(args, out partial_images[local_i], local_i, threads_num)));
+                    threads[local_i] = new Thread(new ThreadStart(() =>
+                    {
+                        try
+                        {
+                            GetPartialBitmap(args, options, out partial_images[local_i], local_i, threads_num, stateProgress);
+                        }
+                        catch (Exception e)
+                        {
+                            lock (exceptions)
+                            {
+                                exceptions.Add(e);
+                            }
+                        }
+                    }
+                    
+                    ));
                     threads[local_i].Start();
                 }
 
-                // Join the Threads and put all partial Bitmaps together
-                Graphics gr = Graphics.FromImage(image);
+                // Join the Threads
                 for (int i = 0; i < threads_num; i++)
                 {
                     threads[i].Join();
+                }
+
+                // throw potential exceptions
+                if (exceptions.Count > 0)
+                {
+                    throw new AggregateException(exceptions);
+                }
+
+                // put all partial Bitmaps together
+                Graphics gr = Graphics.FromImage(image);
+                for (int i = 0; i < threads_num; i++)
+                {
                     gr.DrawImage(partial_images[i], i * (size.Width / threads_num), 0, partial_images[i].Width, partial_images[i].Height);
                 }
+
+
+                options.ProgressReporter?.RemoveTask(stateProgress);
 
                 // return the Bitmap
                 return image;
@@ -736,24 +829,34 @@ namespace Modulartistic.Core
         }
         #endregion
 
-        #region json
+        #region Loading and validating Json methods
         /// <summary>
-        /// Returns true if the passed JsonElement is a valid State representation
+        /// Validates the structure of a JSON element against the schema for the <see cref="State"/> class.
         /// </summary>
-        /// <param name="element">JsonElement for State</param>
-        /// <returns></returns>
+        /// <param name="element">The JSON element to be validated.</param>
+        /// <returns><c>true</c> if the JSON element is valid according to the schema; otherwise, <c>false</c>.</returns>
+        /// <remarks>
+        /// This method uses the <see cref="Schemas.IsElementValid(JsonElement, Type)"/> method to check if the JSON element conforms
+        /// to the expected schema for the <see cref="State"/> class. The schema validation ensures that the JSON element contains the
+        /// correct properties and their types are appropriate.
+        /// </remarks>
         public static bool IsJsonElementValid(JsonElement element)
         {
             return Schemas.IsElementValid(element, MethodBase.GetCurrentMethod().DeclaringType);
-
         }
 
         /// <summary>
-        /// Load State properties from Json
+        /// Loads state properties from a JSON element and updates the state accordingly.
         /// </summary>
-        /// <param name="element">Json Element for State</param>
-        /// <param name="opts">Current StateOptions used for evaluating State Properties</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state properties to be loaded.</param>
+        /// <param name="opts">The state options used for expression evaluation if any value is a string.</param>
+        /// <exception cref="Exception">Thrown when a JSON property value is neither a string nor a number.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown when a JSON property name does not match any state property.</exception>
+        /// <remarks>
+        /// This method iterates over the properties of the provided JSON element and updates the corresponding state properties.
+        /// If a property value is a string, it is treated as an expression and evaluated. If it is a number, it is directly assigned.
+        /// Special handling is done for the <see cref="Parameters"/> property, which is expected to be an array of values.
+        /// </remarks>
         public void LoadJson(JsonElement element, StateOptions opts)
         {
             foreach (JsonProperty elem in element.EnumerateObject())
@@ -819,10 +922,15 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Load State from Json
+        /// Creates a new <see cref="State"/> instance from a JSON element.
         /// </summary>
-        /// <param name="element">Json Element for State</param>
-        /// <exception cref="KeyNotFoundException"></exception>
+        /// <param name="element">The JSON element containing the state properties to be loaded.</param>
+        /// <param name="opts">The state options used for expression evaluation if any value is a string.</param>
+        /// <returns>A new <see cref="State"/> instance with properties loaded from the provided JSON element.</returns>
+        /// <remarks>
+        /// This method initializes a new <see cref="State"/> instance and then loads its properties from the provided JSON element
+        /// using the <see cref="LoadJson(JsonElement, StateOptions)"/> method.
+        /// </remarks>
         public static State FromJson(JsonElement element, StateOptions opts)
         {
             State state = new State();
@@ -832,11 +940,16 @@ namespace Modulartistic.Core
         }
 
         /// <summary>
-        /// Get Value from JsonProperty, simply take the number value or try to evaluate if value is string
+        /// Retrieves the value of a JSON property, either directly or by evaluating it as an expression.
         /// </summary>
-        /// <param name="element">The JsonProperty</param>
-        /// <param name="opts">StateOptions to regeister</param>
-        /// <exception cref="Exception">If the json value was neither number nor string</exception>
+        /// <param name="element">The JSON property containing the value to be retrieved or evaluated.</param>
+        /// <param name="opts">The state options used for expression evaluation if the value is a string.</param>
+        /// <returns>The evaluated or retrieved value as a double.</returns>
+        /// <exception cref="Exception">Thrown when the JSON property value is neither a string nor a number.</exception>
+        /// <remarks>
+        /// If the JSON property value is a string, it is treated as an expression and evaluated accordingly.
+        /// If the JSON property value is a number, it is directly retrieved.
+        /// </remarks>
         private double GetValueOrEvaluate(JsonProperty element, StateOptions opts)
         {
             // retrieve the value beforehand

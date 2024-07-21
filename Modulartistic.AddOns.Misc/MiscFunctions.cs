@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Modulartistic.Core;
-using System.Reflection;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace MiscFunctions
+namespace Modulartistic.AddOns.Misc
 {
+    [AddOn]
     public static class MiscFunctions
     {
         private static List<int> GetNumInBase(int num, int num_base)
@@ -24,8 +26,8 @@ namespace MiscFunctions
             }
 
             return digitList;
-        } 
-        
+        }
+
         public static double Reverse(double num, double num_base)
         {
             int inum = (int)Math.Floor(num);
@@ -34,7 +36,7 @@ namespace MiscFunctions
             if (inum < 0) { inum *= -1; }
             if (inum_base < 0) { inum_base *= -1; }
             if (Math.Abs(inum_base) <= 1) { return double.NaN; }
-            
+
             List<int> digitList = GetNumInBase(inum, inum_base);
 
             // Convert the reversed number back to base 10
@@ -84,7 +86,7 @@ namespace MiscFunctions
                 if (digsum == result) { break; }
                 result = digsum;
             }
-            
+
             return result;
         }
 
@@ -92,38 +94,38 @@ namespace MiscFunctions
         {
             a = Math.Abs(a);
             b = Math.Abs(b);
-            
+
             int result = 0;
-            while (a*b != 0)
+            while (a * b != 0)
             {
                 double b_ = Math.Min(a, b);
                 double a_ = Math.Max(a, b) - b_;
 
                 a = a_;
                 b = b_;
-                
+
                 result++;
             }
 
             return result;
         }
-    
+
         public static double GetNumberedSquare(double x, double y, double width, double height)
         {
             width = Math.Abs(width);
             height = Math.Abs(height);
-            
-            if (height*width == 0) { return double.NaN; }
-            return Helper.mod(y, height)*width + Helper.mod(x, width);
+
+            if (height * width == 0) { return double.NaN; }
+            return Mod(y, height) * width + Mod(x, width);
         }
 
         public static double CoordToSqrSpiral(double x, double y)
         {
             double s = Math.Abs(x) >= Math.Abs(y) ? x : y;
-            double d = x==s ? -1 : 1;
+            double d = x == s ? -1 : 1;
 
-            if (s >= 0) { return 4*s*s - x + y; }
-            else {  return 4*s*s + d * (2*s + x + y) ; }
+            if (s >= 0) { return 4 * s * s - x + y; }
+            else { return 4 * s * s + d * (2 * s + x + y); }
         }
 
         public static double CoordToSqrSpiral2(double x, double y)
@@ -143,7 +145,7 @@ namespace MiscFunctions
             }
             else if (y == s)
             {
-                result = max_ring_num - 2*s - (ix + s);
+                result = max_ring_num - 2 * s - (ix + s);
             }
             else if (x == s)
             {
@@ -156,12 +158,19 @@ namespace MiscFunctions
 
             return result;
         }
-    
+
         public static double RecursiveTest(double x, double y, double r, double min_r)
         {
             if (r < min_r) { return x * y; }
             return RecursiveTest(x, y, r - 2, min_r) + RecursiveTest(x, y, r - 1, min_r) - r;
         }
-    
+
+        private static double Mod(double d1, double d2)
+        {
+            if (d2 <= 0)
+                throw new DivideByZeroException();
+            else
+                return d1 - d2 * Math.Floor(d1 / d2);
+        }
     }
 }

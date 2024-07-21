@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
-using Modulartistic.Drawing;
-using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Modulartistic.Drawing;
 
-namespace ImageFunctions
+namespace Modulartistic.AddOns.Image
 {
+    [AddOn]
     public static class ImageFunctions
     {
         #region Memory fields
@@ -24,7 +25,7 @@ namespace ImageFunctions
         {
             if (!initialized) { Initialize(); }
             if (!Path.IsPathRooted(abs_path_to_file) || !File.Exists(abs_path_to_file)) { return double.NaN; }
-            
+
             LoadBitmap(abs_path_to_file, out Bitmap bmp);
 
             if (x < 0 || x >= bmp.Width || y < 0 || y >= bmp.Height) { return double.NaN; }
@@ -38,7 +39,7 @@ namespace ImageFunctions
             if (!Path.IsPathRooted(abs_path_to_dir) || !Directory.Exists(abs_path_to_dir)) { return double.NaN; }
 
             GetDirectoryContents(abs_path_to_dir, out string[] files);
-            
+
             int idx = (int)i;
             if (idx >= files.Length || idx < 0) { return double.NaN; }
 
@@ -286,12 +287,12 @@ namespace ImageFunctions
                             int ix = x + kx;
                             int iy = y + ky;
                             if (iy < 0) { iy = 0; }
-                            else if (iy >= height) { iy = height-1; }
+                            else if (iy >= height) { iy = height - 1; }
                             if (ix < 0) { ix = 0; }
                             else if (ix >= width) { ix = width - 1; }
 
                             // adding weighte dpixel to result
-                            result[y, x] += kernel[ky, kx]*srcImage[iy, ix];
+                            result[y, x] += kernel[ky, kx] * srcImage[iy, ix];
                         }
                     }
                 }
@@ -342,7 +343,7 @@ namespace ImageFunctions
 
             double[,] img_grad_x = Convolute(img, sobel_x);
             double[,] img_grad_y = Convolute(img, sobel_y);
-            
+
 
 
             switch (mode)
