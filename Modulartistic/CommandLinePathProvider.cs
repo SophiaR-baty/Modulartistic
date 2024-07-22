@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Configuration;
 using Modulartistic.Core;
 using System.Reflection;
-using static Modulartistic.Core.Constants;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
@@ -39,7 +38,7 @@ namespace Modulartistic
         public string GetAddonPath()
         {
             // get app directory
-            string appdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+            string appdir = AppDomain.CurrentDomain.BaseDirectory;
             if (appdir == string.Empty) { throw new Exception("Encountered error while getting app directory. "); }
 
             // set path it not currently set
@@ -88,7 +87,7 @@ namespace Modulartistic
         public string GetBackUpPath()
         {
             // get app directory
-            string appdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+            string appdir = AppDomain.CurrentDomain.BaseDirectory;
             if (appdir == string.Empty) { throw new Exception("Encountered error while getting app directory. "); }
 
             // get directory
@@ -155,7 +154,7 @@ namespace Modulartistic
             if (ConfigurationManager.AppSettings[_logPathKey] == null)
             {
                 // get app directory
-                string appdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+                string appdir = AppDomain.CurrentDomain.BaseDirectory;
                 string default_path = Path.Combine(appdir, "logs");
 
                 File.WriteAllText(default_path, "");
