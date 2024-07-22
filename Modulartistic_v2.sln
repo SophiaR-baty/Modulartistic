@@ -23,11 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Fracta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AudioGeneration", "Modulartistic.AudioGeneration\Modulartistic.AudioGeneration.csproj", "{F5563EED-1CE4-4F70-B7C9-7DABE8502973}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic.AddOns.Image", "Modulartistic.AddOns.Image\Modulartistic.AddOns.Image.csproj", "{8E909787-9FE9-4884-9B82-AC8C18211DAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Image", "Modulartistic.AddOns.Image\Modulartistic.AddOns.Image.csproj", "{8E909787-9FE9-4884-9B82-AC8C18211DAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic.AddOns.Debug", "Modulartistic.AddOns.Debug\Modulartistic.AddOns.Debug.csproj", "{9AB058A9-005C-4E88-BDC5-BB2A98F1F4A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Debug", "Modulartistic.AddOns.Debug\Modulartistic.AddOns.Debug.csproj", "{9AB058A9-005C-4E88-BDC5-BB2A98F1F4A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic.AddOns.Misc", "Modulartistic.AddOns.Misc\Modulartistic.AddOns.Misc.csproj", "{BCB0C8E2-0B8E-420F-A84A-878EED7619AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Misc", "Modulartistic.AddOns.Misc\Modulartistic.AddOns.Misc.csproj", "{BCB0C8E2-0B8E-420F-A84A-878EED7619AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -49,10 +49,13 @@ namespace Modulartistic
         class ConfigOptions
         {
             [Option("ffmpeg-path", HelpText = "Sets the path to the FFmpeg binary")]
-            public string ?FFmpegPath { get; set; }
+            public string? FFmpegPath { get; set; }
 
             [Option("addons-path", HelpText = "Sets the path to directories AddOns are located in")]
-            public string ?AddOnsPath { get; set; }
+            public string? AddOnsPath { get; set; }
+
+            [Option("logfile-path", HelpText = "Sets the path to the logfile")]
+            public string? LogFilePath { get; set; }
 
             [Option("show-config", Default = false, HelpText = "List all configured options")]
             public bool ShowConfig { get; set; }
@@ -79,6 +82,18 @@ namespace Modulartistic
                 try
                 {
                     PathProvider.SetAddonPath(opts.AddOnsPath);
+                }
+                catch (DirectoryNotFoundException e)
+                {
+                    AnsiConsole.Markup($"[red]{e.Message}[/]");
+                }
+            }
+
+            if (opts.LogFilePath is not null)
+            {
+                try
+                {
+                    PathProvider.SetAddonPath(opts.LogFilePath);
                 }
                 catch (DirectoryNotFoundException e)
                 {
