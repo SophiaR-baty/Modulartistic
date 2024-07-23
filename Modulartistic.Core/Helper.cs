@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Xml.Linq;
 using AnimatedGif;
 using NCalc;
 
@@ -126,32 +129,38 @@ namespace Modulartistic.Core
         /// <param name="s">The <see cref="State"/> object containing the properties to register.</param>
         public static void ExprRegisterStateProperties(ref Expression expr, State s)
         {
-            expr.Parameters["x_0"] = s.X0;
-            expr.Parameters["y_0"] = s.Y0;
-            expr.Parameters["x_fact"] = s.XFactor;
-            expr.Parameters["y_fact"] = s.YFactor;
-            expr.Parameters["x_rotcent"] = s.XRotationCenter;
-            expr.Parameters["y_rotcent"] = s.YRotationCenter;
-            expr.Parameters["rotation"] = s.Rotation;
-
-            expr.Parameters["modnum"] = s.Mod;
-            expr.Parameters["num"] = s.Mod;
-            expr.Parameters["modlimlow"] = s.ModLowerLimit;
-            expr.Parameters["modlimup"] = s.ModUpperLimit;
-
-            expr.Parameters["col_rh"] = s.ColorRedHue;
-            expr.Parameters["col_gs"] = s.ColorGreenSaturation;
-            expr.Parameters["col_bv"] = s.ColorBlueValue;
-            expr.Parameters["col_alp"] = s.ColorAlpha;
-
-            expr.Parameters["inv_col_rh"] = s.InvalidColorRedHue;
-            expr.Parameters["inv_col_gs"] = s.InvalidColorGreenSaturation;
-            expr.Parameters["inv_col_bv"] = s.InvalidColorBlueValue;
-            expr.Parameters["inv_col_alp"] = s.InvalidColorAlpha;
-
-            expr.Parameters["col_fact_rh"] = s.ColorFactorRedHue;
-            expr.Parameters["col_fact_gs"] = s.ColorFactorGreenSaturation;
-            expr.Parameters["col_fact_bv"] = s.ColorFactorBlueValue;
+            expr.Parameters[$"{nameof(State)}.{nameof(State.X0)}"] = s.X0;
+            foreach (PropertyInfo propInf in typeof(State).GetProperties())
+            {
+                switch (propInf.Name)
+                {
+                    case nameof(State.X0):
+                    case nameof(State.Y0):
+                    case nameof(State.XRotationCenter):
+                    case nameof(State.YRotationCenter):
+                    case nameof(State.XFactor):
+                    case nameof(State.YFactor):
+                    case nameof(State.Rotation):
+                    case nameof(State.Mod):
+                    case nameof(State.ModLowerLimit):
+                    case nameof(State.ModUpperLimit):
+                    case nameof(State.ColorRedHue):
+                    case nameof(State.ColorGreenSaturation):
+                    case nameof(State.ColorBlueValue):
+                    case nameof(State.ColorAlpha):
+                    case nameof(State.InvalidColorRedHue):
+                    case nameof(State.InvalidColorGreenSaturation):
+                    case nameof(State.InvalidColorBlueValue):
+                    case nameof(State.InvalidColorAlpha):
+                    case nameof(State.ColorFactorRedHue):
+                    case nameof(State.ColorFactorGreenSaturation):
+                    case nameof(State.ColorFactorBlueValue):
+                        expr.Parameters[$"{nameof(State)}.{propInf.Name}"] = propInf.GetValue(s);
+                        break;
+                    default:
+                        continue;
+                }
+            }
 
             expr.Parameters["i_0"] = s.Parameters[0];
             expr.Parameters["i"] = s.Parameters[0];
@@ -165,6 +174,7 @@ namespace Modulartistic.Core
             expr.Parameters["i_7"] = s.Parameters[7];
             expr.Parameters["i_8"] = s.Parameters[8];
             expr.Parameters["i_9"] = s.Parameters[9];
+
         }
 
         /// <summary>
