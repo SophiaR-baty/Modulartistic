@@ -70,112 +70,13 @@ namespace Modulartistic.Core
             Helper.ExprRegisterStateOptions(ref _expression, args);
         }
 
+
         /// <summary>
         /// Load AddOns from a dll file. The dll should contain a type marked with the AddOn Attribute from Modulartistic.AddOns, All public static of these types are exposed to the parser
         /// </summary>
         /// <param name="dll_path"></param>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public void LoadAddOn2(string dll_path)
-        {
-            if (!File.Exists(dll_path)) 
-            { 
-                throw new FileNotFoundException($"Error loading AddOn: {dll_path} - file not found"); 
-            }
-
-            Assembly testDLL = Assembly.LoadFile(dll_path);
-
-            // enumerates all public classes/interfaces/enums/etc. 
-            // -> Classes in a plugin should only be public if they should expose functions to the parser
-            foreach (Type type in testDLL.GetTypes().Where(type => type.GetCustomAttribute(typeof(AddOnAttribute)) is not null))
-            {
-                // gets all public static methods of the type
-                // -> only methods that should be exposed to the parser should be public static
-                MethodInfo[] methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
-
-                // iterates over all such methods
-                foreach (MethodInfo methodInfo in methodInfos)
-                {
-                    if (methodInfo.ReturnType == typeof(double))
-                    {
-                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-                        {
-                            if (name == methodInfo.Name)
-                            {
-                                ParameterInfo[] paraInf = methodInfo.GetParameters();
-                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
-                                
-                                object[] parameters = new object[paraInf.Length];
-                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-                                for (int i = args.Parameters.Length; i < paraInf.Length; i++) 
-                                {
-                                    object? def = paraInf[i].DefaultValue;
-                                    if (def is null) { throw new Exception($"Parameter {paraInf[i].Name} of method {methodInfo.Name} has no default value, you must specify this parameter."); }
-                                    parameters[i] = paraInf[i].DefaultValue; 
-                                }
-
-                                args.Result = methodInfo.Invoke(null, parameters) as double?;
-                            }
-                        };
-                    }
-
-                    else if (methodInfo.ReturnType == typeof(int))
-                    {
-                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-                        {
-                            if (name == methodInfo.Name)
-                            {
-                                ParameterInfo[] paraInf = methodInfo.GetParameters();
-                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
-
-                                object[] parameters = new object[args.Parameters.Length];
-                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-                                args.Result = methodInfo.Invoke(null, parameters) as int?;
-                            }
-                        };
-                    }
-
-                    else if (methodInfo.ReturnType == typeof(string))
-                    {
-                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-                        {
-                            if (name == methodInfo.Name)
-                            {
-                                ParameterInfo[] paraInf = methodInfo.GetParameters();
-                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
-
-                                object[] parameters = new object[args.Parameters.Length];
-                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-                                args.Result = methodInfo.Invoke(null, parameters) as string;
-                            }
-                        };
-                    }
-
-                    else if (methodInfo.ReturnType == typeof(bool))
-                    {
-                        _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-                        {
-                            if (name == methodInfo.Name)
-                            {
-                                ParameterInfo[] paraInf = methodInfo.GetParameters();
-                                if (args.Parameters.Length > paraInf.Length) { throw new ArgumentException("Too many Arguments for function " + methodInfo.Name); }
-
-                                object[] parameters = new object[args.Parameters.Length];
-                                for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-                                args.Result = (bool)methodInfo.Invoke(null, parameters);
-                            }
-                        };
-                    }
-
-                    else { continue; }
-                }
-            }
-        }
-
-
         public void LoadAddOn(string dll_path)
         {
             if (!File.Exists(dll_path))

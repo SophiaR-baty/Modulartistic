@@ -13,7 +13,7 @@ namespace Modulartistic
     internal class Program
     {
         static readonly CommandLinePathProvider PathProvider = new CommandLinePathProvider();
-        static Logger Logger;
+        static Logger? Logger;
 
         static int Main(string[] args)
         {
@@ -24,6 +24,20 @@ namespace Modulartistic
             catch (Exception e)
             {
                 AnsiConsole.WriteException(e);
+                Logger?.Dispose();
+                Logger = null;
+            }
+
+            // Combine the folder path and file name
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "generationdata_schema.json");
+            try
+            {
+                // Write the content to the file, creating or overwriting as necessary
+                File.WriteAllText(filePath, Schemas.GetGenerationDataSchema());
+            }
+            catch
+            {
+                Logger?.LogDebug($"Error writing JSON schema to {filePath}");
             }
 
             int errorcode = 0;
@@ -37,11 +51,11 @@ namespace Modulartistic
             }
             catch (Exception e)
             {
-                Logger.LogError(e.Message);
+                Logger?.LogError(e.Message);
             }
             
 
-            Logger.Dispose();
+            Logger?.Dispose();
             return errorcode;
         }
 
@@ -49,17 +63,61 @@ namespace Modulartistic
         class ConfigOptions
         {
             [Option("ffmpeg-path", HelpText = "Sets the path to the FFmpeg binary")]
-            public string ?FFmpegPath { get; set; }
+            public string? FFmpegPath { get; set; }
 
             [Option("addons-path", HelpText = "Sets the path to directories AddOns are located in")]
-            public string ?AddOnsPath { get; set; }
+            public string? AddOnsPath { get; set; }
+
+            [Option("logfile-path", HelpText = "Sets the path to the logfile")]
+            public string? LogFilePath { get; set; }
 
             [Option("show-config", Default = false, HelpText = "List all configured options")]
             public bool ShowConfig { get; set; }
+
+            [Option('d', "debug", Default = false, HelpText = "Print Debug Info in case of Errors")]
+            public bool Debug { get; set; }
         }
 
         private static int RunConfigAndReturnExitCode(ConfigOptions opts)
         {
+            int errorcode = 0;
+            
+            // sets logfile path
+            if (opts.LogFilePath is not null)
+            {
+                try
+                {
+                    PathProvider.SetLogFilePath(opts.LogFilePath);
+                    Logger = new Logger(PathProvider.GetLogFilePath());
+                }
+                catch (Exception e)
+                {
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
+                }
+            }
+
             // sets FFmpeg Path
             if (opts.FFmpegPath is not null)
             {
@@ -69,7 +127,29 @@ namespace Modulartistic
                 }
                 catch (FileNotFoundException e)
                 {
-                    AnsiConsole.Markup($"[red]{e.Message}[/]");
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
                 }
             }
 
@@ -82,14 +162,65 @@ namespace Modulartistic
                 }
                 catch (DirectoryNotFoundException e)
                 {
-                    AnsiConsole.Markup($"[red]{e.Message}[/]");
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
                 }
             }
 
             // list configs
             if (opts.ShowConfig)
             {
-                AnsiConsole.Markup($"[blue]AddOns: [/]{PathProvider.GetAddonPath()}\n");
+                try
+                {
+                    AnsiConsole.Markup($"[blue]AddOns: [/]{PathProvider.GetAddonPath()}\n");
+                }
+                catch (Exception e)
+                {
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
+                }
 
                 try
                 {
@@ -97,14 +228,95 @@ namespace Modulartistic
                 }
                 catch (Exception e)
                 {
-                    AnsiConsole.Markup($"[red]{e.Message}[/]\n");
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
                 }
 
-                AnsiConsole.Markup($"[blue]BackUp: [/]{PathProvider.GetBackUpPath()}\n");
-                AnsiConsole.Markup($"[blue]Log File: [/]{PathProvider.GetLogFilePath()}\n");
+                try
+                {
+                    AnsiConsole.Markup($"[blue]BackUp: [/]{PathProvider.GetBackUpPath()}\n");
+                }
+                catch (Exception e)
+                {
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
+                }
+
+                try
+                {
+                    AnsiConsole.Markup($"[blue]Log File: [/]{PathProvider.GetLogFilePath()}\n");
+                }
+                catch (Exception e)
+                {
+                    errorcode = 1;
+                    if (Logger == null)
+                    {
+                        if (opts.Debug)
+                        {
+                            AnsiConsole.WriteException(e);
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup($"[red]{e.Message}[/]");
+                        }
+                    }
+                    else
+                    {
+                        if (opts.Debug)
+                        {
+                            Logger.LogError(e.Message);
+                        }
+                        else
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
+                }
             }
 
-            return 0;
+            return errorcode;
         }
 
 
@@ -173,7 +385,6 @@ namespace Modulartistic
 
                     int length = files.Length;
                     Core.Progress? loopProgress = null;
-                    // if (length > 1) 
                     { loopProgress = reporter.AddTask("fileloop", "Generating all files...", length); }
                     foreach (string file in files)
                     {

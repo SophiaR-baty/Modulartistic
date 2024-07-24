@@ -1,0 +1,102 @@
+[
+  {
+    "Function": "500*Th/(2*3.1415*r)",
+    "Size": [
+      500,
+      500
+    ],
+    "Framerate": 12
+  },
+  {
+	"Name":"spiral_animation",
+	"Scenes":
+	[
+	  {
+		"State": 
+		{
+		  "Name": "state_1",
+		  "Mod": 500,
+		  "ModLimLow": 0,
+		  "ModLimUp": 500,
+	      "X0": 0,
+		  "Y0": 0,
+		  "XZoom": 0.1,
+		  "YZoom": 0.1,
+		  "Rotation": 0,
+		  "ColorMinimum": 0,
+		  "ColorSaturation": 1,
+		  "ColorValue": 1,
+		  "ColorAlpha": 1,
+		  "InvalidColor": [
+		    0,
+		    1,
+		    1,
+		    1
+		  ],
+		  "ColorFactors": [
+		    1,
+		    1,
+		    1
+		  ],
+		  "Parameters": [
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0
+		  ]
+		},
+		"Length": 5,
+		"EasingType": "SineInOut"
+	  },
+	  {
+		"State": 
+		{
+		  "Name": "state_1",
+		  "Mod": 500,
+		  "ModLimLow": 0,
+		  "ModLimUp": 500,
+	      "X0": 0,
+		  "Y0": 0,
+		  "XZoom": 0.0001,
+		  "YZoom": 0.0001,
+		  "Rotation": 0,
+		  "ColorMinimum": 0,
+		  "ColorSaturation": 1,
+		  "ColorValue": 1,
+		  "ColorAlpha": 1,
+		  "InvalidColor": [
+		    0,
+		    1,
+		    1,
+		    1
+		  ],
+		  "ColorFactors": [
+		    1,
+		    1,
+		    1
+		  ],
+		  "Parameters": [
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0,
+		    0
+		  ]
+		},
+		"Length": 5,
+		"EasingType": "SineInOut"
+	  }
+	]
+  }
+]
