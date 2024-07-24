@@ -226,5 +226,20 @@ namespace MathFunctions
         }
 
         #endregion
+    
+        public static double Tanh(double x)
+        {
+            return Math.Tanh(x);
+        }
+
+        public static double Sinh(double x)
+        {
+            return Math.Sinh(x);
+        }
+
+        public static double Cosh(double x)
+        {
+            return Math.Cosh(x);
+        }
     }
 }

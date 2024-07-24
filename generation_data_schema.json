@@ -1,0 +1,622 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://modulartistic.com/",
+  "$defs": {
+    "StateOptions": {
+      "$comment": "StateOptions object",
+      "type": "object",
+      "properties": {
+        "Width": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "Height": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "Framerate": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "FunctionRedHue": {
+          "type": "string"
+        },
+        "FunctionGreenSaturation": {
+          "type": "string"
+        },
+        "FunctionBlueValue": {
+          "type": "string"
+        },
+        "FunctionAlpha": {
+          "type": "string"
+        },
+        "InvalidColorGlobal": {
+          "type": "boolean"
+        },
+        "CircularMod": {
+          "type": "boolean"
+        },
+        "UseRGB": {
+          "type": "boolean"
+        },
+        "AddOns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "State": {
+      "$comment": "State object",
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "X0": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "Y0": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "XRotationCenter": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "YRotationCenter": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "XFactor": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "YFactor": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "Rotation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "Mod": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ModLowerLimit": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ModUpperLimit": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorRedHue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorGreenSaturation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorBlueValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "InvalidColorRedHue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "InvalidColorGreenSaturation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "InvalidColorBlueValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorFactorRedHue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorFactorGreenSaturation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorFactorBlueValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ColorAlpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "InvalidColorAlpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "Parameters": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "maxItems": 10
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "StateSequence": {
+      "$comment": "StateSequence object",
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Scenes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scene"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Scene": {
+      "$comment": "Scene object",
+      "type": "object",
+      "properties": {
+        "State": {
+          "$ref": "#/$defs/State"
+        },
+        "Length": {
+          "type": "number",
+          "minimum": 0
+        },
+        "EasingType": {
+          "$ref": "#/$defs/EasingType"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EasingType": {
+      "$comment": "EasingType enum",
+      "enum": [
+        "Linear",
+        "Multiplicative",
+        "SineIn",
+        "SineOut",
+        "SineInOut",
+        "QuadIn",
+        "QuadOut",
+        "QuadInOut",
+        "CubicIn",
+        "CubicOut",
+        "CubicInOut",
+        "QuartIn",
+        "QuartOut",
+        "QuartInOut",
+        "QuintIn",
+        "QuintOut",
+        "QuintInOut",
+        "ExpoIn",
+        "ExpoOut",
+        "ExpoInOut",
+        "CircIn",
+        "CircOut",
+        "CircInOut",
+        "BackIn",
+        "BackOut",
+        "BackInOut",
+        "ElasticIn",
+        "ElasticOut",
+        "ElasticInOut",
+        "BounceIn",
+        "BounceOut",
+        "BounceInOut"
+      ]
+    },
+    "StateEvent": {
+      "$comment": "StateEvent object",
+      "type": "object",
+      "properties": {
+        "StartTime": {
+          "type": "number",
+          "minimum": 0
+        },
+        "Length": {
+          "type": "number",
+          "minimum": 0
+        },
+        "AttackTime": {
+          "type": "number",
+          "minimum": 0
+        },
+        "AttackEasingType": {
+          "$ref": "#/$defs/EasingType"
+        },
+        "DecayTime": {
+          "type": "number",
+          "minimum": 0
+        },
+        "DecayEasingType": {
+          "$ref": "#/$defs/EasingType"
+        },
+        "ReleaseTime": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ReleaseEasingType": {
+          "$ref": "#/$defs/EasingType"
+        },
+        "PeakValues": {
+          "$ref": "#/$defs/StateEventValues"
+        },
+        "SustainValues": {
+          "$ref": "#/$defs/StateEventValues"
+        },
+        "X0": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "Y0": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "XRotationCenter": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "YRotationCenter": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "XFactor": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "YFactor": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "Rotation": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "Mod": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ModLowerLimit": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ModUpperLimit": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorRedHue": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorGreenSaturation": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorBlueValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "InvalidColorRedHue": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "InvalidColorGreenSaturation": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "InvalidColorBlueValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorFactorRedHue": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorFactorGreenSaturation": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorFactorBlueValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "ColorAlpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "InvalidColorAlpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "Parameters": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "number"
+              }
+            ],
+            "maxItems": 10
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "StateEventValues": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "StateTimeline": {
+      "$comment": "StateTimeline object",
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Length": {
+          "type": "number",
+          "minimum": 0
+        },
+        "Base": {
+          "$ref": "#/$defs/State"
+        },
+        "Events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/State"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "array",
+  "items": {
+    "oneOf": [
+      {
+        "$ref": "#/$defs/StateOptions"
+      },
+      {
+        "$ref": "#/$defs/State"
+      },
+      {
+        "$ref": "#/$defs/StateSequence"
+      },
+      {
+        "$ref": "#/$defs/StateTimeline"
+      }
+    ]
+  }
+}
