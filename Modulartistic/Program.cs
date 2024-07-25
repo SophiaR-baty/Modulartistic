@@ -7,6 +7,8 @@ using CommandLine.Text;
 using FFMpegCore;
 using FFMpegCore.Helpers;
 using Antlr4.Runtime.Misc;
+using Modulartistic.AudioGeneration;
+using System.Diagnostics;
 
 namespace Modulartistic
 {
@@ -17,6 +19,7 @@ namespace Modulartistic
 
         static int Main(string[] args)
         {
+            int errorcode = 0;
             try
             {
                 Logger = new Logger(PathProvider.GetLogFilePath());
@@ -40,13 +43,13 @@ namespace Modulartistic
                 Logger?.LogDebug($"Error writing JSON schema to {filePath}");
             }
 
-            int errorcode = 0;
             try
             {
-                errorcode = Parser.Default.ParseArguments<ConfigOptions, GenerateOptions>(args)
+                errorcode = Parser.Default.ParseArguments<ConfigOptions, GenerateOptions, AudioGenerateOptions>(args)
                 .MapResult(
                     (ConfigOptions opts) => RunConfigAndReturnExitCode(opts),
                     (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
+                    (AudioGenerateOptions opts) => RunAudioGenerateAndReturnExitCode(opts),
                     errs => 1);
             }
             catch (Exception e)
@@ -437,6 +440,115 @@ namespace Modulartistic
 
             return 0;
 
+        }
+
+        [Verb("audio-visualize", HelpText = "generate for audio")]
+        class AudioGenerateOptions
+        {
+            [Option('d', "debug", Default = false, HelpText = "Prints useful information while generating")]
+            public bool Debug { get; set; }
+
+            [Option('k', "keepframes", Default = false, HelpText = "Saves individual frames for Animations")]
+            public bool KeepFrames { get; set; }
+
+            [Option('f', "faster", Default = -1, HelpText = "Speeds up generating images by utilizing multiple threads. 1 and 0 both utilize 1 thread, -1 will use the maximum available")]
+            public int? Faster { get; set; }
+
+            [Option('a', "animation-format", Default = "gif", HelpText = "What file format to save animations in (mp4 or gif)")]
+            public string AnimationFormat { get; set; }
+
+            [Option('o', "output", Default = ".", HelpText = "Path to the directory where output files should be saved to")]
+            public string OutputDirectory { get; set; }
+
+            [Option('i', "input", Required = true, HelpText = "one or more input files, must be valid json files")]
+            public IEnumerable<string> InputFiles { get; set; }
+        }
+
+        private static int RunAudioGenerateAndReturnExitCode(AudioGenerateOptions options)
+        {
+            int errorcode = 0;
+
+            // setting global options
+            GlobalFFOptions.Configure(new FFOptions { BinaryFolder = Path.GetDirectoryName(PathProvider.GetFFmpegPath()) });
+            Logger.WriteDebugToConsole = options.Debug;
+
+            string[] files = options.InputFiles.ToArray();
+
+            // checking if input files specified
+            if (files.Length == 0)
+            {
+                Logger.LogError("No input files specified. please specify at least one input file to generate using the -i or --input option. ");
+                return -1;
+            }
+
+
+            foreach (string file in files)
+            {
+                // initializing builder
+                AudioAnimationBuilder builder = new AudioAnimationBuilder(file);
+
+                // configuring builder (implement json template)
+                builder.State = new State()
+                {
+                    ColorGreenSaturation = 0,
+                    X0 = 0,
+                    Y0 = 240,
+                };
+                builder.Options = new StateOptions()
+                {
+                    Framerate = 12,
+                    FunctionBlueValue = "(x*x+y*y)*(if(x+250 >= 0 && x+250 <= 45 && y >= 0 && y <= i*50, 250, 0) + if(x+200 >= 0 && x+200 <= 45 && y >= 0 && y <= i_1*50, 250, 0) + if(x+150 >= 0 && x+150 <= 45 && y >= 0 && y <= i_2*50, 250, 0) + if(x+100 >= 0 && x+100 <= 45 && y >= 0 && y <= i_3*50, 250, 0) + if(x+50 >= 0 && x+50 <= 45 && y >= 0 && y <= i_4*50, 250, 0) + if(x+0 >= 0 && x+0 <= 45 && y >= 0 && y <= i_5*50, 250, 0) + if(x-50 >= 0 && x-50 <= 45 && y >= 0 && y <= i_6*50, 250, 0) + if(x-100 >= 0 && x-100 <= 45 && y >= 0 && y <= i_7*50, 250, 0) + if(x-150 >= 0 && x-150 <= 45 && y >= 0 && y <= i_8*50, 250, 0) + if(x-200 >= 0 && x-200 <= 45 && y >= 0 && y <= i_9*50, 250, 0))",
+                    UseRGB = false,
+                };
+                builder.StatePropertyFunctions[StateProperty.i0] = "Volume";
+                builder.StatePropertyFunctions[StateProperty.i1] = "SubBass";
+                builder.StatePropertyFunctions[StateProperty.i2] = "Bass";
+                builder.StatePropertyFunctions[StateProperty.i3] = "LowMidrange";
+                builder.StatePropertyFunctions[StateProperty.i4] = "Midrange";
+                builder.StatePropertyFunctions[StateProperty.i5] = "HighMidrange";
+                builder.StatePropertyFunctions[StateProperty.i6] = "Presence";
+                builder.StatePropertyFunctions[StateProperty.i7] = "Brilliance";
+
+                // seting generation options
+                GenerationOptions opts = new GenerationOptions()
+                {
+                    KeepAnimationFrames = true,
+                    Logger = Logger,
+                    MaxThreads = -1,
+                    AnimationFormat = AnimationFormat.Mp4,
+                    PathProvider = PathProvider,
+                    PrintDebugInfo = true,
+                };
+
+                // creating animation
+                Task<string> task = builder.GenerateAnimation(opts, options.OutputDirectory);
+                task.Wait();
+
+                // ffmpeg -i audio_1.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental output.mp4
+                try
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    {
+                        FileName = PathProvider.GetFFmpegPath(),
+                        Arguments = $"-i \"{task.Result}\" -i \"{file}\" -c:v copy -c:a aac -strict experimental output.mp4",
+                        RedirectStandardOutput = false,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    Process process = Process.Start(startInfo);
+                    process.WaitForExit();
+                    Console.WriteLine(process.ExitCode);
+                    process.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger?.LogException(ex);
+                }
+            }
+            
+            
+
+            return errorcode;
         }
 
     }

@@ -38,6 +38,7 @@ namespace Modulartistic.AudioGeneration
             AudioAnalysis audioAnalysis = new AudioAnalysis(File, (int)framerate);
             int framecount = (int)((audioAnalysis.AudioLength.TotalSeconds + 3) * framerate);
 
+
             Progress? visProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid()}", $"Audio visualization...", framecount);
             // loops through the scenes
             for (int i = 0; i < framecount; i++)
@@ -72,7 +73,7 @@ namespace Modulartistic.AudioGeneration
                 {
                     State[kvp.Key] = EvaluateFunction(kvp.Value, audioAnalysis, i);
                 }
-
+                State.Name = "Frame_" + i.ToString().PadLeft(framecount.ToString().Length, '0');
                 State.GenerateImage(Options, options, frames_dir);
             }
             options.ProgressReporter?.RemoveTask(visProgress);
@@ -88,6 +89,7 @@ namespace Modulartistic.AudioGeneration
             {
                 FrameRate = framerate, // set source frame rate
             };
+
 
             switch (type)
             {
@@ -234,13 +236,21 @@ namespace Modulartistic.AudioGeneration
         private double EvaluateFunction(string func, AudioAnalysis analysis, int idx)
         {
             Expression expression = new Expression(func);
-            expression.Parameters[$"Volume"] = analysis.Volumes[idx];
+            Helper.ExprRegisterStateOptions(ref expression, Options);
+            Helper.ExprRegisterStateProperties(ref expression, State);
+
+            expression.Parameters[$"Volume"] = idx < analysis.Volumes.Length ? analysis.Volumes[idx] : 0;
+
+            double time = idx/Options.Framerate;
+            expression.Parameters["t"] = time;
+
             foreach (PropertyInfo propInf in typeof(Frequencies).GetProperties())
             {
-                expression.Parameters[propInf.Name] = propInf.GetValue(analysis);
+                expression.Parameters[propInf.Name] = idx < analysis.Frequencies.Length  ? propInf.GetValue(analysis.Frequencies[idx]) : 0;
             }
 
-            return (double)expression.Evaluate();
+            double result = Convert.ToDouble(expression.Evaluate());
+            return result;
         }
     }
 }

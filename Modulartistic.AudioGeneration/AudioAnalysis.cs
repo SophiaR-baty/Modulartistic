@@ -37,13 +37,28 @@ namespace Modulartistic.AudioGeneration
 
                 for (int i = 0; i < datalength; i++)
                 {
-                    _volumes[i] = GetVolumeAtTimestamp(reader, TimeSpan.FromMilliseconds(1000/framerate*i));
-                    _frequencies[i] = GetFrequenciesAtTimestamp(reader, TimeSpan.FromMilliseconds(1000/framerate*i));
+                    _volumes[i] = GetVolumeAtTimestamp(reader, TimeSpan.FromMilliseconds(1000/framerate*i), framerate);
+                    _frequencies[i] = GetFrequenciesAtTimestamp(reader, TimeSpan.FromMilliseconds(1000/framerate*i), framerate);
+                }
+
+                float maxVol = _volumes.Max();
+                float maxFreq = _frequencies.Max(f => new float[]{ f.SubBass, f.Bass, f.LowMidrange, f.Midrange, f.HighMidrange, f.Presence, f.Brilliance}.Max());
+                for (int i = 0; i < datalength; i++)
+                {
+                    _volumes[i] /= maxVol;
+                    _frequencies[i].SubBass /= _frequencies.Max(f => f.SubBass);
+                    _frequencies[i].Bass /= _frequencies.Max(f => f.Bass);
+                    _frequencies[i].LowMidrange /= _frequencies.Max(f => f.LowMidrange);
+                    _frequencies[i].Midrange /= _frequencies.Max(f => f.Midrange);
+                    _frequencies[i].HighMidrange /= _frequencies.Max(f => f.HighMidrange);
+                    _frequencies[i].Presence /= _frequencies.Max(f => f.Presence);
+                    _frequencies[i].Brilliance /= _frequencies.Max(f => f.Brilliance);
+
                 }
             }
         }
 
-        private float GetVolumeAtTimestamp(AudioFileReader reader, TimeSpan timestamp)
+        private float GetVolumeAtTimestamp(AudioFileReader reader, TimeSpan timestamp, int framerate)
         {
             int sampleRate = reader.WaveFormat.SampleRate;
             int channels = reader.WaveFormat.Channels;
@@ -51,8 +66,11 @@ namespace Modulartistic.AudioGeneration
             // Move to the desired timestamp
             reader.CurrentTime = timestamp;
 
-            float[] buffer = new float[sampleRate * channels];
-            int samplesRead = reader.Read(buffer, 0, buffer.Length);
+            int sampleBufferSize = channels * sampleRate / framerate;
+            float[] buffer = new float[sampleBufferSize];
+            int samplesRead = reader.Read(buffer, 0, sampleBufferSize);
+
+            // if (samplesRead == 0) { return 0; }
 
             // Calculate RMS (Root Mean Square) to get volume
             double sum = 0;
@@ -63,12 +81,12 @@ namespace Modulartistic.AudioGeneration
             double rms = Math.Sqrt(sum / samplesRead);
 
             // Convert to decibels
-            double decibels = 20 * Math.Log10(rms);
+            // double decibels = 20 * Math.Log10(rms);
 
-            return (float)decibels;
+            return (float)(rms / Math.Sqrt(2));
         }
 
-        private Frequencies GetFrequenciesAtTimestamp(AudioFileReader reader, TimeSpan timestamp)
+        private Frequencies GetFrequenciesAtTimestamp(AudioFileReader reader, TimeSpan timestamp, int framerate)
         {
             int sampleRate = reader.WaveFormat.SampleRate;
             int channels = reader.WaveFormat.Channels;
@@ -76,8 +94,9 @@ namespace Modulartistic.AudioGeneration
             // Move to the desired timestamp
             reader.CurrentTime = timestamp;
 
-            float[] buffer = new float[sampleRate * channels];
-            int samplesRead = reader.Read(buffer, 0, buffer.Length);
+            int sampleBufferSize = channels * sampleRate / framerate;
+            float[] buffer = new float[sampleBufferSize];
+            int samplesRead = reader.Read(buffer, 0, sampleBufferSize);
 
             // Perform FFT (Fast Fourier Transform) for frequency analysis
             Complex[] complexBuffer = new Complex[samplesRead];

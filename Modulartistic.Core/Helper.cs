@@ -155,7 +155,7 @@ namespace Modulartistic.Core
                     case nameof(State.ColorFactorRedHue):
                     case nameof(State.ColorFactorGreenSaturation):
                     case nameof(State.ColorFactorBlueValue):
-                        expr.Parameters[$"{nameof(State)}.{propInf.Name}"] = propInf.GetValue(s);
+                        expr.Parameters[$"{nameof(State)}_{propInf.Name}"] = propInf.GetValue(s);
                         break;
                     default:
                         continue;
