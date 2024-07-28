@@ -113,7 +113,7 @@ namespace Modulartistic.Core
                     // register method
                     _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
                     {
-                        if (name == methodInfo.Name || name == $"{type.Name}.{methodInfo.Name}")
+                        if (name == methodInfo.Name || name == $"{type.Name}_{methodInfo.Name}")
                         {
                             int parameter_count = args.Parameters.Length;
 

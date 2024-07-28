@@ -54,7 +54,7 @@ namespace Modulartistic
             }
             catch (Exception e)
             {
-                Logger?.LogError(e.Message);
+                Logger?.LogException(e);
             }
             
 
@@ -500,14 +500,16 @@ namespace Modulartistic
                     FunctionBlueValue = "(x*x+y*y)*(if(x+250 >= 0 && x+250 <= 45 && y >= 0 && y <= i*50, 250, 0) + if(x+200 >= 0 && x+200 <= 45 && y >= 0 && y <= i_1*50, 250, 0) + if(x+150 >= 0 && x+150 <= 45 && y >= 0 && y <= i_2*50, 250, 0) + if(x+100 >= 0 && x+100 <= 45 && y >= 0 && y <= i_3*50, 250, 0) + if(x+50 >= 0 && x+50 <= 45 && y >= 0 && y <= i_4*50, 250, 0) + if(x+0 >= 0 && x+0 <= 45 && y >= 0 && y <= i_5*50, 250, 0) + if(x-50 >= 0 && x-50 <= 45 && y >= 0 && y <= i_6*50, 250, 0) + if(x-100 >= 0 && x-100 <= 45 && y >= 0 && y <= i_7*50, 250, 0) + if(x-150 >= 0 && x-150 <= 45 && y >= 0 && y <= i_8*50, 250, 0) + if(x-200 >= 0 && x-200 <= 45 && y >= 0 && y <= i_9*50, 250, 0))",
                     UseRGB = false,
                 };
-                builder.StatePropertyFunctions[StateProperty.i0] = "Volume";
-                builder.StatePropertyFunctions[StateProperty.i1] = "SubBass";
-                builder.StatePropertyFunctions[StateProperty.i2] = "Bass";
-                builder.StatePropertyFunctions[StateProperty.i3] = "LowMidrange";
-                builder.StatePropertyFunctions[StateProperty.i4] = "Midrange";
-                builder.StatePropertyFunctions[StateProperty.i5] = "HighMidrange";
-                builder.StatePropertyFunctions[StateProperty.i6] = "Presence";
-                builder.StatePropertyFunctions[StateProperty.i7] = "Brilliance";
+                builder.StatePropertyFunctions[StateProperty.i0] = "10*GetBrilliance(frame)";
+                builder.StatePropertyFunctions[StateProperty.i1] = "10*GetBrilliance(frame-1)";
+                builder.StatePropertyFunctions[StateProperty.i2] = "10*GetBrilliance(frame-2)";
+                builder.StatePropertyFunctions[StateProperty.i3] = "10*GetBrilliance(frame-3)";
+                builder.StatePropertyFunctions[StateProperty.i4] = "10*GetBrilliance(frame-4)";
+                builder.StatePropertyFunctions[StateProperty.i5] = "10*GetBrilliance(frame-5)";
+                builder.StatePropertyFunctions[StateProperty.i6] = "10*GetBrilliance(frame-6)";
+                builder.StatePropertyFunctions[StateProperty.i7] = "10*GetBrilliance(frame-7)";
+                builder.StatePropertyFunctions[StateProperty.i8] = "10*GetBrilliance(frame-8)";
+                builder.StatePropertyFunctions[StateProperty.i9] = "10*GetBrilliance(frame-9)";
 
                 // seting generation options
                 GenerationOptions opts = new GenerationOptions()

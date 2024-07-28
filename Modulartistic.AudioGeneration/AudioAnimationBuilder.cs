@@ -239,15 +239,90 @@ namespace Modulartistic.AudioGeneration
             Helper.ExprRegisterStateOptions(ref expression, Options);
             Helper.ExprRegisterStateProperties(ref expression, State);
 
-            expression.Parameters[$"Volume"] = idx < analysis.Volumes.Length ? analysis.Volumes[idx] : 0;
-
             double time = idx/Options.Framerate;
-            expression.Parameters["t"] = time;
+            expression.Parameters["time"] = time;
+            expression.Parameters["frame"] = idx;
 
-            foreach (PropertyInfo propInf in typeof(Frequencies).GetProperties())
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
             {
-                expression.Parameters[propInf.Name] = idx < analysis.Frequencies.Length  ? propInf.GetValue(analysis.Frequencies[idx]) : 0;
-            }
+                if (name == nameof(analysis.GetPeakMax))
+                {
+                    float result = analysis.GetPeakMax(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetPeakMin))
+                {
+                    float result = analysis.GetPeakMin(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetSubBass))
+                {
+                    float result = analysis.GetSubBass(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetBass))
+                {
+                    float result = analysis.GetBass(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetLowerMidrange))
+                {
+                    float result = analysis.GetLowerMidrange(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetMidrange))
+                {
+                    float result = analysis.GetMidrange(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetUpperMidrange))
+                {
+                    float result = analysis.GetUpperMidrange(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetPresence))
+                {
+                    float result = analysis.GetPresence(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
+
+            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (name == nameof(analysis.GetBrilliance))
+                {
+                    float result = analysis.GetBrilliance(Convert.ToInt32(args.Parameters[0].Evaluate()));
+                    args.Result = result;
+                }
+            };
 
             double result = Convert.ToDouble(expression.Evaluate());
             return result;
