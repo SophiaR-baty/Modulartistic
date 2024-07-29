@@ -3,6 +3,7 @@ using NAudio.Wave;
 using NAudio.Dsp;
 using System;
 using NAudio.WaveFormRenderer;
+using FFMpegCore;
 
 namespace Modulartistic.AudioGeneration
 {
@@ -17,8 +18,9 @@ namespace Modulartistic.AudioGeneration
 
         public TimeSpan AudioLength { get => _audio_length; }
         public int FrameCount { get => _number_of_frames; }
+        public AudioFrame[] Frames { get => _frames; }
 
-        public AudioAnalysis(string filePath, int framerate)
+        public AudioAnalysis(string filePath, int framerate, bool decibelScale)
         {
             _filepath = filePath;
             _framerate = framerate;
@@ -45,9 +47,9 @@ namespace Modulartistic.AudioGeneration
                 var samplesPerPixel = (int)(samples / _number_of_frames);
                 peakProvider.Init(reader.ToSampleProvider(), samplesPerPixel);
 
-                FillPeaks(peakProvider, true);
+                FillPeaks(peakProvider, decibelScale);
                 reader.Position = 0;
-                FillFrequencyBands(reader, false);
+                FillFrequencyBands(reader, decibelScale);
             }
         }
 
@@ -155,7 +157,7 @@ namespace Modulartistic.AudioGeneration
                 frame++;
             }
         }
-    
+        
         public float GetPeakMax(int frame)
         {
             if (frame < 0 || frame >= _frames.Length)
@@ -224,66 +226,6 @@ namespace Modulartistic.AudioGeneration
             if (frame < 0 || frame >= _frames.Length)
                 return 0;
             return _frames[frame].Frequencybands[6];
-        }
-
-        public float GetPeakMax(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetPeakMax(frame);
-        }
-
-        public float GetPeakMin(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetPeakMin(frame);
-        }
-
-        public float GetFrequency(double time, int band)
-        {
-            int frame = (int)(time / _framerate);
-            return GetFrequency(frame, band);
-        }
-
-        public float GetSubBass(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetSubBass(frame);
-        }
-
-        public float GetBass(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetBass(frame);
-        }
-
-        public float GetLowerMidrange(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetLowerMidrange(frame);
-        }
-
-        public float GetMidrange(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetMidrange(frame);
-        }
-
-        public float GetUpperMidrange(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetUpperMidrange(frame);
-        }
-
-        public float GetPresence(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetPresence(frame);
-        }
-
-        public float GetBrilliance(double time)
-        {
-            int frame = (int)(time / _framerate);
-            return GetBrilliance(frame);
         }
     }
 }

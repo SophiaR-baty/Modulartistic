@@ -431,16 +431,15 @@ namespace Modulartistic
 
 
                     double elapsed = tasks["fileloop"].ElapsedTime.Value.TotalMilliseconds;
-                    Logger.LogInfo($"{elapsed}");
+                    Logger.LogInfo($"Time elapsed: {elapsed}");
                 }
             );
 
-
-            
-
-            return 0;
-
+            return errorcode;
         }
+
+
+
 
         [Verb("audio-visualize", HelpText = "generate for audio")]
         class AudioGenerateOptions
@@ -448,26 +447,24 @@ namespace Modulartistic
             [Option('d', "debug", Default = false, HelpText = "Prints useful information while generating")]
             public bool Debug { get; set; }
 
+            [Option('B', "decibel", Default = false, HelpText = "Use decibel scale for audio values")]
+            public bool DecibelScale { get; set; }
+
             [Option('k', "keepframes", Default = false, HelpText = "Saves individual frames for Animations")]
             public bool KeepFrames { get; set; }
 
             [Option('f', "faster", Default = -1, HelpText = "Speeds up generating images by utilizing multiple threads. 1 and 0 both utilize 1 thread, -1 will use the maximum available")]
             public int? Faster { get; set; }
 
-            [Option('a', "animation-format", Default = "gif", HelpText = "What file format to save animations in (mp4 or gif)")]
-            public string AnimationFormat { get; set; }
-
             [Option('o', "output", Default = ".", HelpText = "Path to the directory where output files should be saved to")]
             public string OutputDirectory { get; set; }
 
-            [Option('i', "input", Required = true, HelpText = "one or more input files, must be valid json files")]
+            [Option('i', "input", Required = true, HelpText = "one or more input files, must be valid json files or audio files")]
             public IEnumerable<string> InputFiles { get; set; }
         }
 
         private static int RunAudioGenerateAndReturnExitCode(AudioGenerateOptions options)
         {
-            int errorcode = 0;
-
             // setting global options
             GlobalFFOptions.Configure(new FFOptions { BinaryFolder = Path.GetDirectoryName(PathProvider.GetFFmpegPath()) });
             Logger.WriteDebugToConsole = options.Debug;
@@ -481,72 +478,152 @@ namespace Modulartistic
                 return -1;
             }
 
-
-            foreach (string file in files)
-            {
-                // initializing builder
-                AudioAnimationBuilder builder = new AudioAnimationBuilder(file);
-
-                // configuring builder (implement json template)
-                builder.State = new State()
+            int errorcode = 0;
+            ProgressReporter reporter = new ProgressReporter();
+            AnsiConsole.Progress()
+                .HideCompleted(true)
+                .Columns(new ProgressColumn[]
                 {
-                    ColorGreenSaturation = 0,
-                    X0 = 0,
-                    Y0 = 240,
-                };
-                builder.Options = new StateOptions()
+                    new TaskDescriptionColumn(),    // Task description
+                    new ProgressBarColumn(),        // Progress bar
+                    new PercentageColumn(),         // Percentage
+                    new RemainingTimeColumn(),      // Remaining time
+                    new SpinnerColumn()
+                })
+                .Start(
+                ctx =>
                 {
-                    Framerate = 12,
-                    FunctionBlueValue = "(x*x+y*y)*(if(x+250 >= 0 && x+250 <= 45 && y >= 0 && y <= i*50, 250, 0) + if(x+200 >= 0 && x+200 <= 45 && y >= 0 && y <= i_1*50, 250, 0) + if(x+150 >= 0 && x+150 <= 45 && y >= 0 && y <= i_2*50, 250, 0) + if(x+100 >= 0 && x+100 <= 45 && y >= 0 && y <= i_3*50, 250, 0) + if(x+50 >= 0 && x+50 <= 45 && y >= 0 && y <= i_4*50, 250, 0) + if(x+0 >= 0 && x+0 <= 45 && y >= 0 && y <= i_5*50, 250, 0) + if(x-50 >= 0 && x-50 <= 45 && y >= 0 && y <= i_6*50, 250, 0) + if(x-100 >= 0 && x-100 <= 45 && y >= 0 && y <= i_7*50, 250, 0) + if(x-150 >= 0 && x-150 <= 45 && y >= 0 && y <= i_8*50, 250, 0) + if(x-200 >= 0 && x-200 <= 45 && y >= 0 && y <= i_9*50, 250, 0))",
-                    UseRGB = false,
-                };
-                builder.StatePropertyFunctions[StateProperty.i0] = "10*GetBrilliance(frame)";
-                builder.StatePropertyFunctions[StateProperty.i1] = "10*GetBrilliance(frame-1)";
-                builder.StatePropertyFunctions[StateProperty.i2] = "10*GetBrilliance(frame-2)";
-                builder.StatePropertyFunctions[StateProperty.i3] = "10*GetBrilliance(frame-3)";
-                builder.StatePropertyFunctions[StateProperty.i4] = "10*GetBrilliance(frame-4)";
-                builder.StatePropertyFunctions[StateProperty.i5] = "10*GetBrilliance(frame-5)";
-                builder.StatePropertyFunctions[StateProperty.i6] = "10*GetBrilliance(frame-6)";
-                builder.StatePropertyFunctions[StateProperty.i7] = "10*GetBrilliance(frame-7)";
-                builder.StatePropertyFunctions[StateProperty.i8] = "10*GetBrilliance(frame-8)";
-                builder.StatePropertyFunctions[StateProperty.i9] = "10*GetBrilliance(frame-9)";
 
-                // seting generation options
-                GenerationOptions opts = new GenerationOptions()
-                {
-                    KeepAnimationFrames = true,
-                    Logger = Logger,
-                    MaxThreads = -1,
-                    AnimationFormat = AnimationFormat.Mp4,
-                    PathProvider = PathProvider,
-                    PrintDebugInfo = true,
-                };
-
-                // creating animation
-                Task<string> task = builder.GenerateAnimation(opts, options.OutputDirectory);
-                task.Wait();
-
-                // ffmpeg -i audio_1.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental output.mp4
-                try
-                {
-                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    Dictionary<string, ProgressTask> tasks = new Dictionary<string, ProgressTask>();
+                    reporter.TaskAdded += (sender, args) =>
                     {
-                        FileName = PathProvider.GetFFmpegPath(),
-                        Arguments = $"-i \"{task.Result}\" -i \"{file}\" -c:v copy -c:a aac -strict experimental output.mp4",
-                        RedirectStandardOutput = false,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
+                        ProgressTask a = ctx.AddTask(args.Description, true, args.MaxProgress);
+                        tasks.Add(args.Key, a);
                     };
-                    Process process = Process.Start(startInfo);
-                    process.WaitForExit();
-                    Console.WriteLine(process.ExitCode);
-                    process.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Logger?.LogException(ex);
-                }
-            }
+                    reporter.ProgressChanged += (sender, args) => { tasks[args.Key].Value = args.CurrentProgress; };
+                    reporter.TaskRemoved += (sender, args) => { tasks[args.Key].StopTask(); };
+
+                    int length = files.Length;
+                    Core.Progress? fileloopProgress = null;
+                    { fileloopProgress = reporter.AddTask("fileloop", "Generating all files...", length); }
+
+                    bool jsonTemplateLoaded = false;
+                    foreach (string file in files)
+                    {
+                        try
+                        {
+                            if (Path.GetExtension(file) == ".json")
+                            {
+                                // load json template
+                                jsonTemplateLoaded = true;
+                            }
+                            else
+                            {
+                                // initializing builder
+                                AudioAnimationBuilder builder = new AudioAnimationBuilder(file);
+
+                                #region debug values for builder
+
+                                // configuring builder (implement json template)
+                                builder.State = new State()
+                                {
+                                    X0 = 100,
+                                    Y0 = 100,
+                                    ColorBlueValue = 0,
+                                    ColorGreenSaturation = 0,
+                                    ColorRedHue = 0,
+                                };
+                                builder.Options = new StateOptions()
+                                {
+                                    Framerate = 3,
+                                    FunctionBlueValue = "if(y < 50/2*(GetSubBass(int(frame + x/3))/0.059932906 + GetBass(int(frame + x/3))/0.14595887), 400, 0)",
+                                    FunctionGreenSaturation = "if(y < 50/3*(GetLowerMidrange(int(frame + x/3))/0.01345104 + GetMidrange(int(frame + x/3))/0.017425036 + GetUpperMidrange(int(frame + x/3))/0.008142932), 400, 0)",
+                                    FunctionRedHue = "if(y < 50/2*(GetPresence(int(frame + x/3))/0.005128569 + GetBrilliance(int(frame + x/3))/0.17560594), 400, 0)",
+                                    UseRGB = true,
+                                    Height = 200,
+                                    Width = 200,
+                                };
+
+                                #endregion
+
+                                // seting generation options
+                                GenerationOptions opts = new GenerationOptions()
+                                {
+                                    KeepAnimationFrames = options.KeepFrames,
+                                    Logger = Logger,
+                                    MaxThreads = options.Faster ?? -1,
+                                    AnimationFormat = AnimationFormat.Mp4,
+                                    PathProvider = PathProvider,
+                                    PrintDebugInfo = options.Debug,
+                                    ProgressReporter = reporter,
+                                };
+
+                                bool decibelScale = options.DecibelScale;
+
+                                builder.PrintDebug(opts, decibelScale);
+
+                                if (true || jsonTemplateLoaded)
+                                {
+                                    // creating animation
+                                    Task<string> task = builder.GenerateAnimation(opts, decibelScale, options.OutputDirectory);
+                                    task.Wait();
+
+                                    // merging with sound
+                                    // ffmpeg -i audio_1.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental output.mp4
+                                    try
+                                    {
+                                        string tmpName = $"vid_{Path.GetFileNameWithoutExtension(task.Result)}";
+
+                                        Logger?.LogInfo("Start merging video with audio");
+                                        ProcessStartInfo startInfo = new ProcessStartInfo
+                                        {
+                                            FileName = PathProvider.GetFFmpegPath(),
+                                            Arguments = $"-i \"{task.Result}\" -i \"{file}\" -c:v copy -c:a aac -strict experimental {tmpName}.mp4 -y",
+                                            RedirectStandardOutput = false,
+                                            RedirectStandardError = false,
+                                            UseShellExecute = false,
+                                            CreateNoWindow = true
+                                        };
+                                        Logger?.LogDebug($"{PathProvider.GetFFmpegPath()} -i \"{task.Result}\" -i \"{file}\" -c:v copy -c:a aac -strict experimental {tmpName}.mp4 -y");
+                                        Process? process = Process.Start(startInfo);
+                                        process?.WaitForExit();
+
+                                        if (process?.ExitCode != 0)
+                                        {
+                                            Logger?.LogError($"Process exited with Code {process?.ExitCode}");
+                                            Logger?.LogDebug($"{process?.StandardError.ReadToEnd()}");
+                                            Logger?.LogError($"{process?.StandardOutput.ReadToEnd()}");
+                                        }
+                                        else
+                                        {
+                                            Logger?.LogDebug($"Process exited with Code {process?.ExitCode}");
+                                            File.Move($"{tmpName}.mp4", task.Result, true);
+                                        }
+                                        process?.Dispose();
+
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger?.LogException(ex);
+                                    }
+                                }
+                            }
+                            fileloopProgress?.IncrementProgress();
+                        }
+                        catch (Exception e)
+                        {
+                            if (options.Debug)
+                            {
+                                Logger?.LogException(e);
+                            }
+                            else
+                            {
+                                Logger?.LogError(e.Message);
+                            }
+                        }
+                    }
+                    reporter.RemoveTask(fileloopProgress);
+                });
             
             
 

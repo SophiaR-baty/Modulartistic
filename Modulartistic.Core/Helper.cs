@@ -188,7 +188,35 @@ namespace Modulartistic.Core
             expr.Parameters["img_height"] = (double)args.Height;
             expr.Parameters["ani_framerate"] = (double)args.Framerate;
         }
-    
+
+        public static string GetPrimitiveName(Type type)
+        {
+            // Dictionary to map .NET type names to C# primitive names
+            var typeToPrimitiveName = new Dictionary<string, string>
+            {
+                { "System.Int32", "int" },
+                { "System.Int64", "long" },
+                { "System.Int16", "short" },
+                { "System.Byte", "byte" },
+                { "System.SByte", "sbyte" },
+                { "System.UInt32", "uint" },
+                { "System.UInt64", "ulong" },
+                { "System.UInt16", "ushort" },
+                { "System.Single", "float" },
+                { "System.Double", "double" },
+                { "System.Decimal", "decimal" },
+                { "System.Char", "char" },
+                { "System.Boolean", "bool" }
+            };
+
+            // Check if the dictionary contains the type's full name and return the corresponding primitive name
+            return typeToPrimitiveName.TryGetValue(type.FullName, out string primitiveName)
+                ? primitiveName
+                : type.Name; // Return the .NET type name if not found
+        }
+
+        #region test embedding guid in files
+
         public static void EmbedGuid(string file_path, Guid guid)
         {
             if (!File.Exists(file_path)) { throw new FileNotFoundException($"the specified file {file_path} was not found."); }
@@ -334,6 +362,8 @@ namespace Modulartistic.Core
             File.Copy(tmp_out, file_path, true);
             File.Delete(tmp_out);
         }
-    
+
+        #endregion
+
     }
 }

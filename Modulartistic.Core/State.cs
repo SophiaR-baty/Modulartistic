@@ -9,6 +9,7 @@ using Json.Schema;
 using System.Reflection;
 using System.Xml.Linq;
 using SkiaSharp;
+using System.Collections.Generic;
 
 #nullable enable
 
@@ -60,7 +61,73 @@ namespace Modulartistic.Core
         private double m_inv_alp;           // the alpha invalid value
 
         private double[] m_parameters;
+
+
+        private Dictionary<object, HashSet<MethodInfo>> _extraFunctions;
+        private Dictionary<string, object> _extraParameters;
+
         #endregion
+
+        public void AddExtraFunction(object obj, MethodInfo mInfo)
+        {
+            _extraFunctions.TryAdd(obj, new HashSet<MethodInfo>());
+            _extraFunctions[obj].Add(mInfo);
+        }
+
+        public void RemoveExtraFunction(object obj, MethodInfo mInfo)
+        {
+            HashSet<MethodInfo> m;
+            if (_extraFunctions.TryGetValue(obj, out m))
+                m.Remove(mInfo);
+        }
+
+        public void AddExtraParameter(string name, object value)
+        {
+            if (_extraParameters.ContainsKey(name))
+            {
+                _extraParameters[name] = value;
+            }
+            else
+            {
+                _extraParameters.Add(name, value);
+            }
+        }
+
+        public void RemoveExtraParameter(string name)
+        {
+            if (_extraParameters.ContainsKey(name))
+            {
+                _extraParameters.Remove(name);
+            }
+        }
+
+        public void RegisterExtraFunctions(Function func)
+        {
+            foreach (KeyValuePair<object, HashSet<MethodInfo>> kvp in _extraFunctions) 
+            { 
+                object obj = kvp.Key;
+                HashSet<MethodInfo> mInfos = kvp.Value;
+
+                foreach (MethodInfo mInfo in mInfos)
+                {
+                    func.RegisterFunction(mInfo, obj);
+                }
+            }
+        }
+
+        public void RegisterExtraParameters(Function func)
+        {
+            foreach (KeyValuePair<string, object> kvp in _extraParameters)
+            {
+                func.RegisterParameter(kvp.Key, kvp.Value);
+            }
+        }
+
+        public void RegisterExtras(Function func)
+        {
+            RegisterExtraFunctions(func);
+            RegisterExtraParameters(func);
+        }
 
         #region Properties
         /// <summary>
@@ -274,7 +341,9 @@ namespace Modulartistic.Core
         public State()
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
-            
+            _extraFunctions = new Dictionary<object, HashSet<MethodInfo>>();
+            _extraParameters = new Dictionary<string, object>();
+
             m_name = Constants.State.STATENAME_DEFAULT;
 
             m_x0 = Constants.State.XY0_DEFAULT;
@@ -352,6 +421,7 @@ namespace Modulartistic.Core
         #endregion
 
         #region Methods for Generating Image
+        
         /// <summary>
         /// Generates a partial bitmap image based on the provided state options and function definitions.
         /// </summary>
@@ -419,6 +489,7 @@ namespace Modulartistic.Core
             {
                 Func_R_H = new Function(args.FunctionRedHue);
                 Func_R_H.RegisterStateProperties(this, args);
+                RegisterExtras(Func_R_H);
                 if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_R_H_null = false;
             }
@@ -426,6 +497,7 @@ namespace Modulartistic.Core
             {
                 Func_G_S = new Function(args.FunctionGreenSaturation);
                 Func_G_S.RegisterStateProperties(this, args);
+                RegisterExtras(Func_G_S);
                 if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_G_S_null = false;
             }
@@ -433,6 +505,7 @@ namespace Modulartistic.Core
             {
                 Func_B_V = new Function(args.FunctionBlueValue);
                 Func_B_V.RegisterStateProperties(this, args);
+                RegisterExtras(Func_B_V);
                 if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_B_V_null = false;
             }
@@ -441,6 +514,7 @@ namespace Modulartistic.Core
             {
                 Func_Alp = new Function(args.FunctionAlpha);
                 Func_Alp.RegisterStateProperties(this, args);
+                RegisterExtras(Func_Alp);
                 if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
                 Func_Alp_null = false;
             }
