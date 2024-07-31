@@ -68,68 +68,8 @@ namespace Modulartistic.Core
 
         #endregion
 
-        public void AddExtraFunction(object obj, MethodInfo mInfo)
-        {
-            _extraFunctions.TryAdd(obj, new HashSet<MethodInfo>());
-            _extraFunctions[obj].Add(mInfo);
-        }
-
-        public void RemoveExtraFunction(object obj, MethodInfo mInfo)
-        {
-            HashSet<MethodInfo> m;
-            if (_extraFunctions.TryGetValue(obj, out m))
-                m.Remove(mInfo);
-        }
-
-        public void AddExtraParameter(string name, object value)
-        {
-            if (_extraParameters.ContainsKey(name))
-            {
-                _extraParameters[name] = value;
-            }
-            else
-            {
-                _extraParameters.Add(name, value);
-            }
-        }
-
-        public void RemoveExtraParameter(string name)
-        {
-            if (_extraParameters.ContainsKey(name))
-            {
-                _extraParameters.Remove(name);
-            }
-        }
-
-        public void RegisterExtraFunctions(Function func)
-        {
-            foreach (KeyValuePair<object, HashSet<MethodInfo>> kvp in _extraFunctions) 
-            { 
-                object obj = kvp.Key;
-                HashSet<MethodInfo> mInfos = kvp.Value;
-
-                foreach (MethodInfo mInfo in mInfos)
-                {
-                    func.RegisterFunction(mInfo, obj);
-                }
-            }
-        }
-
-        public void RegisterExtraParameters(Function func)
-        {
-            foreach (KeyValuePair<string, object> kvp in _extraParameters)
-            {
-                func.RegisterParameter(kvp.Key, kvp.Value);
-            }
-        }
-
-        public void RegisterExtras(Function func)
-        {
-            RegisterExtraFunctions(func);
-            RegisterExtraParameters(func);
-        }
-
         #region Properties
+
         /// <summary>
         /// The Name of the state
         /// </summary>
@@ -329,6 +269,7 @@ namespace Modulartistic.Core
                 }
             }
         }
+        
         #endregion
 
         #region Constructors
@@ -577,7 +518,11 @@ namespace Modulartistic.Core
                         // not trying to catch exceptions here anymore! 
                         // if there is an exception, it has to do with the function and/or addons
                         // addons shouldnt throw anyway and if there is an Exception elsewhere the program may stop
-                        n = mod*offset + func.Evaluate(x_, y_);
+                        func.RegisterParameter("x", x_);
+                        func.RegisterParameter("y", y_);
+                        func.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
+                        func.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
+                        n = mod*offset + func.Evaluate();
                         pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.InclusiveMod(n, mod)) : -1;
                         // Inclusive mod above might need to be non inclusive - test
                     }
@@ -892,6 +837,7 @@ namespace Modulartistic.Core
         #endregion
 
         #region Other Methods
+        
         /// <summary>
         /// Fills the Dictionary containing String to StateProperty Values
         /// </summary>
@@ -903,9 +849,128 @@ namespace Modulartistic.Core
             }
             PropStringFilled = true;
         }
+
+        /// <summary>
+        /// Adds a function to the evaluation
+        /// </summary>
+        /// <param name="obj">The object this method is evoked on</param>
+        /// <param name="mInfo"></param>
+        public void AddExtraFunction(object obj, MethodInfo mInfo)
+        {
+            _extraFunctions.TryAdd(obj, new HashSet<MethodInfo>());
+            _extraFunctions[obj].Add(mInfo);
+        }
+
+        /// <summary>
+        /// Tries to remove a function from the evaluation, if the object is not found do nothing
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="mInfo"></param>
+        public void RemoveExtraFunction(object obj, MethodInfo mInfo)
+        {
+            HashSet<MethodInfo> m;
+            if (_extraFunctions.TryGetValue(obj, out m))
+                m.Remove(mInfo);
+        }
+
+        /// <summary>
+        /// Removes all extra functions
+        /// </summary>
+        public void ClearExtraFunctions()
+        {
+            _extraFunctions.Clear();
+        }
+
+        /// <summary>
+        /// Removes all extra parameters
+        /// </summary>
+        public void ClearExtraParameters()
+        {
+            _extraParameters.Clear();
+        }
+
+        /// <summary>
+        /// Removes all extra parameters or functions
+        /// </summary>
+        public void ClearExtras()
+        {
+            ClearExtraFunctions();
+            ClearExtraParameters();
+        }
+
+        /// <summary>
+        /// Sets the value of a parameter, if it doesn't exist, register it
+        /// </summary>
+        /// <param name="name">Name of the parameter</param>
+        /// <param name="value">value of the parameter</param>
+        public void SetExtraParameter(string name, object value)
+        {
+            if (_extraParameters.ContainsKey(name))
+            {
+                _extraParameters[name] = value;
+            }
+            else
+            {
+                _extraParameters.Add(name, value);
+            }
+        }
+
+        /// <summary>
+        /// Tries to remove a parameter, if it doesn't exist, do nothing
+        /// </summary>
+        /// <param name="name">the name of the parameter to remove</param>
+        public void RemoveExtraParameter(string name)
+        {
+            if (_extraParameters.ContainsKey(name))
+            {
+                _extraParameters.Remove(name);
+            }
+        }
+
+        /// <summary>
+        /// register all extra methods defined in this state to a function 
+        /// </summary>
+        /// <param name="func">The function to register on</param>
+        public void RegisterExtraFunctions(Function func)
+        {
+            foreach (KeyValuePair<object, HashSet<MethodInfo>> kvp in _extraFunctions)
+            {
+                object obj = kvp.Key;
+                HashSet<MethodInfo> mInfos = kvp.Value;
+
+                foreach (MethodInfo mInfo in mInfos)
+                {
+                    func.RegisterFunction(mInfo, obj);
+                }
+            }
+        }
+
+        /// <summary>
+        /// register all extra parameters defined in this state to a function
+        /// </summary>
+        /// <param name="func">The function to register on</param>
+        public void RegisterExtraParameters(Function func)
+        {
+            foreach (KeyValuePair<string, object> kvp in _extraParameters)
+            {
+                func.RegisterParameter(kvp.Key, kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Register all extra parameters or methods to a function
+        /// </summary>
+        /// <param name="func">The function to register on</param>
+        public void RegisterExtras(Function func)
+        {
+            RegisterExtraFunctions(func);
+            RegisterExtraParameters(func);
+        }
+
         #endregion
 
         #region Loading and validating Json methods
+
         /// <summary>
         /// Validates the structure of a JSON element against the schema for the <see cref="State"/> class.
         /// </summary>
@@ -963,31 +1028,23 @@ namespace Modulartistic.Core
                     case nameof(ColorFactorRedHue):
                     case nameof(ColorFactorGreenSaturation):
                     case nameof(ColorFactorBlueValue):
-                        this[elem.Name] = GetValueOrEvaluate(elem, opts);
+                        try 
+                        {
+                            this[elem.Name] = GetValueOrEvaluate(elem.Value, opts);
+                        } 
+                        catch (Exception e)
+                        {
+                            throw new Exception($"Error Parsing property {elem.Name}", e);
+                        }
+                        
                         break;
                     case nameof(Parameters):
                         // iterate over Parameters
                         int i = 0;
                         foreach (JsonElement param_elem in elem.Value.EnumerateArray())
                         {
-                            double param_value;
-                            if (param_elem.ValueKind == JsonValueKind.String)
-                            {
-                                // if value is string type evaluate
-                                Expression expr = new Expression(param_elem.GetString());
-                                Helper.ExprRegisterStateProperties(ref expr, this);
-                                Helper.ExprRegisterStateOptions(ref expr, opts);
-                                param_value = (double)expr.Evaluate();
-                            }
-                            else if (param_elem.ValueKind == JsonValueKind.Number)
-                            {
-                                // if value is double type simply get value
-                                param_value = param_elem.GetDouble();
-                            }
-                            else { throw new Exception($"Element must be string or number. "); }
-
                             // set Parameter value
-                            Parameters[i] = param_value;
+                            Parameters[i] = GetValueOrEvaluate(param_elem, opts);
                             i++;
                         }
                         break;
@@ -1026,24 +1083,31 @@ namespace Modulartistic.Core
         /// If the JSON property value is a string, it is treated as an expression and evaluated accordingly.
         /// If the JSON property value is a number, it is directly retrieved.
         /// </remarks>
-        private double GetValueOrEvaluate(JsonProperty element, StateOptions opts)
+        private double GetValueOrEvaluate(JsonElement element, StateOptions opts)
         {
             // retrieve the value beforehand
             double value;
-            if (element.Value.ValueKind == JsonValueKind.String)
+            if (element.ValueKind == JsonValueKind.String)
             {
                 // if value is string type evaluate
-                Expression expr = new Expression(element.Value.GetString());
+                Expression expr = new Expression(element.GetString());
                 Helper.ExprRegisterStateProperties(ref expr, this);
                 Helper.ExprRegisterStateOptions(ref expr, opts);
-                value = (double)expr.Evaluate();
+                try
+                {
+                    value = (double)expr.Evaluate();
+                }
+                catch
+                {
+                    value = 0;
+                }
             }
-            else if (element.Value.ValueKind == JsonValueKind.Number)
+            else if (element.ValueKind == JsonValueKind.Number)
             {
                 // if value is double type simply get value
-                value = element.Value.GetDouble();
+                value = element.GetDouble();
             }
-            else { throw new Exception($"Property {element.Name} must be string or number. "); }
+            else { throw new Exception($"Value must be string or number. "); }
 
             return value;
         }

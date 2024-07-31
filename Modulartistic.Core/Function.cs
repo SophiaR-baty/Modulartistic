@@ -12,7 +12,6 @@ namespace Modulartistic.Core
     public class Function
     {
         private Expression _expression;
-        private HashSet<string> _registeredSymbols;
         private readonly HashSet<Type> _allowedResultTypes = new HashSet<Type>()
         {
             typeof(short),
@@ -35,7 +34,6 @@ namespace Modulartistic.Core
         public Function(Expression expression)
         {
             _expression = expression;
-            _registeredSymbols = new HashSet<string>();
             RegisterConversionFunctions();
             expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
         }
@@ -49,18 +47,8 @@ namespace Modulartistic.Core
         #endregion
 
 
-        public double Evaluate(double x, double y)
+        public double Evaluate()
         {
-            _expression.Parameters["x"] = x;
-            _expression.Parameters["y"] = y;
-            _expression.Parameters["Th"] = 180 * Math.Atan2(y, x) / Math.PI;
-            _expression.Parameters["r"] = Math.Sqrt(x * x + y * y);
-
-            _registeredSymbols.Add("x");
-            _registeredSymbols.Add("y");
-            _registeredSymbols.Add("Th");
-            _registeredSymbols.Add("r");
-
             object res = _expression.Evaluate();
 
             if (_allowedResultTypes.Contains(res.GetType()))
@@ -93,8 +81,6 @@ namespace Modulartistic.Core
                         args.Result = Convert.ChangeType(args.Parameters[0].Evaluate(), type);
                     }
                 };
-                _registeredSymbols.Add(type.Name);
-                _registeredSymbols.Add(Helper.GetPrimitiveName(type));
             }
         }
 
@@ -127,99 +113,7 @@ namespace Modulartistic.Core
                 // iterates over all such methods
                 foreach (MethodInfo methodInfo in methodInfos)
                 {
-                    // if method with name has already been registered, skip iteration
-                    if (_registeredSymbols.Contains(methodInfo.Name)) { continue; }
-                    
-                    MethodInfo[] overloads = type.GetMethods()
-                        .Where(m => m.Name == methodInfo.Name)
-                        .ToArray();
-
-                    // register method
-                    _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-                    {
-                        if (name == methodInfo.Name || name == $"{type.Name}_{methodInfo.Name}")
-                        {
-                            int parameter_count = args.Parameters.Length;
-
-                            // try to select overload
-                            MethodInfo? invokedMethod = null;
-                            foreach (MethodInfo overloadInfo in overloads)
-                            {
-                                ParameterInfo[] overloadParaInfo = overloadInfo.GetParameters();
-                                if (parameter_count > overloadParaInfo.Length) { continue; }
-                                else
-                                {
-                                    // check if parameter types match
-                                    bool parameterTypesMismatch = false;
-                                    for (int i = 0; i < parameter_count; i++)
-                                    {
-                                        if (!overloadParaInfo[i].ParameterType.IsInstanceOfType(args.Parameters[i].Evaluate()))
-                                        {
-                                            parameterTypesMismatch = true;
-                                            break;
-                                        }
-                                    }
-                                    // fill remaining parameters with default arameters
-                                    for (int i = args.Parameters.Length; i < overloadParaInfo.Length; i++)
-                                    {
-                                        if (!overloadParaInfo[i].HasDefaultValue) 
-                                        {
-                                            parameterTypesMismatch = true;
-                                            break;
-                                        }
-                                    }
-                                    if (parameterTypesMismatch) { continue; }
-
-                                    // set invoked method and break out of loop
-                                    invokedMethod = overloadInfo;
-                                    break;
-                                }
-                            }
-                            // throw exception if no overload fits
-                            if (invokedMethod is null) 
-                            {
-                                string specified = $"{name}(";
-                                specified += string.Join(", ", args.Parameters.Select(p => $"{p.Evaluate().GetType().Name}"));
-                                specified.Trim(' ', ',');
-                                specified += ")";
-
-                                string[] foundOverloads = new string[overloads.Length];
-                                for (int i = 0; i < overloads.Length; i++)
-                                {
-                                    string methodName = overloads[i].Name;
-                                    string parametersString = string.Join(", ", overloads[i].GetParameters().Select(p => $"{p.ParameterType.Name}"));
-
-                                    foundOverloads[i] = $"{methodName}({parametersString})";
-                                }
-                                string message = "No overload matches arguments\n";
-                                message += $"Specified prototype: {specified} \n";
-                                message += "Found prototypes: \n";
-                                foreach (string prot in foundOverloads) { message += prot + "\n"; }
-                                
-                                throw new ArgumentException(message); 
-                            }
-
-                            // create parameters
-                            ParameterInfo[] paraInf = invokedMethod.GetParameters();
-                            object[] parameters = new object[paraInf.Length];
-
-                            // fill parameters with passed parameters
-                            for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-                            // fill remaining parameters with default arameters
-                            for (int i = args.Parameters.Length; i < paraInf.Length; i++)
-                            {
-                                if (paraInf[i].HasDefaultValue) { parameters[i] = paraInf[i].DefaultValue; }
-                                else { throw new Exception($"Parameter {paraInf[i].Name} of method {methodInfo.Name} has no default value, you must specify this parameter."); }
-                            }
-
-                            object? result = invokedMethod.Invoke(null, parameters) ?? throw new Exception("Result of Functions may not be null"); ;
-                            args.Result = Convert.ChangeType(result, invokedMethod.ReturnType);
-                        }
-                    };
-
-                    // add method to registered
-                    _registeredSymbols.Add(methodInfo.Name);
+                    _expression.RegisterMethod(null, methodInfo);
                 }
             }
         }
@@ -232,7 +126,6 @@ namespace Modulartistic.Core
         public void RegisterParameter(string name, object value)
         {
             _expression.Parameters[name] = value;
-            _registeredSymbols.Add(name);
         }
 
         /// <summary>
@@ -244,103 +137,7 @@ namespace Modulartistic.Core
         /// <exception cref="Exception"></exception>
         public void RegisterFunction(MethodInfo mInfo, object obj)
         {
-            // if method with name has already been registered, skip iteration
-            if (_registeredSymbols.Contains(mInfo.Name)) { return; }
-
-            Type? type = mInfo.DeclaringType;
-            if (type == null) { return; }
-
-
-            MethodInfo[] overloads = type.GetMethods()
-                .Where(m => m.Name == mInfo.Name)
-                .ToArray();
-
-            // register method
-            _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == mInfo.Name || name == $"{type.Name}_{mInfo.Name}")
-                {
-                    int parameter_count = args.Parameters.Length;
-
-                    // try to select overload
-                    MethodInfo? invokedMethod = null;
-                    foreach (MethodInfo overloadInfo in overloads)
-                    {
-                        ParameterInfo[] overloadParaInfo = overloadInfo.GetParameters();
-                        if (parameter_count > overloadParaInfo.Length) { continue; }
-                        else
-                        {
-                            // check if parameter types match
-                            bool parameterTypesMismatch = false;
-                            for (int i = 0; i < parameter_count; i++)
-                            {
-                                if (!overloadParaInfo[i].ParameterType.IsInstanceOfType(args.Parameters[i].Evaluate()))
-                                {
-                                    parameterTypesMismatch = true;
-                                    break;
-                                }
-                            }
-                            // fill remaining parameters with default arameters
-                            for (int i = args.Parameters.Length; i < overloadParaInfo.Length; i++)
-                            {
-                                if (!overloadParaInfo[i].HasDefaultValue)
-                                {
-                                    parameterTypesMismatch = true;
-                                    break;
-                                }
-                            }
-                            if (parameterTypesMismatch) { continue; }
-
-                            // set invoked method and break out of loop
-                            invokedMethod = overloadInfo;
-                            break;
-                        }
-                    }
-                    // throw exception if no overload fits
-                    if (invokedMethod is null)
-                    {
-                        string specified = $"{name}(";
-                        specified += string.Join(", ", args.Parameters.Select(p => $"{p.Evaluate().GetType().Name}"));
-                        specified.Trim(' ', ',');
-                        specified += ")";
-
-                        string[] foundOverloads = new string[overloads.Length];
-                        for (int i = 0; i < overloads.Length; i++)
-                        {
-                            string methodName = overloads[i].Name;
-                            string parametersString = string.Join(", ", overloads[i].GetParameters().Select(p => $"{p.ParameterType.Name}"));
-
-                            foundOverloads[i] = $"{methodName}({parametersString})";
-                        }
-                        string message = "No overload matches arguments\n";
-                        message += $"Specified prototype: {specified} \n";
-                        message += "Found prototypes: \n";
-                        foreach (string prot in foundOverloads) { message += prot + "\n"; }
-
-                        throw new ArgumentException(message);
-                    }
-
-                    // create parameters
-                    ParameterInfo[] paraInf = invokedMethod.GetParameters();
-                    object[] parameters = new object[paraInf.Length];
-
-                    // fill parameters with passed parameters
-                    for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
-
-                    // fill remaining parameters with default arameters
-                    for (int i = args.Parameters.Length; i < paraInf.Length; i++)
-                    {
-                        if (paraInf[i].HasDefaultValue) { parameters[i] = paraInf[i].DefaultValue; }
-                        else { throw new Exception($"Parameter {paraInf[i].Name} of method {mInfo.Name} has no default value, you must specify this parameter."); }
-                    }
-
-                    object? result = invokedMethod.Invoke(obj, parameters) ?? throw new Exception("Result of Functions may not be null"); ;
-                    args.Result = Convert.ChangeType(result, invokedMethod.ReturnType);
-                }
-            };
-
-            // add method to registered
-            _registeredSymbols.Add(mInfo.Name);
+            _expression.RegisterMethod(obj, mInfo);
         }
 
         /// <summary>

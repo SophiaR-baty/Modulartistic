@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -11,7 +12,7 @@ namespace Modulartistic.Core
     /// <summary>
     /// Provides utility methods for various operations related to file handling, animation formats, mathematical operations, and expression registration.
     /// </summary>
-    public class Helper
+    public static class Helper
     {
         /// <summary>
         /// Generates a valid file name by appending an index if a file or directory with the same name already exists.
@@ -162,19 +163,15 @@ namespace Modulartistic.Core
                 }
             }
 
-            expr.Parameters["i_0"] = s.Parameters[0];
-            expr.Parameters["i"] = s.Parameters[0];
-            expr.Parameters["i_1"] = s.Parameters[1];
-            expr.Parameters["j"] = s.Parameters[1];
-            expr.Parameters["i_2"] = s.Parameters[2];
-            expr.Parameters["i_3"] = s.Parameters[3];
-            expr.Parameters["i_4"] = s.Parameters[4];
-            expr.Parameters["i_5"] = s.Parameters[5];
-            expr.Parameters["i_6"] = s.Parameters[6];
-            expr.Parameters["i_7"] = s.Parameters[7];
-            expr.Parameters["i_8"] = s.Parameters[8];
-            expr.Parameters["i_9"] = s.Parameters[9];
+            int i = 0;
+            foreach (int p in s.Parameters)
+            {
+                expr.Parameters[$"i_{i}"] = p;
+                i++;
+            }
 
+            expr.Parameters["i"] = s.Parameters[0];
+            expr.Parameters["j"] = s.Parameters[1];
         }
 
         /// <summary>
@@ -214,6 +211,59 @@ namespace Modulartistic.Core
                 ? primitiveName
                 : type.Name; // Return the .NET type name if not found
         }
+
+        /// <summary>
+        /// Register a custom method info to this expressions EvaluateFunction.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <param name="obj"></param>
+        /// <param name="mInfo"></param>
+        /// <param name="custom_name"></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public static void RegisterMethod(this Expression expr, object? obj, MethodInfo mInfo, string custom_name = "")
+        {
+            Type? type = mInfo.DeclaringType;
+            if (type == null) { return; }
+
+            // register method
+            expr.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                if (args.HasResult) { return; }
+                if ((custom_name == "" && (name == mInfo.Name || name == $"{type.Name}_{mInfo.Name}")) || (custom_name != "" && name == custom_name))
+                {
+                    int parameter_count = args.Parameters.Length;
+
+                    // create parameters
+                    ParameterInfo[] paraInf = mInfo.GetParameters();
+                    object[] parameters = new object[paraInf.Length];
+
+                    if (parameter_count > paraInf.Length)
+                    {
+                        args.HasResult = false;
+                        return;
+                    }
+
+                    // fill parameters with passed parameters
+                    for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
+
+                    // fill remaining parameters with default arameters
+                    for (int i = args.Parameters.Length; i < paraInf.Length; i++)
+                    {
+                        if (paraInf[i].HasDefaultValue) { parameters[i] = paraInf[i].DefaultValue; }
+                        else
+                        {
+                            args.HasResult = false;
+                            return;
+                        }
+                    }
+
+                    object? result = mInfo.Invoke(obj, parameters) ?? throw new Exception("Result of Functions may not be null");
+                    args.Result = Convert.ChangeType(result, mInfo.ReturnType);
+                }
+            };
+        }
+
 
         #region test embedding guid in files
 

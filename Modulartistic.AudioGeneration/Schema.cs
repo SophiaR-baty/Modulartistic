@@ -14,7 +14,7 @@ namespace Modulartistic.AudioGeneration
 {
     public static class Schema
     {
-        public static JsonObject GetGenerationDataSchemaObject()
+        public static JsonObject GetAudioAnimationBuilderSchemaObject()
         {
             // set general structure of Schema
             JsonObject schema = new JsonObject()
@@ -160,7 +160,7 @@ namespace Modulartistic.AudioGeneration
             return schema;
         }
 
-        public static string GetGenerationDataSchema()
+        public static string GetAudioAnimationBuilderSchema()
         {
             var options = new JsonSerializerOptions
             {
@@ -168,7 +168,7 @@ namespace Modulartistic.AudioGeneration
                 WriteIndented = true
             };
 
-            return GetGenerationDataSchemaObject().ToJsonString(new JsonSerializerOptions(options));
+            return GetAudioAnimationBuilderSchemaObject().ToJsonString(new JsonSerializerOptions(options));
         }
     }
 }

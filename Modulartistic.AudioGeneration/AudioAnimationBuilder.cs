@@ -17,6 +17,7 @@ using System.Text.Json;
 using System.Xml.Linq;
 using Json.Schema;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 
 namespace Modulartistic.AudioGeneration
 {
@@ -24,23 +25,35 @@ namespace Modulartistic.AudioGeneration
     {
         #region private fields
 
+        // object containing the audioanalysis
         private AudioAnalysis _analysis;
 
+        // number of total frames
         private int _framecount;
+        
         #endregion
-
 
         #region public properties
 
+        [JsonIgnore]
         public string InputFile { get; set; }
 
         public StateOptions Options { get; set; }
 
         public State State { get; set; }
 
+        /* Beat Properties -> Add after beat implemented
+        public Easing BeatEasing { get; set; }
+        public double BeatLength { get; set; }
+        public double BeatPeak { get; set; }
+
+        */
+        [JsonIgnore]
         public Dictionary<string, string> StatePropertyFunctions { get; set; }
 
         #endregion
+
+        #region constructors
 
         public AudioAnimationBuilder(string path) : this() 
         {
@@ -53,6 +66,8 @@ namespace Modulartistic.AudioGeneration
             State = new State();
             StatePropertyFunctions = new Dictionary<string, string>();
         }
+
+        #endregion
 
         #region Generation methods
 
@@ -257,49 +272,60 @@ namespace Modulartistic.AudioGeneration
 
         #region other methods
 
+        /// <summary>
+        /// Print debug information about the audioanalysis like min and max values as well as averages
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="decibelScale"></param>
         public void PrintDebug(GenerationOptions options, bool decibelScale)
         {
             ILogger? logger = options.Logger;
 
             AnalyseAudio(decibelScale);
 
-            logger?.LogDebug($"Min PeakMax: {_analysis.Frames.Min(f => f.PeakMax)}");
-            logger?.LogDebug($"Max PeakMax: {_analysis.Frames.Max(f => f.PeakMax)}");
-            logger?.LogDebug($"Avg PeakMax: {_analysis.Frames.Average(f => f.PeakMax)}");
+            logger?.LogDebug($"Min PeakMax: {_analysis.MinPeakMax()}");
+            logger?.LogDebug($"Max PeakMax: {_analysis.MaxPeakMax()}");
+            logger?.LogDebug($"Avg PeakMax: {_analysis.AvgPeakMax()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min PeakMin: {_analysis.Frames.Min(f => f.PeakMin)}");
-            logger?.LogDebug($"Max PeakMin: {_analysis.Frames.Max(f => f.PeakMin)}");
-            logger?.LogDebug($"Avg PeakMin: {_analysis.Frames.Average(f => f.PeakMin)}");
+            logger?.LogDebug($"Min PeakMin: {_analysis.MinPeakMin()}");
+            logger?.LogDebug($"Max PeakMin: {_analysis.MaxPeakMin()}");
+            logger?.LogDebug($"Avg PeakMin: {_analysis.AvgPeakMin()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min SubBass: {_analysis.Frames.Min(f => f.Frequencybands[0])}");
-            logger?.LogDebug($"Max SubBass: {_analysis.Frames.Max(f => f.Frequencybands[0])}");
-            logger?.LogDebug($"Max SubBass: {_analysis.Frames.Average(f => f.Frequencybands[0])}");
+            logger?.LogDebug($"Min SubBass: {_analysis.MinSubBass()}");
+            logger?.LogDebug($"Max SubBass: {_analysis.MaxSubBass()}");
+            logger?.LogDebug($"Avg SubBass: {_analysis.AvgSubBass()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min Bass: {_analysis.Frames.Min(f => f.Frequencybands[1])}");
-            logger?.LogDebug($"Max Bass: {_analysis.Frames.Max(f => f.Frequencybands[1])}");
-            logger?.LogDebug($"Avg Bass: {_analysis.Frames.Average(f => f.Frequencybands[1])}");
+            logger?.LogDebug($"Min Bass: {_analysis.MinBass()}");
+            logger?.LogDebug($"Max Bass: {_analysis.MaxBass()}");
+            logger?.LogDebug($"Avg Bass: {_analysis.AvgBass()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min Lower Midrange: {_analysis.Frames.Min(f => f.Frequencybands[2])}");
-            logger?.LogDebug($"Max Lower Midrange: {_analysis.Frames.Max(f => f.Frequencybands[2])}");
-            logger?.LogDebug($"Avg Lower Midrange: {_analysis.Frames.Average(f => f.Frequencybands[2])}");
+            logger?.LogDebug($"Min Lower Midrange: {_analysis.MinLowerMidrange()}");
+            logger?.LogDebug($"Max Lower Midrange: {_analysis.MaxLowerMidrange()}");
+            logger?.LogDebug($"Avg Lower Midrange: {_analysis.AvgLowerMidrange()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min Midrange: {_analysis.Frames.Min(f => f.Frequencybands[3])}");
-            logger?.LogDebug($"Max Midrange: {_analysis.Frames.Max(f => f.Frequencybands[3])}");
-            logger?.LogDebug($"Avg Midrange: {_analysis.Frames.Average(f => f.Frequencybands[3])}");
+            logger?.LogDebug($"Min Midrange: {_analysis.MinMidrange()}");
+            logger?.LogDebug($"Max Midrange: {_analysis.MaxMidrange()}");
+            logger?.LogDebug($"Avg Midrange: {_analysis.AvgMidrange()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min Upper Midrange: {_analysis.Frames.Min(f => f.Frequencybands[4])}");
-            logger?.LogDebug($"Max Upper Midrange: {_analysis.Frames.Max(f => f.Frequencybands[4])}");
-            logger?.LogDebug($"Avg Upper Midrange: {_analysis.Frames.Average(f => f.Frequencybands[4])}");
+            logger?.LogDebug($"Min Upper Midrange: {_analysis.MinUpperMidrange()}");
+            logger?.LogDebug($"Max Upper Midrange: {_analysis.MaxUpperMidrange()}");
+            logger?.LogDebug($"Avg Upper Midrange: {_analysis.AvgUpperMidrange()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min Presence: {_analysis.Frames.Min(f => f.Frequencybands[5])}");
-            logger?.LogDebug($"Max Presence: {_analysis.Frames.Max(f => f.Frequencybands[5])}");
-            logger?.LogDebug($"Avg Presence: {_analysis.Frames.Average(f => f.Frequencybands[5])}");
+            logger?.LogDebug($"Min Presence: {_analysis.MinPresence()}");
+            logger?.LogDebug($"Max Presence: {_analysis.MaxPresence()}");
+            logger?.LogDebug($"Avg Presence: {_analysis.AvgPresence()}");
             logger?.LogDebug("");
-            logger?.LogDebug($"Min Brilliance: {_analysis.Frames.Min(f => f.Frequencybands[6])}");
-            logger?.LogDebug($"Max Brilliance: {_analysis.Frames.Max(f => f.Frequencybands[6])}");
-            logger?.LogDebug($"Avg Brilliance: {_analysis.Frames.Average(f => f.Frequencybands[6])}");
+            logger?.LogDebug($"Min Brilliance: {_analysis.MinBrilliance()}");
+            logger?.LogDebug($"Max Brilliance: {_analysis.MaxBrilliance()}");
+            logger?.LogDebug($"Avg Brilliance: {_analysis.AvgBrilliance()}");
+
         }
 
+        /// <summary>
+        /// do audio analysis and fill the
+        /// </summary>
+        /// <param name="decibelScale"></param>
+        /// <param name="extraseconds"></param>
         public void AnalyseAudio(bool decibelScale, double extraseconds = 3)
         {
             uint framerate = Options.Framerate;
@@ -307,6 +333,10 @@ namespace Modulartistic.AudioGeneration
             _framecount = (int)((_analysis.AudioLength.TotalSeconds + extraseconds) * framerate);
         }
 
+        /// <summary>
+        /// Registers Extra functions and parameters for state functions used for pixel calculation
+        /// </summary>
+        /// <param name="idx"></param>
         public void RegisterAnalysisExtras(int idx)
         {
             foreach (MethodInfo mInfo in typeof(AudioAnalysis).GetMethods())
@@ -316,10 +346,17 @@ namespace Modulartistic.AudioGeneration
             }
 
             double time = idx / Options.Framerate;
-            State.AddExtraParameter("time", time);
-            State.AddExtraParameter("frame", idx);
+            State.SetExtraParameter("time", time);
+            State.SetExtraParameter("frame", idx);
         }
-
+        
+        /// <summary>
+        /// Evaluate an expression, used for calculating StatePropertyFunctions
+        /// </summary>
+        /// <param name="func"></param>
+        /// <param name="analysis"></param>
+        /// <param name="idx"></param>
+        /// <returns></returns>
         private double EvaluateFunction(string func, AudioAnalysis analysis, int idx)
         {
             Expression expression = new Expression(func);
@@ -330,86 +367,11 @@ namespace Modulartistic.AudioGeneration
             expression.Parameters["time"] = time;
             expression.Parameters["frame"] = idx;
 
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
+            foreach (MethodInfo mInfo in typeof(AudioAnalysis).GetMethods())
             {
-                if (name == nameof(analysis.GetPeakMax))
-                {
-                    float result = analysis.GetPeakMax(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetPeakMin))
-                {
-                    float result = analysis.GetPeakMin(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetSubBass))
-                {
-                    float result = analysis.GetSubBass(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetBass))
-                {
-                    float result = analysis.GetBass(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetLowerMidrange))
-                {
-                    float result = analysis.GetLowerMidrange(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetMidrange))
-                {
-                    float result = analysis.GetMidrange(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetUpperMidrange))
-                {
-                    float result = analysis.GetUpperMidrange(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetPresence))
-                {
-                    float result = analysis.GetPresence(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
-
-            expression.EvaluateFunction += delegate (string name, FunctionArgs args)
-            {
-                if (name == nameof(analysis.GetBrilliance))
-                {
-                    float result = analysis.GetBrilliance(Convert.ToInt32(args.Parameters[0].Evaluate()));
-                    args.Result = result;
-                }
-            };
+                if (mInfo.IsSpecialName) { continue; }
+                Helper.RegisterMethod(expression, analysis, mInfo);
+            }
 
             double result = Convert.ToDouble(expression.Evaluate());
             return result;
@@ -419,15 +381,30 @@ namespace Modulartistic.AudioGeneration
 
         #region json methods
 
-        public void LoadJson(JsonElement element, StateOptions opts)
+        /// <summary>
+        /// Loads audioAnimationBuilder properties from a JSON element and updates the builder accordingly.
+        /// </summary>
+        /// <param name="element">The JSON element containing the properties to be loaded.</param>
+        /// <exception cref="Exception">Thrown when a JSON property value is neither a string nor a number.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown when a JSON property name does not match any state property.</exception>
+        /// <remarks>
+        /// This method takes the State and Options properties of the JSON Element and iterates over theri properties to load the State and StateOptions objects. 
+        /// If a property value is a string, it is treated as an expression and evaluated. If it is a number, it is directly assigned.
+        /// If the Expression has errors it is assumed that it contains custom Analysis functions in which case the string is mapped to the <see cref="AudioAnimationBuilder.StatePropertyFunctions"/>
+        /// </remarks>
+        public void LoadJson(JsonElement element)
         {
-            JsonElement stateElement = element.GetProperty(nameof(State));
+            JsonElement optionsElement = element.GetProperty(nameof(StateOptions));
+            Options = StateOptions.FromJson(optionsElement);
+
+
+            JsonElement stateElement = element.GetProperty(nameof(Core.State));
+            State = State.FromJson(stateElement, Options);
             foreach (JsonProperty elem in stateElement.EnumerateObject())
             {
                 switch (elem.Name)
                 {
                     case nameof(State.Name):
-                        State[elem.Name] = elem.Value.GetString();
                         break;
                     case nameof(State.X0):
                     case nameof(State.Y0):
@@ -450,58 +427,35 @@ namespace Modulartistic.AudioGeneration
                     case nameof(State.ColorFactorRedHue):
                     case nameof(State.ColorFactorGreenSaturation):
                     case nameof(State.ColorFactorBlueValue):
-                        // retrieve the value beforehand
-                        double value;
                         if (elem.Value.ValueKind == JsonValueKind.String)
                         {
                             // if value is string type evaluate
                             Expression expr = new Expression(elem.Value.GetString());
                             Helper.ExprRegisterStateProperties(ref expr, State);
-                            Helper.ExprRegisterStateOptions(ref expr, opts);
+                            Helper.ExprRegisterStateOptions(ref expr, Options);
                             if (expr.HasErrors()) 
                             { 
                                 StatePropertyFunctions[elem.Name] = elem.Value.GetString() ?? "";
-                                break;
                             }
-                            value = (double)expr.Evaluate();
                         }
-                        else if (elem.Value.ValueKind == JsonValueKind.Number)
-                        {
-                            // if value is double type simply get value
-                            value = elem.Value.GetDouble();
-                        }
-                        else { throw new Exception($"Property {elem.Name} must be string or number. "); }
-                        State[elem.Name] = value;
                         break;
                     case nameof(State.Parameters):
                         // iterate over Parameters
                         int i = 0;
                         foreach (JsonElement param_elem in elem.Value.EnumerateArray())
                         {
-                            double param_value;
                             if (param_elem.ValueKind == JsonValueKind.String)
                             {
                                 // if value is string type evaluate
                                 Expression expr = new Expression(param_elem.GetString());
                                 Helper.ExprRegisterStateProperties(ref expr, State);
-                                Helper.ExprRegisterStateOptions(ref expr, opts);
+                                Helper.ExprRegisterStateOptions(ref expr, Options);
                                 if (expr.HasErrors())
                                 {
-                                    StatePropertyFunctions[elem.Name] = elem.Value.GetString() ?? "";
-                                    i++;
-                                    continue;
+                                    string name = $"i{i}";
+                                    StatePropertyFunctions[name] = elem.Value.GetString() ?? "";
                                 }
-                                param_value = (double)expr.Evaluate();
                             }
-                            else if (param_elem.ValueKind == JsonValueKind.Number)
-                            {
-                                // if value is double type simply get value
-                                param_value = param_elem.GetDouble();
-                            }
-                            else { throw new Exception($"Element must be string or number. "); }
-
-                            // set Parameter value
-                            State.Parameters[i] = param_value;
                             i++;
                         }
                         break;
@@ -509,9 +463,6 @@ namespace Modulartistic.AudioGeneration
                         throw new KeyNotFoundException($"Property '{elem.Name}' does not exist on type '{GetType().Name}'.");
                 }
             }
-
-            JsonElement optionsElement = element.GetProperty(nameof(StateOptions));
-            Options = StateOptions.FromJson(optionsElement);
         }
 
         /// <summary>
@@ -524,24 +475,24 @@ namespace Modulartistic.AudioGeneration
         /// This method initializes a new <see cref="State"/> instance and then loads its properties from the provided JSON element
         /// using the <see cref="LoadJson(JsonElement, StateOptions)"/> method.
         /// </remarks>
-        public static State FromJson(JsonElement element, StateOptions opts)
+        public static AudioAnimationBuilder FromJson(JsonElement element)
         {
-            State state = new State();
-            state.LoadJson(element, opts);
+            AudioAnimationBuilder builder = new AudioAnimationBuilder();
+            builder.LoadJson(element);
 
-            return state;
+            return builder;
         }
 
         /// <summary>
-        /// Uses the GenerationData schema to validate if a specified JSON element is a valid <see cref="GenerationData"/> object.
+        /// Uses the AudioAnimationBuilder schema to validate if a specified JSON element is a valid <see cref="AudioAnimationBuilder"/> object.
         /// </summary>
         /// <param name="root">The <see cref="JsonElement"/> to validate.</param>
         /// <returns><see cref="Json.Schema.EvaluationResults"/> containing the results of the validation.</returns>
         /// <exception cref="Exception">Thrown if the validation fails and the JSON is not in the correct format.</exception>
-        private static EvaluationResults ValidateGenerationDataJson(JsonElement root)
+        private static EvaluationResults ValidateAudioAnimationBuilderJson(JsonElement root)
         {
             // load jsonSchema
-            JsonSchema schema = JsonSchema.FromText(Schemas.GetGenerationDataSchema());
+            JsonSchema schema = JsonSchema.FromText(Schema.GetAudioAnimationBuilderSchema());
 
             // validate
             EvaluationResults result = schema.Evaluate(root);
@@ -551,9 +502,9 @@ namespace Modulartistic.AudioGeneration
         }
 
         /// <summary>
-        /// Serializes the current <see cref="GenerationData"/> object to a JSON string.
+        /// Serializes the current <see cref="AudioAnimationBuilder"/> object to a JSON string.
         /// </summary>
-        /// <returns>The serialized <see cref="GenerationData"/> object as a JSON string.</returns>
+        /// <returns>The serialized <see cref="AudioAnimationBuilder"/> object as a JSON string.</returns>
         /// <remarks>
         /// This method uses <see cref="JsonSerializer"/> with options to ignore null values, format the JSON with indentation, and use a custom dictionary converter.
         /// </remarks>
@@ -569,11 +520,17 @@ namespace Modulartistic.AudioGeneration
                 },
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
+            JsonObject root = JsonSerializer.SerializeToNode(this, options).AsObject();
+            foreach (KeyValuePair<string, string> kvp in StatePropertyFunctions)
+            {
+                root[nameof(Core.State)][kvp.Key] = kvp.Value;
+            }
+
             return JsonSerializer.Serialize(this, options);
         }
 
         /// <summary>
-        /// Saves the current <see cref="GenerationData"/> object as a JSON file.
+        /// Saves the current <see cref="AudioAnimationBuilder"/> object as a JSON file.
         /// </summary>
         /// <param name="out_dir">The directory where the JSON file should be saved.</param>
         /// <param name="name">The name of the JSON file (excluding extension).</param>
@@ -595,40 +552,7 @@ namespace Modulartistic.AudioGeneration
             // Write contents and Save the file
             File.WriteAllText(file_path_out + @".json", ToJson());
         }
-
-        public static AudioAnimationBuilder FromJson(JsonElement element)
-        {
-            AudioAnimationBuilder data = new AudioAnimationBuilder();
-            data.LoadJson(element);
-
-            return data;
-        }
-
-        public static AudioAnimationBuilder FromFile(string file)
-        {
-            if (!File.Exists(file)) { throw new FileNotFoundException($"The file '{file}' does not exist.", file); }
-
-            try
-            {
-                using (var stream = File.OpenRead(file))
-                {
-                    using (var jdoc = JsonDocument.Parse(stream))
-                    {
-                        return FromJson(jdoc.RootElement);
-                    }
-                }
-            }
-            catch (JsonException ex)
-            {
-                throw new JsonException($"Error parsing JSON in file '{file}': {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error processing file '{file}': {ex.Message}", ex);
-            }
-        }
-
-
+        
         #endregion
     }
 }

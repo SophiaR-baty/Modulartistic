@@ -9,17 +9,92 @@ namespace Modulartistic.AudioGeneration
 {
     internal class AudioAnalysis
     {
+        #region private fields
+
+        // filepath to the analyzed file
         private string _filepath;
+
+        // total length of the audio
         private TimeSpan _audio_length;
+
+        // collection of audio frames containing audio data
         private AudioFrame[] _frames;
+
         // total number of frames
         private int _number_of_frames;
+
+        // framerate
         private int _framerate;
 
+        #region private fields for helper methods
+
+        private float _maxPeakMax;
+        private float _minPeakMax;
+        private float _avgPeakMax;
+
+        private float _maxPeakMin;
+        private float _minPeakMin;
+        private float _avgPeakMin;
+
+        private float _maxSubBass;
+        private float _minSubBass;
+        private float _avgSubBass;
+
+        private float _maxBass;
+        private float _minBass;
+        private float _avgBass; 
+        
+        private float _maxLowerMidrange;
+        private float _minLowerMidrange;
+        private float _avgLowerMidrange;
+
+        private float _maxMidrange;
+        private float _minMidrange;
+        private float _avgMidrange; 
+        
+        private float _maxUpperMidrange;
+        private float _minUpperMidrange;
+        private float _avgUpperMidrange;
+
+        private float _maxPresence;
+        private float _minPresence;
+        private float _avgPresence;
+
+        private float _maxBrilliance;
+        private float _minBrilliance;
+        private float _avgBrilliance;
+
+        #endregion
+
+        #endregion
+
+        #region public properties
+
+        /// <summary>
+        /// Get the length of the analyzed audio
+        /// </summary>
         public TimeSpan AudioLength { get => _audio_length; }
+        
+        /// <summary>
+        /// get the number of Frames
+        /// </summary>
         public int FrameCount { get => _number_of_frames; }
+        
+        /// <summary>
+        /// Get the frame array
+        /// </summary>
         public AudioFrame[] Frames { get => _frames; }
 
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Create a new audio analysis and fill the array of audioframes
+        /// </summary>
+        /// <param name="filePath">The file path to the audio file to analyze</param>
+        /// <param name="framerate">The framerate used for animation generation, determines the total framecount</param>
+        /// <param name="decibelScale">Wether or not to use decibel scale</param>
         public AudioAnalysis(string filePath, int framerate, bool decibelScale)
         {
             _filepath = filePath;
@@ -28,7 +103,6 @@ namespace Modulartistic.AudioGeneration
             using (var reader = new AudioFileReader(_filepath))
             {
                 _number_of_frames = (int)Math.Ceiling(reader.TotalTime.TotalSeconds * _framerate);
-
                 _frames = new AudioFrame[_number_of_frames];
                 _audio_length = reader.TotalTime;
 
@@ -51,8 +125,19 @@ namespace Modulartistic.AudioGeneration
                 reader.Position = 0;
                 FillFrequencyBands(reader, decibelScale);
             }
+
+            InitializeMinMaxAvg();
         }
 
+        #endregion
+
+        #region private methods for audio analysis
+
+        /// <summary>
+        /// fill the min and max peaks of all audio frames
+        /// </summary>
+        /// <param name="peakProvider">a peak provider</param>
+        /// <param name="decibelScale">whether to use decibel scale</param>
         private void FillPeaks(IPeakProvider peakProvider, bool decibelScale)
         {
             double dynamicRange = 48;
@@ -85,6 +170,11 @@ namespace Modulartistic.AudioGeneration
             }
         }
 
+        /// <summary>
+        /// Fill the Frequency information of all Frames
+        /// </summary>
+        /// <param name="reader">an audio reader</param>
+        /// <param name="decibelScale">whether or not to use decibel scale</param>
         private void FillFrequencyBands(AudioFileReader reader, bool decibelScale)
         {
             int bytesPerSample = reader.WaveFormat.BitsPerSample / 8;
@@ -157,7 +247,11 @@ namespace Modulartistic.AudioGeneration
                 frame++;
             }
         }
-        
+
+        #endregion
+
+        #region public methods for expression evaluation
+
         public float GetPeakMax(int frame)
         {
             if (frame < 0 || frame >= _frames.Length)
@@ -227,5 +321,222 @@ namespace Modulartistic.AudioGeneration
                 return 0;
             return _frames[frame].Frequencybands[6];
         }
+
+        #region min, max and avg
+
+        private void InitializeMinMaxAvg()
+        {
+            _maxPeakMax = Frames.Max(f => f.PeakMax);
+            _minPeakMax = Frames.Min(f => f.PeakMax);
+            _avgPeakMax = Frames.Average(f => f.PeakMax);
+
+            _maxPeakMin = Frames.Max(f => f.PeakMin);
+            _minPeakMin = Frames.Min(f => f.PeakMin);
+            _avgPeakMin = Frames.Average(f => f.PeakMin);
+
+            _maxSubBass = Frames.Max(f => f.Frequencybands[0]);
+            _minSubBass = Frames.Min(f => f.Frequencybands[0]);
+            _avgSubBass = Frames.Average(f => f.Frequencybands[0]);
+
+            _maxBass = Frames.Max(f => f.Frequencybands[1]);
+            _minBass = Frames.Min(f => f.Frequencybands[1]);
+            _avgBass = Frames.Average(f => f.Frequencybands[1]);
+
+            _maxLowerMidrange = Frames.Max(f => f.Frequencybands[2]);
+            _minLowerMidrange = Frames.Min(f => f.Frequencybands[2]);
+            _avgLowerMidrange = Frames.Average(f => f.Frequencybands[2]);
+
+            _maxMidrange = Frames.Max(f => f.Frequencybands[3]);
+            _minMidrange = Frames.Min(f => f.Frequencybands[3]);
+            _avgMidrange = Frames.Average(f => f.Frequencybands[3]);
+
+            _maxUpperMidrange = Frames.Max(f => f.Frequencybands[4]);
+            _minUpperMidrange = Frames.Min(f => f.Frequencybands[4]);
+            _avgUpperMidrange = Frames.Average(f => f.Frequencybands[4]);
+
+            _maxPresence = Frames.Max(f => f.Frequencybands[5]);
+            _minPresence = Frames.Min(f => f.Frequencybands[5]);
+            _avgPresence = Frames.Average(f => f.Frequencybands[5]);
+
+            _maxBrilliance = Frames.Max(f => f.Frequencybands[6]);
+            _minBrilliance = Frames.Min(f => f.Frequencybands[6]);
+            _avgBrilliance = Frames.Average(f => f.Frequencybands[6]);
+
+        }
+
+        #region PeakMax
+
+        public float MaxPeakMax()
+        {
+            return _maxPeakMax;
+        }
+
+        public float MinPeakMax()
+        {
+            return _minPeakMax;
+        }
+
+        public float AvgPeakMax()
+        {
+            return _avgPeakMax;
+        }
+
+        #endregion
+
+        #region PeakMin
+
+        public float MaxPeakMin()
+        {
+            return _maxPeakMin;
+        }
+
+        public float MinPeakMin()
+        {
+            return _minPeakMin;
+        }
+
+        public float AvgPeakMin()
+        {
+            return _avgPeakMin;
+        }
+
+        #endregion
+
+        #region SubBass
+
+        public float MaxSubBass()
+        {
+            return _maxSubBass;
+        }
+
+        public float MinSubBass()
+        {
+            return _minSubBass;
+        }
+
+        public float AvgSubBass()
+        {
+            return _avgSubBass;
+        }
+
+        #endregion
+
+        #region Bass
+
+        public float MaxBass()
+        {
+            return _maxBass;
+        }
+
+        public float MinBass()
+        {
+            return _minBass;
+        }
+
+        public float AvgBass()
+        {
+            return _avgBass;
+        }
+
+        #endregion
+
+        #region Lower Midrange
+
+        public float MaxLowerMidrange()
+        {
+            return _maxLowerMidrange;
+        }
+
+        public float MinLowerMidrange()
+        {
+            return _minLowerMidrange;
+        }
+
+        public float AvgLowerMidrange()
+        {
+            return _avgLowerMidrange;
+        }
+
+        #endregion
+
+        #region midrange
+
+        public float MaxMidrange()
+        {
+            return _maxMidrange;
+        }
+
+        public float MinMidrange()
+        {
+            return _minMidrange;
+        }
+
+        public float AvgMidrange()
+        {
+            return _avgMidrange;
+        }
+
+        #endregion
+
+        #region upper midrange
+
+        public float MaxUpperMidrange()
+        {
+            return _maxUpperMidrange;
+        }
+
+        public float MinUpperMidrange()
+        {
+            return _minUpperMidrange;
+        }
+
+        public float AvgUpperMidrange()
+        {
+            return _avgUpperMidrange;
+        }
+
+        #endregion
+
+        #region presence
+
+        public float MaxPresence()
+        {
+            return _maxPresence;
+        }
+
+        public float MinPresence()
+        {
+            return _minPresence;
+        }
+
+        public float AvgPresence()
+        {
+            return _avgPresence;
+        }
+
+        #endregion
+
+        #region brilliance
+
+        public float MaxBrilliance()
+        {
+            return _maxBrilliance;
+        }
+
+        public float MinBrilliance()
+        {
+            return _minBrilliance;
+        }
+
+        public float AvgBrilliance()
+        {
+            return _avgBrilliance;
+        }
+
+        #endregion
+
+        #endregion
+
+        #endregion
     }
 }
