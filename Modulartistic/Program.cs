@@ -505,9 +505,10 @@ namespace Modulartistic
 
                     int length = files.Length;
                     Core.Progress? fileloopProgress = null;
-                    { fileloopProgress = reporter.AddTask("fileloop", "Generating all files...", length); }
+                    { fileloopProgress = reporter.AddTask("fileloop", "Generating Audio visualisation...", length); }
 
                     bool jsonTemplateLoaded = false;
+                    AudioAnimationBuilder builder = new AudioAnimationBuilder();
                     foreach (string file in files)
                     {
                         try
@@ -515,15 +516,16 @@ namespace Modulartistic
                             if (Path.GetExtension(file) == ".json")
                             {
                                 // load json template
+                                builder = AudioAnimationBuilder.FromFile(file);
                                 jsonTemplateLoaded = true;
                             }
                             else
                             {
                                 // initializing builder
-                                AudioAnimationBuilder builder = new AudioAnimationBuilder(file);
+                                builder.InputFile = file;
 
                                 #region debug values for builder
-
+                                /*
                                 // configuring builder (implement json template)
                                 builder.State = new State()
                                 {
@@ -543,7 +545,7 @@ namespace Modulartistic
                                     Height = 200,
                                     Width = 200,
                                 };
-
+                                */
                                 #endregion
 
                                 // seting generation options
@@ -560,9 +562,10 @@ namespace Modulartistic
 
                                 bool decibelScale = options.DecibelScale;
 
+                                builder.AnalyseAudio(decibelScale);
                                 builder.PrintDebug(opts, decibelScale);
 
-                                if (true || jsonTemplateLoaded)
+                                if (jsonTemplateLoaded)
                                 {
                                     // creating animation
                                     Task<string> task = builder.GenerateAnimation(opts, decibelScale, options.OutputDirectory);
@@ -579,8 +582,8 @@ namespace Modulartistic
                                         {
                                             FileName = PathProvider.GetFFmpegPath(),
                                             Arguments = $"-i \"{task.Result}\" -i \"{file}\" -c:v copy -c:a aac -strict experimental {tmpName}.mp4 -y",
-                                            RedirectStandardOutput = false,
-                                            RedirectStandardError = false,
+                                            RedirectStandardOutput = true,
+                                            RedirectStandardError = true,
                                             UseShellExecute = false,
                                             CreateNoWindow = true
                                         };

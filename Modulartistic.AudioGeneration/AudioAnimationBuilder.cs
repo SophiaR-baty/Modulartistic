@@ -394,11 +394,11 @@ namespace Modulartistic.AudioGeneration
         /// </remarks>
         public void LoadJson(JsonElement element)
         {
-            JsonElement optionsElement = element.GetProperty(nameof(StateOptions));
+            JsonElement optionsElement = element.GetProperty(nameof(Options));
             Options = StateOptions.FromJson(optionsElement);
 
 
-            JsonElement stateElement = element.GetProperty(nameof(Core.State));
+            JsonElement stateElement = element.GetProperty(nameof(State));
             State = State.FromJson(stateElement, Options);
             foreach (JsonProperty elem in stateElement.EnumerateObject())
             {
@@ -481,6 +481,41 @@ namespace Modulartistic.AudioGeneration
             builder.LoadJson(element);
 
             return builder;
+        }
+
+        /// <summary>
+        /// Loads <see cref="AudioAnimationBuilder"/> from a JSON file.
+        /// </summary>
+        /// <param name="file">The path to the JSON file.</param>
+        /// <returns>A new instance of <see cref="AudioAnimationBuilder"/> populated with the data from the JSON file.</returns>
+        /// <exception cref="FileNotFoundException">Thrown if the specified file does not exist.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if the JSON file contains an unrecognized property type.</exception>
+        /// <exception cref="JsonException">Thrown if there is an error parsing the JSON file.</exception>
+        /// <remarks>
+        /// This method reads the JSON file, parses it into a <see cref="JsonDocument"/>, and creates a <see cref="AudioAnimationBuilder"/> instance from the root JSON element.
+        /// </remarks>
+        public static AudioAnimationBuilder FromFile(string file)
+        {
+            if (!File.Exists(file)) { throw new FileNotFoundException($"The file '{file}' does not exist.", file); }
+
+            try
+            {
+                using (var stream = File.OpenRead(file))
+                {
+                    using (var jdoc = JsonDocument.Parse(stream))
+                    {
+                        return FromJson(jdoc.RootElement);
+                    }
+                }
+            }
+            catch (JsonException ex)
+            {
+                throw new JsonException($"Error parsing JSON in file '{file}': {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error processing file '{file}': {ex.Message}", ex);
+            }
         }
 
         /// <summary>
