@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>AudioVisualization</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
   </ItemGroup>
 
 </Project>

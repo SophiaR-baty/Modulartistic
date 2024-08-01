@@ -6,6 +6,7 @@ using Modulartistic.AddOns;
 using System.Reflection.Metadata.Ecma335;
 using System.Linq;
 using FFMpegCore;
+using System.Collections.Concurrent;
 
 namespace Modulartistic.Core
 {
@@ -24,6 +25,8 @@ namespace Modulartistic.Core
             typeof(double),
             typeof(decimal),
         };
+
+        private static ConcurrentDictionary<string, Type> _addOnCache = new ConcurrentDictionary<string, Type>();
 
         #region constructors
 
@@ -90,7 +93,7 @@ namespace Modulartistic.Core
         /// <param name="dll_path"></param>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public void LoadAddOn(string dll_path)
+        public void LoadAddOn(string dll_path, State s, StateOptions sOpts, GenerationOptions gOpts)
         {
             if (!File.Exists(dll_path))
             {
@@ -104,11 +107,26 @@ namespace Modulartistic.Core
             Type[] typeInfos = testDLL.GetTypes().Where(type => type.GetCustomAttribute(typeof(AddOnAttribute)) is not null).ToArray();
 
 
-            foreach (Type type in typeInfos)
+            for (int i = 0; i < typeInfos.Length; i++)
             {
-                // gets all public static methods of the type
-                // -> only methods that should be exposed to the parser should be public static
-                MethodInfo[] methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                Type type = typeInfos[i];
+                MethodInfo[] methodInfos;
+                if (_addOnCache.ContainsKey(type.FullName)) 
+                {
+                    type = _addOnCache[type.FullName];
+                    methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                }
+                else
+                {
+                    // gets all public static methods of the type
+                    // -> only methods that should be exposed to the parser should be public static
+                    _addOnCache.TryAdd(type.FullName, type);
+                    methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+
+                    // initialize if exists
+                    MethodInfo? initMethod = type.GetMethod("Initialize");
+                    initMethod?.Invoke(null, [s, sOpts, gOpts]);
+                }
 
                 // iterates over all such methods
                 foreach (MethodInfo methodInfo in methodInfos)
@@ -144,11 +162,12 @@ namespace Modulartistic.Core
         /// Load AddOns from a Collection of strings containing paths to dll_files
         /// </summary>
         /// <param name="dll_paths"></param>
-        public void LoadAddOns(IEnumerable<string> dll_paths, IPathProvider pathProvider)
+        public void LoadAddOns(IEnumerable<string> dll_paths, State s, StateOptions sOpts, GenerationOptions gOpts)
         {
+            IPathProvider pathProvider = gOpts.PathProvider;
             foreach (string dll in dll_paths)
             {
-                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider));
+                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider), s, sOpts, gOpts);
             }
         }
     }

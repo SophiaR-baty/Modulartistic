@@ -25,6 +25,7 @@ namespace Modulartistic.AddOns.AudioVisualization
         // framerate
         private int _framerate;
 
+
         #region private fields for helper methods
 
         private float? _maxPeakMax;
@@ -59,15 +60,17 @@ namespace Modulartistic.AddOns.AudioVisualization
         private float? _minPresence;
         private float? _avgPresence;
 
-        private float _maxBrilliance;
-        private float _minBrilliance;
-        private float _avgBrilliance;
+        private float? _maxBrilliance;
+        private float? _minBrilliance;
+        private float? _avgBrilliance;
 
         #endregion
 
         #endregion
 
         #region public properties
+
+        public bool FinishedAnalysis { get; private set; } = false;
 
         /// <summary>
         /// get the number of Frames
@@ -91,29 +94,30 @@ namespace Modulartistic.AddOns.AudioVisualization
         public float MinSubBass { get => _minSubBass ?? (_minSubBass = Frames.Min(f => f.Frequencybands[0])).Value; }
         public float AvgSubBass { get => _avgSubBass ?? (_avgSubBass = Frames.Average(f => f.Frequencybands[0])).Value; }
 
-        public float MaxBass;
-        public float MinBass;
-        public float AvgBass;
+        public float MaxBass { get => _maxBass ?? (_maxBass = Frames.Max(f => f.Frequencybands[1])).Value; }
+        public float MinBass { get => _minBass ?? (_minBass = Frames.Min(f => f.Frequencybands[1])).Value; }
+        public float AvgBass { get => _avgBass ?? (_avgBass = Frames.Average(f => f.Frequencybands[1])).Value; }
 
-        public float MaxLowerMidrange;
-        public float MinLowerMidrange;
-        public float AvgLowerMidrange;
+        public float MaxLowerMidrange { get => _maxLowerMidrange ?? (_maxLowerMidrange = Frames.Max(f => f.Frequencybands[2])).Value; }
+        public float MinLowerMidrange { get => _minLowerMidrange ?? (_minLowerMidrange = Frames.Min(f => f.Frequencybands[2])).Value; }
+        public float AvgLowerMidrange { get => _avgLowerMidrange ?? (_avgLowerMidrange = Frames.Average(f => f.Frequencybands[2])).Value; }
 
-        public float MaxMidrange;
-        public float MinMidrange;
-        public float AvgMidrange;
+        public float MaxMidrange { get => _maxMidrange ?? (_maxMidrange = Frames.Max(f => f.Frequencybands[3])).Value; }
+        public float MinMidrange { get => _minMidrange ?? (_minMidrange = Frames.Min(f => f.Frequencybands[3])).Value; }
+        public float AvgMidrange { get => _avgMidrange ?? (_avgMidrange = Frames.Average(f => f.Frequencybands[3])).Value; }
 
-        public float MaxUpperMidrange;
-        public float MinUpperMidrange;
-        public float AvgUpperMidrange;
+        public float MaxUpperMidrange { get => _maxUpperMidrange ?? (_maxUpperMidrange = Frames.Max(f => f.Frequencybands[4])).Value; }
+        public float MinUpperMidrange { get => _minUpperMidrange ?? (_minUpperMidrange = Frames.Min(f => f.Frequencybands[4])).Value; }
+        public float AvgUpperMidrange { get => _avgUpperMidrange ?? (_avgUpperMidrange = Frames.Average(f => f.Frequencybands[4])).Value; }
 
-        public float MaxPresence;
-        public float MinPresence;
-        public float AvgPresence;
+        public float MaxPresence { get => _maxPresence ?? (_maxPresence = Frames.Max(f => f.Frequencybands[5])).Value; }
+        public float MinPresence { get => _minPresence ?? (_minPresence = Frames.Min(f => f.Frequencybands[5])).Value; }
+        public float AvgPresence { get => _avgPresence ?? (_avgPresence = Frames.Average(f => f.Frequencybands[5])).Value; }
 
-        public float MaxBrilliance;
-        public float MinBrilliance;
-        public float AvgBrilliance;
+        public float MaxBrilliance { get => _maxBrilliance ?? (_maxBrilliance = Frames.Max(f => f.Frequencybands[6])).Value; }
+        public float MinBrilliance { get => _minBrilliance ?? (_minBrilliance = Frames.Min(f => f.Frequencybands[6])).Value; }
+        public float AvgBrilliance { get => _avgBrilliance ?? (_avgBrilliance = Frames.Average(f => f.Frequencybands[6])).Value; }
+
 
         #endregion
 
@@ -156,7 +160,7 @@ namespace Modulartistic.AddOns.AudioVisualization
                 FillFrequencyBands(reader, decibelScale);
             }
 
-            InitializeMinMaxAvg();
+            FinishedAnalysis = true;
         }
 
         #endregion
@@ -277,295 +281,6 @@ namespace Modulartistic.AddOns.AudioVisualization
                 frame++;
             }
         }
-
-        #endregion
-
-        #region public methods for expression evaluation
-
-        public float GetPeakMax(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].PeakMax;
-        }
-
-        public float GetPeakMin(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].PeakMin;
-        }
-
-        public float GetFrequency(int frame, int band)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[band];
-        }
-
-        public float GetSubBass(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[0];
-        }
-
-        public float GetBass(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[1];
-        }
-
-        public float GetLowerMidrange(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[2];
-        }
-
-        public float GetMidrange(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[3];
-        }
-
-        public float GetUpperMidrange(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[4];
-        }
-
-        public float GetPresence(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[5];
-        }
-
-        public float GetBrilliance(int frame)
-        {
-            if (frame < 0 || frame >= _frames.Length)
-                return 0;
-            return _frames[frame].Frequencybands[6];
-        }
-
-        #region min, max and avg
-
-        private void InitializeMinMaxAvg()
-        {
-            _maxPeakMax = Frames.Max(f => f.PeakMax);
-            _minPeakMax = Frames.Min(f => f.PeakMax);
-            _avgPeakMax = Frames.Average(f => f.PeakMax);
-
-            _maxPeakMin = Frames.Max(f => f.PeakMin);
-            _minPeakMin = Frames.Min(f => f.PeakMin);
-            _avgPeakMin = Frames.Average(f => f.PeakMin);
-
-            _maxSubBass = Frames.Max(f => f.Frequencybands[0]);
-            _minSubBass = Frames.Min(f => f.Frequencybands[0]);
-            _avgSubBass = Frames.Average(f => f.Frequencybands[0]);
-
-            _maxBass = Frames.Max(f => f.Frequencybands[1]);
-            _minBass = Frames.Min(f => f.Frequencybands[1]);
-            _avgBass = Frames.Average(f => f.Frequencybands[1]);
-
-            _maxLowerMidrange = Frames.Max(f => f.Frequencybands[2]);
-            _minLowerMidrange = Frames.Min(f => f.Frequencybands[2]);
-            _avgLowerMidrange = Frames.Average(f => f.Frequencybands[2]);
-
-            _maxMidrange = Frames.Max(f => f.Frequencybands[3]);
-            _minMidrange = Frames.Min(f => f.Frequencybands[3]);
-            _avgMidrange = Frames.Average(f => f.Frequencybands[3]);
-
-            _maxUpperMidrange = Frames.Max(f => f.Frequencybands[4]);
-            _minUpperMidrange = Frames.Min(f => f.Frequencybands[4]);
-            _avgUpperMidrange = Frames.Average(f => f.Frequencybands[4]);
-
-            _maxPresence = Frames.Max(f => f.Frequencybands[5]);
-            _minPresence = Frames.Min(f => f.Frequencybands[5]);
-            _avgPresence = Frames.Average(f => f.Frequencybands[5]);
-
-            _maxBrilliance = Frames.Max(f => f.Frequencybands[6]);
-            _minBrilliance = Frames.Min(f => f.Frequencybands[6]);
-            _avgBrilliance = Frames.Average(f => f.Frequencybands[6]);
-
-        }
-
-        #region PeakMax
-
-        public float MaxPeakMax()
-        {
-            return _maxPeakMax;
-        }
-
-        public float MinPeakMax()
-        {
-            return _minPeakMax;
-        }
-
-        public float AvgPeakMax()
-        {
-            return _avgPeakMax;
-        }
-
-        #endregion
-
-        #region PeakMin
-
-        public float MaxPeakMin()
-        {
-            return _maxPeakMin;
-        }
-
-        public float MinPeakMin()
-        {
-            return _minPeakMin;
-        }
-
-        public float AvgPeakMin()
-        {
-            return _avgPeakMin;
-        }
-
-        #endregion
-
-        #region SubBass
-
-        public float MaxSubBass()
-        {
-            return _maxSubBass;
-        }
-
-        public float MinSubBass()
-        {
-            return _minSubBass;
-        }
-
-        public float AvgSubBass()
-        {
-            return _avgSubBass;
-        }
-
-        #endregion
-
-        #region Bass
-
-        public float MaxBass()
-        {
-            return _maxBass;
-        }
-
-        public float MinBass()
-        {
-            return _minBass;
-        }
-
-        public float AvgBass()
-        {
-            return _avgBass;
-        }
-
-        #endregion
-
-        #region Lower Midrange
-
-        public float MaxLowerMidrange()
-        {
-            return _maxLowerMidrange;
-        }
-
-        public float MinLowerMidrange()
-        {
-            return _minLowerMidrange;
-        }
-
-        public float AvgLowerMidrange()
-        {
-            return _avgLowerMidrange;
-        }
-
-        #endregion
-
-        #region midrange
-
-        public float MaxMidrange()
-        {
-            return _maxMidrange;
-        }
-
-        public float MinMidrange()
-        {
-            return _minMidrange;
-        }
-
-        public float AvgMidrange()
-        {
-            return _avgMidrange;
-        }
-
-        #endregion
-
-        #region upper midrange
-
-        public float MaxUpperMidrange()
-        {
-            return _maxUpperMidrange;
-        }
-
-        public float MinUpperMidrange()
-        {
-            return _minUpperMidrange;
-        }
-
-        public float AvgUpperMidrange()
-        {
-            return _avgUpperMidrange;
-        }
-
-        #endregion
-
-        #region presence
-
-        public float MaxPresence()
-        {
-            return _maxPresence;
-        }
-
-        public float MinPresence()
-        {
-            return _minPresence;
-        }
-
-        public float AvgPresence()
-        {
-            return _avgPresence;
-        }
-
-        #endregion
-
-        #region brilliance
-
-        public float MaxBrilliance()
-        {
-            return _maxBrilliance;
-        }
-
-        public float MinBrilliance()
-        {
-            return _minBrilliance;
-        }
-
-        public float AvgBrilliance()
-        {
-            return _avgBrilliance;
-        }
-
-        #endregion
-
-        #endregion
 
         #endregion
     }

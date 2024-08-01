@@ -431,7 +431,7 @@ namespace Modulartistic.Core
                 Func_R_H = new Function(args.FunctionRedHue);
                 Func_R_H.RegisterStateProperties(this, args);
                 RegisterExtras(Func_R_H);
-                if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
+                if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), this, args, options);
                 Func_R_H_null = false;
             }
             if (!string.IsNullOrEmpty(args.FunctionGreenSaturation))
@@ -439,7 +439,7 @@ namespace Modulartistic.Core
                 Func_G_S = new Function(args.FunctionGreenSaturation);
                 Func_G_S.RegisterStateProperties(this, args);
                 RegisterExtras(Func_G_S);
-                if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
+                if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), this, args, options);
                 Func_G_S_null = false;
             }
             if (!string.IsNullOrEmpty(args.FunctionBlueValue))
@@ -447,7 +447,7 @@ namespace Modulartistic.Core
                 Func_B_V = new Function(args.FunctionBlueValue);
                 Func_B_V.RegisterStateProperties(this, args);
                 RegisterExtras(Func_B_V);
-                if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
+                if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), this, args, options);
                 Func_B_V_null = false;
             }
 
@@ -456,7 +456,7 @@ namespace Modulartistic.Core
                 Func_Alp = new Function(args.FunctionAlpha);
                 Func_Alp.RegisterStateProperties(this, args);
                 RegisterExtras(Func_Alp);
-                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), options.PathProvider);
+                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), this, args, options);
                 Func_Alp_null = false;
             }
             #endregion
