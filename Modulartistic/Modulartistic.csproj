@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AudioGeneration\Modulartistic.AudioGeneration.csproj" />
     <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
   </ItemGroup>
 

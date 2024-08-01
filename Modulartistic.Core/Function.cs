@@ -111,12 +111,7 @@ namespace Modulartistic.Core
             {
                 Type type = typeInfos[i];
                 MethodInfo[] methodInfos;
-                if (_addOnCache.ContainsKey(type.FullName)) 
-                {
-                    type = _addOnCache[type.FullName];
-                    methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
-                }
-                else
+                if (!_addOnCache.ContainsKey(type.FullName)) 
                 {
                     // gets all public static methods of the type
                     // -> only methods that should be exposed to the parser should be public static
@@ -127,6 +122,8 @@ namespace Modulartistic.Core
                     MethodInfo? initMethod = type.GetMethod("Initialize");
                     initMethod?.Invoke(null, [s, sOpts, gOpts]);
                 }
+                type = _addOnCache[type.FullName];
+                methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
 
                 // iterates over all such methods
                 foreach (MethodInfo methodInfo in methodInfos)
