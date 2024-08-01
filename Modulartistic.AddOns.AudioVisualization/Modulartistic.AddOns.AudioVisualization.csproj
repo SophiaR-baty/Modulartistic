@@ -4,17 +4,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>AudioVisualization</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="3.1.253" />
+    <PackageReference Include="Accord.Audio" Version="3.8.0" />
+    <PackageReference Include="Accord.Audition" Version="3.8.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="NAudio.WaveFormRenderer" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj" />
-    <ProjectReference Include="..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
   </ItemGroup>
 
 </Project>
