@@ -7,6 +7,17 @@
     <AssemblyName>Debug</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+	<GenerateDepsFile>false</GenerateDepsFile>
+  </PropertyGroup>
+	
   <ItemGroup>
     <ProjectReference Include="..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
   </ItemGroup>

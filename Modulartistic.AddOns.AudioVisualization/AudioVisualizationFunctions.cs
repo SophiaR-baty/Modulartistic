@@ -10,6 +10,7 @@ namespace Modulartistic.AddOns.AudioVisualization
         {
             if (initialized) { return; }
 
+            audios = new ConcurrentDictionary<string, AudioAnalysis>();
             Framerate = (int)sOpts.Framerate;
             gOpts.Logger?.LogDebug($"{nameof(AudioVisualizationFunctions)} initialized");
             initialized = true;

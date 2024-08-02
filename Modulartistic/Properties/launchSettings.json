@@ -2,7 +2,7 @@
   "profiles": {
     "Modulartistic": {
       "commandName": "Project",
-      "commandLineArgs": "audio-visualize -d -k -o . -i \"audio.mp3\"",
+      "commandLineArgs": "generate -i input.json -o . -f -1 -d",
       "workingDirectory": "D:\\mgeo\\projects\\Modulartistic\\Modulartistic\\bin\\Debug\\net8.0"
     }
   }

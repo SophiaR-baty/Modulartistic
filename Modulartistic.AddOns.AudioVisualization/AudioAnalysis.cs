@@ -2,8 +2,6 @@
 using NAudio.Dsp;
 using System;
 using NAudio.WaveFormRenderer;
-using Accord.Audition.Beat;
-using Accord.Audio;
 using System.Runtime.InteropServices;
 using System.Reflection.PortableExecutable;
 
