@@ -7,6 +7,7 @@ using CommandLine.Text;
 using FFMpegCore;
 using FFMpegCore.Helpers;
 using Antlr4.Runtime.Misc;
+using System.Diagnostics;
 
 namespace Modulartistic
 {
@@ -17,6 +18,7 @@ namespace Modulartistic
 
         static int Main(string[] args)
         {
+            int errorcode = 0;
             try
             {
                 Logger = new Logger(PathProvider.GetLogFilePath());
@@ -40,7 +42,6 @@ namespace Modulartistic
                 Logger?.LogDebug($"Error writing JSON schema to {filePath}");
             }
 
-            int errorcode = 0;
             try
             {
                 errorcode = Parser.Default.ParseArguments<ConfigOptions, GenerateOptions>(args)
@@ -51,7 +52,7 @@ namespace Modulartistic
             }
             catch (Exception e)
             {
-                Logger?.LogError(e.Message);
+                Logger?.LogException(e);
             }
             
 
@@ -428,16 +429,11 @@ namespace Modulartistic
 
 
                     double elapsed = tasks["fileloop"].ElapsedTime.Value.TotalMilliseconds;
-                    Logger.LogInfo($"{elapsed}");
+                    Logger.LogInfo($"Time elapsed: {elapsed}");
                 }
             );
 
-
-            
-
-            return 0;
-
+            return errorcode;
         }
-
     }
 }

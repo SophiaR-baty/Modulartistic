@@ -4,22 +4,26 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Debug</AssemblyName>
+    <AssemblyName>AudioVisualization</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo></GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-	<GenerateDepsFile>false</GenerateDepsFile>
+
   </PropertyGroup>
-	
+
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.WaveFormRenderer" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj">
+		  
+	  </ProjectReference>
   </ItemGroup>
 
 </Project>
