@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using SkiaSharp;
 using System.Collections.Generic;
+using Modulartistic.Common;
 
 #nullable enable
 
@@ -65,6 +66,11 @@ namespace Modulartistic.Core
 
         private Dictionary<object, HashSet<MethodInfo>> _extraFunctions;
         private Dictionary<string, object> _extraParameters;
+
+        private Function Func_R_H;
+        private Function Func_G_S;
+        private Function Func_B_V;
+        private Function Func_Alp;
 
         #endregion
 
@@ -315,6 +321,11 @@ namespace Modulartistic.Core
             m_factor_b_v = Constants.State.COLORFACT_DEFAULT;
 
             m_parameters = new double[10];
+
+            Func_R_H = new Function();
+            Func_G_S = new Function();
+            Func_B_V = new Function();
+            Func_Alp = new Function();
         }
 
         /// <summary>
@@ -417,48 +428,10 @@ namespace Modulartistic.Core
             // if rgb is not used c_r_h will be expected to be an input from 0-360, however for calculation a value 0-1 is expected
             if (!useRGB) { col_r_h /= 360; }
             // instanciate the functions
-            Function? Func_R_H = null;
-            Function? Func_G_S = null;
-            Function? Func_B_V = null;
-            Function? Func_Alp = null;
-            bool Func_R_H_null = true;
-            bool Func_G_S_null = true;
-            bool Func_B_V_null = true;
-            bool Func_Alp_null = true;
-            // parse the functions
-            if (!string.IsNullOrEmpty(args.FunctionRedHue))
-            {
-                Func_R_H = new Function(args.FunctionRedHue);
-                Func_R_H.RegisterStateProperties(this, args);
-                RegisterExtras(Func_R_H);
-                if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_R_H_null = false;
-            }
-            if (!string.IsNullOrEmpty(args.FunctionGreenSaturation))
-            {
-                Func_G_S = new Function(args.FunctionGreenSaturation);
-                Func_G_S.RegisterStateProperties(this, args);
-                RegisterExtras(Func_G_S);
-                if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_G_S_null = false;
-            }
-            if (!string.IsNullOrEmpty(args.FunctionBlueValue))
-            {
-                Func_B_V = new Function(args.FunctionBlueValue);
-                Func_B_V.RegisterStateProperties(this, args);
-                RegisterExtras(Func_B_V);
-                if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_B_V_null = false;
-            }
-
-            if (!string.IsNullOrEmpty(args.FunctionAlpha))
-            {
-                Func_Alp = new Function(args.FunctionAlpha);
-                Func_Alp.RegisterStateProperties(this, args);
-                RegisterExtras(Func_Alp);
-                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_Alp_null = false;
-            }
+            bool Func_R_H_null = Func_R_H.FunctionString == "";
+            bool Func_G_S_null = Func_G_S.FunctionString == "";
+            bool Func_B_V_null = Func_B_V.FunctionString == "";
+            bool Func_Alp_null = Func_Alp.FunctionString == "";
             #endregion
 
             #region Setting values for partial creation
@@ -512,7 +485,7 @@ namespace Modulartistic.Core
                         pixel_alp = 0;    // alpha
 
                     #region Evaluating Functions
-                    void calculatePixelValue(Function? func, double offset, bool circ, out double pixel_val)
+                    void calculatePixelValue(Function func, double offset, bool circ, out double pixel_val)
                     {
                         double n;
                         // not trying to catch exceptions here anymore! 
@@ -758,6 +731,28 @@ namespace Modulartistic.Core
             double pixelCount = args.Width * args.Height;
             Progress? stateProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid() + Name}", $"Generating State {Name}", pixelCount);
 
+            #region parse the functions
+            Func_R_H = new Function(args.FunctionRedHue);
+            Func_R_H.RegisterStateProperties(this, args);
+            RegisterExtras(Func_R_H);
+            if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), args, options);
+            
+            Func_G_S = new Function(args.FunctionGreenSaturation);
+            Func_G_S.RegisterStateProperties(this, args);
+            RegisterExtras(Func_G_S);
+            if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Func_B_V = new Function(args.FunctionBlueValue);
+            Func_B_V.RegisterStateProperties(this, args);
+            RegisterExtras(Func_B_V);
+            if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Func_Alp = new Function(args.FunctionAlpha);
+            Func_Alp.RegisterStateProperties(this, args);
+            RegisterExtras(Func_Alp);
+            if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), args, options);
+            #endregion
+
             if (max_threads == 0 || max_threads == 1)
             {
                 GetPartialBitmap(args, options, out Bitmap image, progress: stateProgress);
@@ -834,6 +829,7 @@ namespace Modulartistic.Core
                 return image;
             }
         }
+        
         #endregion
 
         #region Other Methods

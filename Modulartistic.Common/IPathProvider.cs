@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modulartistic.Core
+namespace Modulartistic.Common
 {
     /// <summary>
     /// Defines the contract for providing paths required by the application.

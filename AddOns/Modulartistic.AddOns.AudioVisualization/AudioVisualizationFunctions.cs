@@ -1,18 +1,17 @@
-﻿using Modulartistic.Core;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace Modulartistic.AddOns.AudioVisualization
 {
     [AddOn]
     public static class AudioVisualizationFunctions
     {
-        public static void Initialize(State s, StateOptions sOpts, GenerationOptions gOpts)
+        public static void Initialize(AddOnInitializationArgs args)
         {
             if (initialized) { return; }
 
             audios = new ConcurrentDictionary<string, AudioAnalysis>();
-            Framerate = (int)sOpts.Framerate;
-            gOpts.Logger?.LogDebug($"{nameof(AudioVisualizationFunctions)} initialized");
+            Framerate = (int)args.Framerate;
+            args.Logger?.LogDebug($"{nameof(AudioVisualizationFunctions)} initialized");
             initialized = true;
         }
 

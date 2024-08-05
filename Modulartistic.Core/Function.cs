@@ -7,6 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Linq;
 using FFMpegCore;
 using System.Collections.Concurrent;
+using Modulartistic.Common;
 
 namespace Modulartistic.Core
 {
@@ -27,28 +28,31 @@ namespace Modulartistic.Core
         };
 
         private static ConcurrentDictionary<string, Type> _addOnCache = new ConcurrentDictionary<string, Type>();
+        private string _function;
+
+        public string FunctionString 
+        {  
+            get => _function;
+        }
+
 
         #region constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Function"/> class using an existing <see cref="Expression"/> object.
-        /// </summary>
-        /// <param name="expression">The <see cref="Expression"/> object to be used for this function.</param>
-        public Function(Expression expression)
-        {
-            _expression = expression;
-            RegisterConversionFunctions();
-            expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Function"/> class by creating a new <see cref="Expression"/> object from the specified string.
         /// </summary>
         /// <param name="expression">A string representing the expression to be evaluated.</param>
-        public Function(string expression) : this(new Expression(expression)) { }
+        public Function(string expression) 
+        {
+            _function = expression;
+            _expression = new Expression(_function);
+            RegisterConversionFunctions();
+            _expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+        }
+
+        public Function() : this("") { }
 
         #endregion
-
 
         public double Evaluate()
         {
@@ -93,7 +97,7 @@ namespace Modulartistic.Core
         /// <param name="dll_path"></param>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public void LoadAddOn(string dll_path, State s, StateOptions sOpts, GenerationOptions gOpts)
+        public void LoadAddOn(string dll_path, AddOnInitializationArgs initArgs)
         {
             if (!File.Exists(dll_path))
             {
@@ -120,7 +124,7 @@ namespace Modulartistic.Core
 
                     // initialize if exists
                     MethodInfo? initMethod = type.GetMethod("Initialize");
-                    initMethod?.Invoke(null, [s, sOpts, gOpts]);
+                    initMethod?.Invoke(null, [initArgs]);
                 }
                 type = _addOnCache[type.FullName];
                 methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
@@ -159,12 +163,21 @@ namespace Modulartistic.Core
         /// Load AddOns from a Collection of strings containing paths to dll_files
         /// </summary>
         /// <param name="dll_paths"></param>
-        public void LoadAddOns(IEnumerable<string> dll_paths, State s, StateOptions sOpts, GenerationOptions gOpts)
+        public void LoadAddOns(IEnumerable<string> dll_paths, StateOptions sOpts, GenerationOptions gOpts)
         {
             IPathProvider pathProvider = gOpts.PathProvider;
+            AddOnInitializationArgs initArgs = new AddOnInitializationArgs()
+            {
+                Framerate = sOpts.Framerate,
+                Width = sOpts.Width,
+                Height = sOpts.Height,
+                Logger = gOpts.Logger,
+                ProgressReporter = gOpts.ProgressReporter,
+                Guid = gOpts.GenerationDataGuid,
+            };
             foreach (string dll in dll_paths)
             {
-                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider), s, sOpts, gOpts);
+                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider), initArgs);
             }
         }
     }

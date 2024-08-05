@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Fractals</AssemblyName>
+    <AssemblyName>Debug</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,7 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
   </ItemGroup>
 
 </Project>
