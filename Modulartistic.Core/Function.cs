@@ -54,18 +54,14 @@ namespace Modulartistic.Core
 
         #endregion
 
-        public double Evaluate()
+        public object Evaluate()
         {
-            object res = _expression.Evaluate();
+            return _expression.Evaluate();
+        }
 
-            if (_allowedResultTypes.Contains(res.GetType()))
-            {
-                return Convert.ToDouble(res);
-            }
-            else
-            {
-                throw new InvalidOperationException($"The result is not a supported type: {res.GetType().Name}");
-            }
+        public bool CanEvaluate()
+        {
+            return _expression.HasErrors();
         }
 
         public void RegisterStateProperties(State s, StateOptions args)

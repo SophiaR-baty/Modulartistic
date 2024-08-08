@@ -495,7 +495,10 @@ namespace Modulartistic.Core
                         func.RegisterParameter("y", y_);
                         func.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
                         func.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
-                        n = mod*offset + func.Evaluate();
+
+                        foreach (FunctionParameter param in )
+
+                        n = mod*offset + Convert.ToDouble(func.Evaluate());
                         pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.InclusiveMod(n, mod)) : -1;
                         // Inclusive mod above might need to be non inclusive - test
                     }
