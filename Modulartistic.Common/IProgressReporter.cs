@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modulartistic.Core
+namespace Modulartistic.Common
 {
     /// <summary>
     /// Defines an interface for reporting progress on tasks, including adding, removing, and tracking progress.

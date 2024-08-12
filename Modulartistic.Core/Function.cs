@@ -7,12 +7,13 @@ using System.Reflection.Metadata.Ecma335;
 using System.Linq;
 using FFMpegCore;
 using System.Collections.Concurrent;
+using Modulartistic.Common;
 
 namespace Modulartistic.Core
 {
     public class Function
     {
-        private Expression _expression;
+        private Expression? _expression;
         private readonly HashSet<Type> _allowedResultTypes = new HashSet<Type>()
         {
             typeof(short),
@@ -27,45 +28,49 @@ namespace Modulartistic.Core
         };
 
         private static ConcurrentDictionary<string, Type> _addOnCache = new ConcurrentDictionary<string, Type>();
+        private string _function;
+
+        public string FunctionString 
+        {  
+            get => _function;
+        }
+
 
         #region constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Function"/> class using an existing <see cref="Expression"/> object.
-        /// </summary>
-        /// <param name="expression">The <see cref="Expression"/> object to be used for this function.</param>
-        public Function(Expression expression)
-        {
-            _expression = expression;
-            RegisterConversionFunctions();
-            expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Function"/> class by creating a new <see cref="Expression"/> object from the specified string.
         /// </summary>
         /// <param name="expression">A string representing the expression to be evaluated.</param>
-        public Function(string expression) : this(new Expression(expression)) { }
+        public Function(string expression) 
+        {
+            _function = expression;
+            if (!string.IsNullOrEmpty(_function))
+            {
+                _expression = new Expression(_function);
+                RegisterConversionFunctions();
+                _expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            }
+            
+        }
+
+        public Function() : this("") { }
 
         #endregion
 
-
-        public double Evaluate()
+        public object Evaluate()
         {
-            object res = _expression.Evaluate();
+            return _expression?.Evaluate() ?? 0;
+        }
 
-            if (_allowedResultTypes.Contains(res.GetType()))
-            {
-                return Convert.ToDouble(res);
-            }
-            else
-            {
-                throw new InvalidOperationException($"The result is not a supported type: {res.GetType().Name}");
-            }
+        public bool CanEvaluate()
+        {
+            return !_expression?.HasErrors() ?? true;
         }
 
         public void RegisterStateProperties(State s, StateOptions args)
         {
+            if (_expression == null) { return; }
             Helper.ExprRegisterStateProperties(ref _expression, s);
             Helper.ExprRegisterStateOptions(ref _expression, args);
         }
@@ -75,6 +80,7 @@ namespace Modulartistic.Core
         /// </summary>
         private void RegisterConversionFunctions()
         {
+            if (_expression == null) { return; }
             foreach (Type type in _allowedResultTypes)
             {
                 _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
@@ -93,12 +99,24 @@ namespace Modulartistic.Core
         /// <param name="dll_path"></param>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public void LoadAddOn(string dll_path, State s, StateOptions sOpts, GenerationOptions gOpts)
+        public void LoadAddOn(string dll_path, AddOnInitializationArgs initArgs)
         {
+            if (_expression == null) { return; }
             if (!File.Exists(dll_path))
             {
                 throw new FileNotFoundException($"Error loading AddOn: {dll_path} - file not found");
             }
+
+
+            // Handles dependencies
+            string addOnDependenciesPath = Path.GetFileNameWithoutExtension(dll_path);
+            string addOnPath = Path.GetDirectoryName(dll_path);
+            addOnDependenciesPath = Path.Combine(addOnPath, addOnDependenciesPath);
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                var assemblyPath = Path.Combine(addOnDependenciesPath, new AssemblyName(args.Name).Name + ".dll");
+                return File.Exists(assemblyPath) ? Assembly.LoadFrom(assemblyPath) : null;
+            };
 
             Assembly testDLL = Assembly.LoadFile(dll_path);
 
@@ -120,7 +138,7 @@ namespace Modulartistic.Core
 
                     // initialize if exists
                     MethodInfo? initMethod = type.GetMethod("Initialize");
-                    initMethod?.Invoke(null, [s, sOpts, gOpts]);
+                    initMethod?.Invoke(null, [initArgs]);
                 }
                 type = _addOnCache[type.FullName];
                 methodInfos = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
@@ -140,6 +158,7 @@ namespace Modulartistic.Core
         /// <param name="value">Parameter value</param>
         public void RegisterParameter(string name, object value)
         {
+            if (_expression == null) { return; }
             _expression.Parameters[name] = value;
         }
 
@@ -152,6 +171,7 @@ namespace Modulartistic.Core
         /// <exception cref="Exception"></exception>
         public void RegisterFunction(MethodInfo mInfo, object obj)
         {
+            if (_expression == null) { return; }
             _expression.RegisterMethod(obj, mInfo);
         }
 
@@ -159,12 +179,22 @@ namespace Modulartistic.Core
         /// Load AddOns from a Collection of strings containing paths to dll_files
         /// </summary>
         /// <param name="dll_paths"></param>
-        public void LoadAddOns(IEnumerable<string> dll_paths, State s, StateOptions sOpts, GenerationOptions gOpts)
+        public void LoadAddOns(IEnumerable<string> dll_paths, StateOptions sOpts, GenerationOptions gOpts)
         {
+            if (_expression == null) { return; }
             IPathProvider pathProvider = gOpts.PathProvider;
+            AddOnInitializationArgs initArgs = new AddOnInitializationArgs()
+            {
+                Framerate = sOpts.Framerate,
+                Width = sOpts.Width,
+                Height = sOpts.Height,
+                Logger = gOpts.Logger,
+                ProgressReporter = gOpts.ProgressReporter,
+                Guid = gOpts.GenerationDataGuid,
+            };
             foreach (string dll in dll_paths)
             {
-                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider), s, sOpts, gOpts);
+                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider), initArgs);
             }
         }
     }

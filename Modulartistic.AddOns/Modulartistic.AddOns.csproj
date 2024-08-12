@@ -17,4 +17,8 @@
 	<GenerateDepsFile>false</GenerateDepsFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Modulartistic.Common\Modulartistic.Common.csproj" />
+  </ItemGroup>
+
 </Project>

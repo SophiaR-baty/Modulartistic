@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Modulartistic.Core;
 using Spectre.Console;
 using static System.Net.Mime.MediaTypeNames;
+using Modulartistic.Common;
 
 namespace Modulartistic
 {

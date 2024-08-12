@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Debug</AssemblyName>
+    <AssemblyName>Misc</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,9 +17,10 @@
     <DebugSymbols>false</DebugSymbols>
 	<GenerateDepsFile>false</GenerateDepsFile>
   </PropertyGroup>
-	
+
   <ItemGroup>
-    <ProjectReference Include="..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
   </ItemGroup>
 
 </Project>

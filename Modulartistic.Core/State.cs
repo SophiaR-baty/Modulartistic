@@ -10,6 +10,8 @@ using System.Reflection;
 using System.Xml.Linq;
 using SkiaSharp;
 using System.Collections.Generic;
+using Modulartistic.Common;
+using Modulartistic.AddOns;
 
 #nullable enable
 
@@ -65,7 +67,6 @@ namespace Modulartistic.Core
 
         private Dictionary<object, HashSet<MethodInfo>> _extraFunctions;
         private Dictionary<string, object> _extraParameters;
-
         #endregion
 
         #region Properties
@@ -417,48 +418,43 @@ namespace Modulartistic.Core
             // if rgb is not used c_r_h will be expected to be an input from 0-360, however for calculation a value 0-1 is expected
             if (!useRGB) { col_r_h /= 360; }
             // instanciate the functions
-            Function? Func_R_H = null;
-            Function? Func_G_S = null;
-            Function? Func_B_V = null;
-            Function? Func_Alp = null;
-            bool Func_R_H_null = true;
-            bool Func_G_S_null = true;
-            bool Func_B_V_null = true;
-            bool Func_Alp_null = true;
-            // parse the functions
-            if (!string.IsNullOrEmpty(args.FunctionRedHue))
-            {
-                Func_R_H = new Function(args.FunctionRedHue);
-                Func_R_H.RegisterStateProperties(this, args);
-                RegisterExtras(Func_R_H);
-                if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_R_H_null = false;
-            }
-            if (!string.IsNullOrEmpty(args.FunctionGreenSaturation))
-            {
-                Func_G_S = new Function(args.FunctionGreenSaturation);
-                Func_G_S.RegisterStateProperties(this, args);
-                RegisterExtras(Func_G_S);
-                if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_G_S_null = false;
-            }
-            if (!string.IsNullOrEmpty(args.FunctionBlueValue))
-            {
-                Func_B_V = new Function(args.FunctionBlueValue);
-                Func_B_V.RegisterStateProperties(this, args);
-                RegisterExtras(Func_B_V);
-                if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_B_V_null = false;
-            }
+            #region parse the functions
+            Function Func_R_H = new Function(args.FunctionRedHue);
+            Func_R_H.RegisterStateProperties(this, args);
+            RegisterExtras(Func_R_H);
+            if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), args, options);
 
-            if (!string.IsNullOrEmpty(args.FunctionAlpha))
+            Function Func_G_S = new Function(args.FunctionGreenSaturation);
+            Func_G_S.RegisterStateProperties(this, args);
+            RegisterExtras(Func_G_S);
+            if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Function Func_B_V = new Function(args.FunctionBlueValue);
+            Func_B_V.RegisterStateProperties(this, args);
+            RegisterExtras(Func_B_V);
+            if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Function Func_Alp = new Function(args.FunctionAlpha);
+            Func_Alp.RegisterStateProperties(this, args);
+            RegisterExtras(Func_Alp);
+            if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), args, options);
+            #endregion
+
+            #region Function Parameters
+            List<ParameterFunction> funcParams = new List<ParameterFunction>();
+            foreach (var func_param in args.Parameters)
             {
-                Func_Alp = new Function(args.FunctionAlpha);
-                Func_Alp.RegisterStateProperties(this, args);
-                RegisterExtras(Func_Alp);
-                if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), this, args, options);
-                Func_Alp_null = false;
+                var param_function = new ParameterFunction(func_param, args.AddOns.ToArray(), args, options);
+
+                funcParams.Add(param_function);
             }
+            #endregion
+
+
+            bool Func_R_H_null = Func_R_H.FunctionString == "";
+            bool Func_G_S_null = Func_G_S.FunctionString == "";
+            bool Func_B_V_null = Func_B_V.FunctionString == "";
+            bool Func_Alp_null = Func_Alp.FunctionString == "";
             #endregion
 
             #region Setting values for partial creation
@@ -512,7 +508,7 @@ namespace Modulartistic.Core
                         pixel_alp = 0;    // alpha
 
                     #region Evaluating Functions
-                    void calculatePixelValue(Function? func, double offset, bool circ, out double pixel_val)
+                    void calculatePixelValue(Function func, double offset, bool circ, out double pixel_val)
                     {
                         double n;
                         // not trying to catch exceptions here anymore! 
@@ -522,7 +518,30 @@ namespace Modulartistic.Core
                         func.RegisterParameter("y", y_);
                         func.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
                         func.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
-                        n = mod*offset + func.Evaluate();
+
+                        // register parameters
+                        for (int i = 0; i < funcParams.Count; i++)
+                        {
+                            ParameterFunction param = funcParams[i];
+
+                            if (!param.IsStatic)
+                            {
+                                param.RegisterParameter("x", x_);
+                                param.RegisterParameter("y", y_);
+                                param.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
+                                param.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
+
+                                for (int j = 0; j < i; j++)
+                                {
+                                    var param2 = funcParams[j];
+                                    param.RegisterParameter(param2.Name, param2.Evaluate());
+                                }
+                            }
+
+                            func.RegisterParameter(param.Name, param.Evaluate());
+                        }
+
+                        n = mod*offset + Convert.ToDouble(func.Evaluate());
                         pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.InclusiveMod(n, mod)) : -1;
                         // Inclusive mod above might need to be non inclusive - test
                     }
@@ -834,6 +853,7 @@ namespace Modulartistic.Core
                 return image;
             }
         }
+        
         #endregion
 
         #region Other Methods

@@ -8,6 +8,7 @@ using FFMpegCore;
 using FFMpegCore.Helpers;
 using Antlr4.Runtime.Misc;
 using System.Diagnostics;
+using Modulartistic.Common;
 
 namespace Modulartistic
 {
@@ -385,7 +386,7 @@ namespace Modulartistic
                     reporter.TaskRemoved += (sender, args) => { tasks[args.Key].StopTask(); };
 
                     int length = files.Length;
-                    Core.Progress? loopProgress = null;
+                    Common.Progress? loopProgress = null;
                     { loopProgress = reporter.AddTask("fileloop", "Generating all files...", length); }
                     foreach (string file in files)
                     {
