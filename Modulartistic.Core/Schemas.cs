@@ -87,7 +87,7 @@ namespace Modulartistic.Core
                         );
                 }
                 // Function Parameters
-                else if (propInf.PropertyType == typeof(List<FunctionParameter>))
+                else if (propInf.PropertyType == typeof(List<StateOptionsParameter>))
                 {
                     defs[$"{currentType.Name}"]["properties"].AsObject().Add(propInf.Name,
                         new JsonObject()
@@ -96,8 +96,13 @@ namespace Modulartistic.Core
                             ["items"] = new JsonObject() { 
                                 ["type"] = "object",
                                 ["properties"] = new JsonObject {
-                                    [nameof(FunctionParameter.Name)] = new JsonObject() { ["type"] = "string" },
-                                    [nameof(FunctionParameter.Expression)] = new JsonObject() { ["type"] = "string" },
+                                    [nameof(StateOptionsParameter.Name)] = new JsonObject() { ["type"] = "string" },
+                                    [nameof(StateOptionsParameter.Expression)] = new JsonObject() { ["type"] = "string" },
+                                    [nameof(StateOptionsParameter.Static)] = new JsonObject() 
+                                    { 
+                                        ["type"] = "string", 
+                                        ["enum"] = new JsonArray() { "true", "false", "auto" } 
+                                    },
                                 }
                             }
                         });

@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using SkiaSharp;
 using System.Collections.Generic;
 using Modulartistic.Common;
+using Modulartistic.AddOns;
 
 #nullable enable
 
@@ -66,12 +67,6 @@ namespace Modulartistic.Core
 
         private Dictionary<object, HashSet<MethodInfo>> _extraFunctions;
         private Dictionary<string, object> _extraParameters;
-
-        private Function Func_R_H;
-        private Function Func_G_S;
-        private Function Func_B_V;
-        private Function Func_Alp;
-
         #endregion
 
         #region Properties
@@ -321,11 +316,6 @@ namespace Modulartistic.Core
             m_factor_b_v = Constants.State.COLORFACT_DEFAULT;
 
             m_parameters = new double[10];
-
-            Func_R_H = new Function();
-            Func_G_S = new Function();
-            Func_B_V = new Function();
-            Func_Alp = new Function();
         }
 
         /// <summary>
@@ -428,6 +418,39 @@ namespace Modulartistic.Core
             // if rgb is not used c_r_h will be expected to be an input from 0-360, however for calculation a value 0-1 is expected
             if (!useRGB) { col_r_h /= 360; }
             // instanciate the functions
+            #region parse the functions
+            Function Func_R_H = new Function(args.FunctionRedHue);
+            Func_R_H.RegisterStateProperties(this, args);
+            RegisterExtras(Func_R_H);
+            if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Function Func_G_S = new Function(args.FunctionGreenSaturation);
+            Func_G_S.RegisterStateProperties(this, args);
+            RegisterExtras(Func_G_S);
+            if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Function Func_B_V = new Function(args.FunctionBlueValue);
+            Func_B_V.RegisterStateProperties(this, args);
+            RegisterExtras(Func_B_V);
+            if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), args, options);
+
+            Function Func_Alp = new Function(args.FunctionAlpha);
+            Func_Alp.RegisterStateProperties(this, args);
+            RegisterExtras(Func_Alp);
+            if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), args, options);
+            #endregion
+
+            #region Function Parameters
+            List<ParameterFunction> funcParams = new List<ParameterFunction>();
+            foreach (var func_param in args.Parameters)
+            {
+                var param_function = new ParameterFunction(func_param, args.AddOns.ToArray(), args, options);
+
+                funcParams.Add(param_function);
+            }
+            #endregion
+
+
             bool Func_R_H_null = Func_R_H.FunctionString == "";
             bool Func_G_S_null = Func_G_S.FunctionString == "";
             bool Func_B_V_null = Func_B_V.FunctionString == "";
@@ -496,7 +519,27 @@ namespace Modulartistic.Core
                         func.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
                         func.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
 
-                        foreach (FunctionParameter param in )
+                        // register parameters
+                        for (int i = 0; i < funcParams.Count; i++)
+                        {
+                            ParameterFunction param = funcParams[i];
+
+                            if (!param.IsStatic)
+                            {
+                                param.RegisterParameter("x", x_);
+                                param.RegisterParameter("y", y_);
+                                param.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
+                                param.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
+
+                                for (int j = 0; j < i; j++)
+                                {
+                                    var param2 = funcParams[j];
+                                    param.RegisterParameter(param2.Name, param2.Evaluate());
+                                }
+                            }
+
+                            func.RegisterParameter(param.Name, param.Evaluate());
+                        }
 
                         n = mod*offset + Convert.ToDouble(func.Evaluate());
                         pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.InclusiveMod(n, mod)) : -1;
@@ -733,28 +776,6 @@ namespace Modulartistic.Core
             // Set progrss tracker
             double pixelCount = args.Width * args.Height;
             Progress? stateProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid() + Name}", $"Generating State {Name}", pixelCount);
-
-            #region parse the functions
-            Func_R_H = new Function(args.FunctionRedHue);
-            Func_R_H.RegisterStateProperties(this, args);
-            RegisterExtras(Func_R_H);
-            if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), args, options);
-            
-            Func_G_S = new Function(args.FunctionGreenSaturation);
-            Func_G_S.RegisterStateProperties(this, args);
-            RegisterExtras(Func_G_S);
-            if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), args, options);
-
-            Func_B_V = new Function(args.FunctionBlueValue);
-            Func_B_V.RegisterStateProperties(this, args);
-            RegisterExtras(Func_B_V);
-            if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), args, options);
-
-            Func_Alp = new Function(args.FunctionAlpha);
-            Func_Alp.RegisterStateProperties(this, args);
-            RegisterExtras(Func_Alp);
-            if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), args, options);
-            #endregion
 
             if (max_threads == 0 || max_threads == 1)
             {

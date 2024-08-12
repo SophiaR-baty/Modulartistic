@@ -12,6 +12,7 @@ using System.ComponentModel.Design;
 using NCalc;
 using MathNet.Numerics;
 using Antlr4.Runtime.Misc;
+using Modulartistic.Common;
 
 namespace Modulartistic.Core
 {

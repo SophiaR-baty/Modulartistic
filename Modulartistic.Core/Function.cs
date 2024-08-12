@@ -13,7 +13,7 @@ namespace Modulartistic.Core
 {
     public class Function
     {
-        private Expression _expression;
+        private Expression? _expression;
         private readonly HashSet<Type> _allowedResultTypes = new HashSet<Type>()
         {
             typeof(short),
@@ -45,9 +45,13 @@ namespace Modulartistic.Core
         public Function(string expression) 
         {
             _function = expression;
-            _expression = new Expression(_function);
-            RegisterConversionFunctions();
-            _expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            if (!string.IsNullOrEmpty(_function))
+            {
+                _expression = new Expression(_function);
+                RegisterConversionFunctions();
+                _expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
+            }
+            
         }
 
         public Function() : this("") { }
@@ -56,16 +60,17 @@ namespace Modulartistic.Core
 
         public object Evaluate()
         {
-            return _expression.Evaluate();
+            return _expression?.Evaluate() ?? 0;
         }
 
         public bool CanEvaluate()
         {
-            return _expression.HasErrors();
+            return !_expression?.HasErrors() ?? true;
         }
 
         public void RegisterStateProperties(State s, StateOptions args)
         {
+            if (_expression == null) { return; }
             Helper.ExprRegisterStateProperties(ref _expression, s);
             Helper.ExprRegisterStateOptions(ref _expression, args);
         }
@@ -75,6 +80,7 @@ namespace Modulartistic.Core
         /// </summary>
         private void RegisterConversionFunctions()
         {
+            if (_expression == null) { return; }
             foreach (Type type in _allowedResultTypes)
             {
                 _expression.EvaluateFunction += delegate (string name, FunctionArgs args)
@@ -95,10 +101,22 @@ namespace Modulartistic.Core
         /// <exception cref="ArgumentException"></exception>
         public void LoadAddOn(string dll_path, AddOnInitializationArgs initArgs)
         {
+            if (_expression == null) { return; }
             if (!File.Exists(dll_path))
             {
                 throw new FileNotFoundException($"Error loading AddOn: {dll_path} - file not found");
             }
+
+
+            // Handles dependencies
+            string addOnDependenciesPath = Path.GetFileNameWithoutExtension(dll_path);
+            string addOnPath = Path.GetDirectoryName(dll_path);
+            addOnDependenciesPath = Path.Combine(addOnPath, addOnDependenciesPath);
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                var assemblyPath = Path.Combine(addOnDependenciesPath, new AssemblyName(args.Name).Name + ".dll");
+                return File.Exists(assemblyPath) ? Assembly.LoadFrom(assemblyPath) : null;
+            };
 
             Assembly testDLL = Assembly.LoadFile(dll_path);
 
@@ -140,6 +158,7 @@ namespace Modulartistic.Core
         /// <param name="value">Parameter value</param>
         public void RegisterParameter(string name, object value)
         {
+            if (_expression == null) { return; }
             _expression.Parameters[name] = value;
         }
 
@@ -152,6 +171,7 @@ namespace Modulartistic.Core
         /// <exception cref="Exception"></exception>
         public void RegisterFunction(MethodInfo mInfo, object obj)
         {
+            if (_expression == null) { return; }
             _expression.RegisterMethod(obj, mInfo);
         }
 
@@ -161,6 +181,7 @@ namespace Modulartistic.Core
         /// <param name="dll_paths"></param>
         public void LoadAddOns(IEnumerable<string> dll_paths, StateOptions sOpts, GenerationOptions gOpts)
         {
+            if (_expression == null) { return; }
             IPathProvider pathProvider = gOpts.PathProvider;
             AddOnInitializationArgs initArgs = new AddOnInitializationArgs()
             {

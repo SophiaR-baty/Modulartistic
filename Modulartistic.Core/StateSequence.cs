@@ -15,6 +15,7 @@ using Modulartistic.Drawing;
 using System.Reflection;
 using System.Xml.Linq;
 using System.Runtime.InteropServices;
+using Modulartistic.Common;
 
 namespace Modulartistic.Core
 {

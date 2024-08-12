@@ -297,7 +297,10 @@ namespace Modulartistic.AddOns.AudioVisualization
             if (!audios.ContainsKey(key)) 
             {
                 if (!initialized) { throw new Exception("AddOn has not been initialized"); }
-                if (!Path.IsPathRooted(key) || !File.Exists(key)) { analysis = null; return; }
+                if (!Path.IsPathRooted(key) || !File.Exists(key)) 
+                {
+                    throw new FileNotFoundException($"The audio file {key} was not found. Use absolute file paths and make sure file exists.");
+                }
 
                 audios.TryAdd(key, new AudioAnalysis(key, Framerate, use_decibel));
             } 
