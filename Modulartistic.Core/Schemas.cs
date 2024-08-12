@@ -86,6 +86,27 @@ namespace Modulartistic.Core
                             ["items"] = new JsonObject() { ["type"] = "string" } }
                         );
                 }
+                // Function Parameters
+                else if (propInf.PropertyType == typeof(List<StateOptionsParameter>))
+                {
+                    defs[$"{currentType.Name}"]["properties"].AsObject().Add(propInf.Name,
+                        new JsonObject()
+                        {
+                            ["type"] = "array",
+                            ["items"] = new JsonObject() { 
+                                ["type"] = "object",
+                                ["properties"] = new JsonObject {
+                                    [nameof(StateOptionsParameter.Name)] = new JsonObject() { ["type"] = "string" },
+                                    [nameof(StateOptionsParameter.Expression)] = new JsonObject() { ["type"] = "string" },
+                                    [nameof(StateOptionsParameter.Static)] = new JsonObject() 
+                                    { 
+                                        ["type"] = "string", 
+                                        ["enum"] = new JsonArray() { "true", "false", "auto" } 
+                                    },
+                                }
+                            }
+                        });
+                }
                 // in case of changes that aren't being handled well
                 else { throw new Exception($"{currentType.Name} should not contain Serializable Properties of type {propInf.PropertyType.Name}. You might be missing a JsonIgnore Attribute or a case isn't handled. "); }
             }

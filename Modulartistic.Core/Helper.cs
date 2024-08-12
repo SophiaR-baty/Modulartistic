@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Xml.Linq;
 using AnimatedGif;
 using NCalc;
+using Modulartistic.Common;
 
 namespace Modulartistic.Core
 {
@@ -130,7 +131,6 @@ namespace Modulartistic.Core
         /// <param name="s">The <see cref="State"/> object containing the properties to register.</param>
         public static void ExprRegisterStateProperties(ref Expression expr, State s)
         {
-            expr.Parameters[$"{nameof(State)}.{nameof(State.X0)}"] = s.X0;
             foreach (PropertyInfo propInf in typeof(State).GetProperties())
             {
                 switch (propInf.Name)

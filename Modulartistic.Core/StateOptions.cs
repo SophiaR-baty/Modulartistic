@@ -6,6 +6,7 @@ using System.Reflection;
 using NCalc;
 using Json.Schema;
 using Modulartistic.AddOns;
+using Modulartistic.Common;
 
 #nullable enable
 
@@ -36,6 +37,7 @@ namespace Modulartistic.Core
         private bool m_use_rgb;
 
         private List<string> m_addons;
+        private List<StateOptionsParameter> m_params;
         #endregion
 
         #region Properties
@@ -96,6 +98,8 @@ namespace Modulartistic.Core
         /// </summary>
         public List<string> AddOns { get => m_addons; }
 
+        public List<StateOptionsParameter> Parameters { get => m_params; }
+
         #endregion
 
         #region constructors
@@ -119,6 +123,7 @@ namespace Modulartistic.Core
             m_use_rgb = Constants.StateOptions.USERGB_DEFAULT;
 
             m_addons = new List<string>();
+            m_params = new List<StateOptionsParameter>();
         }
 
         #endregion
@@ -219,6 +224,12 @@ namespace Modulartistic.Core
                         break;
                     case nameof(AddOns):
                         AddOns.AddRange(elem.Value.EnumerateArray().Select((e, i) => e.GetString() ?? ""));
+                        break;
+                    case nameof(Parameters):
+                        Parameters.AddRange(elem.Value.EnumerateArray().Select((e, i) => new StateOptionsParameter(
+                            e.GetProperty(nameof(StateOptionsParameter.Name)).GetString(), 
+                            e.GetProperty(nameof(StateOptionsParameter.Expression)).GetString(),
+                            e.GetProperty(nameof(StateOptionsParameter.Static)).GetString())));
                         break;
                     default:
                         throw new KeyNotFoundException($"Property '{elem.Name}' does not exist on type '{GetType().Name}'.");

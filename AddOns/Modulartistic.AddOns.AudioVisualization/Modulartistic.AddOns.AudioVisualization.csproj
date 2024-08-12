@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>AudioVisualization</AssemblyName>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,7 +13,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <ProjectReference Include="..\Modulartistic.Core\Modulartistic.Core.csproj">
-		  
-	  </ProjectReference>
+    <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
+    <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
   </ItemGroup>
 
 </Project>

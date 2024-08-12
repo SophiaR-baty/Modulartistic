@@ -1,18 +1,17 @@
-﻿using Modulartistic.Core;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace Modulartistic.AddOns.AudioVisualization
 {
     [AddOn]
     public static class AudioVisualizationFunctions
     {
-        public static void Initialize(State s, StateOptions sOpts, GenerationOptions gOpts)
+        public static void Initialize(AddOnInitializationArgs args)
         {
             if (initialized) { return; }
 
             audios = new ConcurrentDictionary<string, AudioAnalysis>();
-            Framerate = (int)sOpts.Framerate;
-            gOpts.Logger?.LogDebug($"{nameof(AudioVisualizationFunctions)} initialized");
+            Framerate = (int)args.Framerate;
+            args.Logger?.LogDebug($"{nameof(AudioVisualizationFunctions)} initialized");
             initialized = true;
         }
 
@@ -298,7 +297,10 @@ namespace Modulartistic.AddOns.AudioVisualization
             if (!audios.ContainsKey(key)) 
             {
                 if (!initialized) { throw new Exception("AddOn has not been initialized"); }
-                if (!Path.IsPathRooted(key) || !File.Exists(key)) { analysis = null; return; }
+                if (!Path.IsPathRooted(key) || !File.Exists(key)) 
+                {
+                    throw new FileNotFoundException($"The audio file {key} was not found. Use absolute file paths and make sure file exists.");
+                }
 
                 audios.TryAdd(key, new AudioAnalysis(key, Framerate, use_decibel));
             } 
