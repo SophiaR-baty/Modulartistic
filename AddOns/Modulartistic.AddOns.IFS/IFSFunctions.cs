@@ -18,45 +18,40 @@ namespace Modulartistic.AddOns.IFS
             ifs_cache = new ConcurrentDictionary<string, IIteratedFunctionSystem>();
         }
 
-        public static double BarnsleyFern(double x, double y, int depth, double tolerance)
+        public static double BarnsleyFern(double x, double y, Complex initial, int depth, double tolerance)
         {
 
-            IIteratedFunctionSystem barnsleyFern;
+            IIteratedFunctionSystem fern;
             Complex xy = new Complex(x, y);
-            LoadBarnsleyFern(depth, out barnsleyFern);
+            LoadBarnsleyFern(depth, initial, out fern);
 
-            for (int i = 0; i < barnsleyFern.Points.Count; i++)
+            for (int i = 0; i < fern.Points.Count; i++)
             {
-                foreach (Complex c in barnsleyFern.Points[i])
+                Complex c = fern.Points[i];
+                if (Complex.Abs(c - xy) <= tolerance)
                 {
-                    if (Complex.Abs(c - xy) <= tolerance)
-                    {
-                        return i;
-                    }
+                    return i;
                 }
             }
 
             return double.NaN;
         }
 
-        public static double BarnsleyFern(double x, double y, int depth)
+        public static double BarnsleyFern(double x, double y, Complex initial, int depth)
         {
 
-            IIteratedFunctionSystem sierpinski;
+            IIteratedFunctionSystem fern;
             Complex xy = new Complex(x, y);
-            LoadBarnsleyFern(depth, out sierpinski);
+            LoadBarnsleyFern(depth, initial, out fern);
 
             double minDistance = double.PositiveInfinity;
 
-            foreach (var clist in sierpinski.Points)
+            foreach (var c in fern.Points)
             {
-                foreach (var c in clist)
+                double dist = Complex.Abs(c - xy);
+                if (dist < minDistance)
                 {
-                    double dist = Complex.Abs(c - xy);
-                    if (dist < minDistance)
-                    {
-                        minDistance = dist;
-                    }
+                    minDistance = dist;
                 }
             }
 
@@ -65,85 +60,97 @@ namespace Modulartistic.AddOns.IFS
 
 
 
-        public static double SierpinskiTriangle(double x, double y, int depth, double tolerance)
+        public static double SierpinskiTriangle(double x, double y, Complex A, Complex B, Complex C, int depth, double tolerance)
         {
 
             IIteratedFunctionSystem sierpinski;
             Complex xy = new Complex(x, y);
-            LoadSierpinskiTriangle(depth, out sierpinski);
+            LoadSierpinskiTriangle(depth, A, B, C, out sierpinski);
 
             for (int i = 0; i < sierpinski.Points.Count; i++)
             {
-                foreach (Complex c in sierpinski.Points[i])
+                Complex c = sierpinski.Points[i];
+                if (Complex.Abs(c - xy) <= tolerance)
                 {
-                    if (Complex.Abs(c - xy) <= tolerance)
-                    {
-                        return i;
-                    }
+                    return i;
                 }
             }
 
             return double.NaN;
         }
 
-        public static double SierpinskiTriangle(double x, double y, int depth)
+        public static double SierpinskiTriangle(double x, double y, Complex A, Complex B, Complex C, int depth)
         {
 
             IIteratedFunctionSystem sierpinski;
             Complex xy = new Complex(x, y);
-            LoadSierpinskiTriangle(depth, out sierpinski);
+            LoadSierpinskiTriangle(depth, A, B, C, out sierpinski);
 
             double minDistance = double.PositiveInfinity;
 
-            foreach (var clist in sierpinski.Points)
+            foreach (var c in sierpinski.Points)
             {
-                foreach (var c in clist)
+
+                double dist = Complex.Abs(c - xy);
+                if (dist < minDistance)
                 {
-                    double dist = Complex.Abs(c - xy);
-                    if (dist < minDistance)
-                    {
-                        minDistance = dist;
-                    }
+                    minDistance = dist;
                 }
             }
 
             return minDistance;
         }
 
-
-
-
-        private static Func<Complex, Complex> Transform(double a, double b, double c, double d, double e, double f)
+        public static double InvertedSierpinskiTriangle(double x, double y, Complex A, Complex B, Complex C, int depth)
         {
-            return z => new Complex(a * z.Real + b * z.Imaginary + e, c * z.Real + d * z.Imaginary + f);
+
+            IIteratedFunctionSystem sierpinski;
+            Complex xy = new Complex(x, y);
+            LoadSierpinskiTriangle(depth, A, B, C, out sierpinski);
+
+            double maxDistance = 0;
+
+            foreach (var c in sierpinski.Points)
+            {
+
+                double dist = Complex.Abs(c - xy);
+                if (dist > maxDistance)
+                {
+                    maxDistance = dist;
+                }
+            }
+
+            return maxDistance;
         }
 
-        private static WeightedListItem<Func<Complex, Complex>> GetWeightedTransform(double a, double b, double c, double d, double e, double f, float p)
+        public static Complex Point(double x, double y)
         {
-            return new WeightedListItem<Func<Complex, Complex>>(Transform(a, b, c, d, e, f), p);
+            return new Complex(x, y);
         }
 
-        private static void LoadBarnsleyFern(int depth, out IIteratedFunctionSystem ifs)
+
+        private static void LoadBarnsleyFern(int depth, Complex A, out IIteratedFunctionSystem ifs)
         {
-            string key = "barnsley_fern";
+            string key = $"barnsley_fern_{A.Real}_{A.Imaginary}";
             if (ifs_cache.ContainsKey(key)) { ifs = ifs_cache[key]; }
             else
             {
-                ifs = new BarnsleyFern(new Complex(0, 0));
+                ifs = new BarnsleyFern(A);
 
                 ifs.GeneratePoints(depth);
                 ifs_cache.TryAdd(key, ifs);
             }
         }
 
-        private static void LoadSierpinskiTriangle(int depth, out IIteratedFunctionSystem ifs)
+        private static void LoadSierpinskiTriangle(int depth, Complex A, Complex B, Complex C, out IIteratedFunctionSystem ifs)
         {
-            string key = "sierpinski_triangle";
+            string key = $"sierpinski_triangle_{A.Real}_{A.Imaginary}_{B.Real}_{B.Imaginary}_{C.Real}_{C.Imaginary}";
             if (ifs_cache.ContainsKey(key)) { ifs = ifs_cache[key]; }
             else
             {
                 // ifs = new SierpinskiTriangle(new Complex(0, 0), new Complex(1, 0), new Complex(0, 1));
-                ifs = new SierpinskiTriangle(new Complex(0, 2*Math.Sqrt(3)/3), new Complex(-1/2, -Math.Sqrt(3)/3), new Complex(1/2, -Math.Sqrt(3)/3));
+                // ifs = new SierpinskiTriangle(new Complex(0, 2*Math.Sqrt(3)/3), new Complex(-1/2, -Math.Sqrt(3)/3), new Complex(1/2, -Math.Sqrt(3)/3));
+                ifs = new SierpinskiTriangle(A, B, C);
 
                 ifs.GeneratePoints(depth);
                 ifs_cache.TryAdd(key, ifs);
