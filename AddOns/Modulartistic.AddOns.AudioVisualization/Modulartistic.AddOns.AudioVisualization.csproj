@@ -13,7 +13,18 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+	  <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
+
+	<Target Name="PostPublish" AfterTargets="Publish">
+		<ItemGroup>
+			<Dependencies Include="$(PublishDir)*.dll" Exclude="$(PublishDir)$(AssemblyName).dll" />
+		</ItemGroup>
+		<Move SourceFiles="@(Dependencies)" DestinationFolder="$(PublishDir)$(AssemblyName)\" />
+	</Target>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />

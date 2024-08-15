@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	  
     <AssemblyName>Fractals</AssemblyName>
   </PropertyGroup>
 
@@ -11,13 +12,20 @@
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-	<GenerateDepsFile>false</GenerateDepsFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>none</DebugType>
+		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+		<DebugSymbols>false</DebugSymbols>
+		<GenerateDependencyFile>false</GenerateDependencyFile>
+	</PropertyGroup>
 
+	<Target Name="PostPublish" AfterTargets="Publish">
+		<ItemGroup>
+			<Dependencies Include="$(PublishDir)*.dll" Exclude="$(PublishDir)$(AssemblyName).dll" />
+		</ItemGroup>
+		<Move SourceFiles="@(Dependencies)" DestinationFolder="$(PublishDir)$(AssemblyName)\" />
+	</Target>
+	
   <ItemGroup>
     <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
     <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
