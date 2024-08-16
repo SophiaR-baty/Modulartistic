@@ -471,6 +471,7 @@ namespace Modulartistic.Core
                     currentArgs = (StateOptions)obj;
 
                     currentArgs.TestLoadingAddOns(options);
+                    currentArgs.EvaluateGlobalParameters(options);
 
                     loopProgress?.IncrementProgress();
                     continue;

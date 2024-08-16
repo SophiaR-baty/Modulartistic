@@ -65,13 +65,34 @@ namespace Modulartistic.Core
 
         public bool CanEvaluate()
         {
-            return !_expression?.HasErrors() ?? true;
+            var comp = NCalc.Expression.Compile(_function, false);
+            ParameterExtractionVisitor visitor = new ParameterExtractionVisitor();
+            comp.Accept(visitor);
+
+            var extractedParameters = visitor.Parameters;
+
+            
+            if (_expression ==  null) { return false; }
+
+            return extractedParameters.All(s => _expression.Parameters.ContainsKey(s));
         }
 
-        public void RegisterStateProperties(State s, StateOptions args)
+        public void RegisterStateAndOptionsProperties(State s, StateOptions args)
         {
             if (_expression == null) { return; }
             Helper.ExprRegisterStateProperties(ref _expression, s);
+            Helper.ExprRegisterStateOptions(ref _expression, args);
+        }
+
+        public void RegisterStateProperties(State s)
+        {
+            if (_expression == null) { return; }
+            Helper.ExprRegisterStateProperties(ref _expression, s);
+        }
+
+        public void RegisterStateOptionsProperties(StateOptions args)
+        {
+            if (_expression == null) { return; }
             Helper.ExprRegisterStateOptions(ref _expression, args);
         }
 

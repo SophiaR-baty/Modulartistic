@@ -22,7 +22,7 @@ namespace Modulartistic.Core
         /// <summary>
         /// Whether this parameter is static (evaluates per state) or not (evaluates per pixel) or auto -> determines automatically if true or false
         /// </summary>
-        public string Static { get; set; }
+        public ParameterEvaluationStrategy Evaluation { get; set; }
 
         /// <summary>
         /// Get the static Value
@@ -67,7 +67,11 @@ namespace Modulartistic.Core
         {
             Name = name;
             Expression = expression;
-            Static = pstatic;
+
+            Evaluation = ParameterEvaluationStrategy.Auto;
+            if (pstatic == "global") { Evaluation = ParameterEvaluationStrategy.Global; }
+            else if (pstatic == "state") { Evaluation = ParameterEvaluationStrategy.PerState; }
+            else if (pstatic == "pixel") { Evaluation = ParameterEvaluationStrategy.PerPixel; }
         }
     }
 }

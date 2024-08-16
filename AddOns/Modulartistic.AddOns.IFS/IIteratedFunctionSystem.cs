@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Modulartistic.AddOns.IFS
 {
-    internal interface IIteratedFunctionSystem
+    public interface IIteratedFunctionSystem
     {
         public List<Func<Complex, Complex>> Functions { get; set; }
         public List<Complex> Points { get; set; }

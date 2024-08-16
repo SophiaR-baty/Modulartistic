@@ -420,41 +420,48 @@ namespace Modulartistic.Core
             // instanciate the functions
             #region parse the functions
             Function Func_R_H = new Function(args.FunctionRedHue);
-            Func_R_H.RegisterStateProperties(this, args);
+            Func_R_H.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_R_H);
             if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), args, options);
 
             Function Func_G_S = new Function(args.FunctionGreenSaturation);
-            Func_G_S.RegisterStateProperties(this, args);
+            Func_G_S.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_G_S);
             if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), args, options);
 
             Function Func_B_V = new Function(args.FunctionBlueValue);
-            Func_B_V.RegisterStateProperties(this, args);
+            Func_B_V.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_B_V);
             if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), args, options);
 
             Function Func_Alp = new Function(args.FunctionAlpha);
-            Func_Alp.RegisterStateProperties(this, args);
+            Func_Alp.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_Alp);
             if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), args, options);
             #endregion
-
-            #region Function Parameters
-            List<ParameterFunction> funcParams = new List<ParameterFunction>();
-            foreach (var func_param in args.Parameters)
-            {
-                var param_function = new ParameterFunction(func_param, args.AddOns.ToArray(), args, options);
-
-                funcParams.Add(param_function);
-            }
-            #endregion
-
 
             bool Func_R_H_null = Func_R_H.FunctionString == "";
             bool Func_G_S_null = Func_G_S.FunctionString == "";
             bool Func_B_V_null = Func_B_V.FunctionString == "";
             bool Func_Alp_null = Func_Alp.FunctionString == "";
+
+            #region StateOptions parameters
+            
+            Dictionary<string, Function> opt_perPixel_parameters = new Dictionary<string, Function>();
+            Dictionary<string, object?> opt_parameters = new Dictionary<string, object?>();
+            for (int i = 0; i < args.Parameters.Count; i++)
+            {
+                if (args.Parameters[i].Value == null) { continue; }
+
+                StateOptionsParameter param = args.Parameters[i];
+
+                opt_parameters.Add(param.Name, new Function(param.Expression));
+                opt_parameters[param.Name].LoadAddOns(args.AddOns.ToArray(), args, options);
+            }
+
+            #endregion
+
+
             #endregion
 
             #region Setting values for partial creation
@@ -507,6 +514,17 @@ namespace Modulartistic.Core
                         pixel_b_v = 0,    // blue or value
                         pixel_alp = 0;    // alpha
 
+                    // evaluate per pixel evaluated parameters
+                    for (int i = 0; i < args.Parameters.Count; i++)
+                    {
+                        if (args.Parameters[i].Value == null) { continue; }
+
+                        StateOptionsParameter param = args.Parameters[i];
+
+                        opt_parameters.Add(param.Name, new Function(param.Expression));
+                        opt_parameters[param.Name].LoadAddOns(args.AddOns.ToArray(), args, options);
+                    }
+
                     #region Evaluating Functions
                     void calculatePixelValue(Function func, double offset, bool circ, out double pixel_val)
                     {
@@ -520,25 +538,12 @@ namespace Modulartistic.Core
                         func.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
 
                         // register parameters
-                        for (int i = 0; i < funcParams.Count; i++)
+                        for (int i = 0; i < args.Parameters.Count; i++)
                         {
-                            ParameterFunction param = funcParams[i];
+                            StateOptionsParameter param = args.Parameters[i];
 
-                            if (!param.IsStatic)
-                            {
-                                param.RegisterParameter("x", x_);
-                                param.RegisterParameter("y", y_);
-                                param.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
-                                param.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
 
-                                for (int j = 0; j < i; j++)
-                                {
-                                    var param2 = funcParams[j];
-                                    param.RegisterParameter(param2.Name, param2.Evaluate());
-                                }
-                            }
-
-                            func.RegisterParameter(param.Name, param.Evaluate());
+                            func.RegisterParameter(param.Name, param.Value);
                         }
 
                         n = mod*offset + Convert.ToDouble(func.Evaluate());
@@ -776,6 +781,8 @@ namespace Modulartistic.Core
             // Set progrss tracker
             double pixelCount = args.Width * args.Height;
             Progress? stateProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid() + Name}", $"Generating State {Name}", pixelCount);
+
+            args.EvaluatePerStateParameters(this, options);
 
             if (max_threads == 0 || max_threads == 1)
             {

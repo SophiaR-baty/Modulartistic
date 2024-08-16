@@ -98,10 +98,10 @@ namespace Modulartistic.Core
                                 ["properties"] = new JsonObject {
                                     [nameof(StateOptionsParameter.Name)] = new JsonObject() { ["type"] = "string" },
                                     [nameof(StateOptionsParameter.Expression)] = new JsonObject() { ["type"] = "string" },
-                                    [nameof(StateOptionsParameter.Static)] = new JsonObject() 
+                                    [nameof(StateOptionsParameter.Evaluation)] = new JsonObject() 
                                     { 
                                         ["type"] = "string", 
-                                        ["enum"] = new JsonArray() { "true", "false", "auto" } 
+                                        ["enum"] = new JsonArray() { "global", "state", "pixel", "auto" } 
                                     },
                                 }
                             }

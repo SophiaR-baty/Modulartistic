@@ -7,6 +7,9 @@ using NCalc;
 using Json.Schema;
 using Modulartistic.AddOns;
 using Modulartistic.Common;
+using Antlr4.Runtime.Misc;
+using FFMpegCore;
+using System;
 
 #nullable enable
 
@@ -178,11 +181,131 @@ namespace Modulartistic.Core
                 }
             }
         }
-        
+
         #endregion
 
-        #region JSON Methods
+        public void EvaluateGlobalParameters(GenerationOptions options)
+        {
+            for (int i = 0; i < Parameters.Count; i++)
+            {
+                StateOptionsParameter param = Parameters[i];
 
+                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == ParameterEvaluationStrategy.Global)
+                {
+                    Function f = new Function(param.Expression);
+                    f.RegisterStateOptionsProperties(this);
+
+                    for (int j = 0; j < i; j++)
+                    {
+                        StateOptionsParameter param2 = Parameters[j];
+                        lock (param2)
+                        {
+                            object? paramval = param2.Value;
+                            if (paramval != null)
+                            {
+                                f.RegisterParameter(param2.Name, paramval);
+                            }
+                        }
+                    }
+
+                    if (f.CanEvaluate())
+                    {
+                        param.Evaluation = ParameterEvaluationStrategy.Global;
+
+                        lock (param.ValueLock)
+                        {
+
+                            f.LoadAddOns(AddOns.ToArray(), this, options);
+                            param.Value = f.Evaluate();
+                        }
+                    }
+                }
+            }
+        }
+
+        public void EvaluatePerStateParameters(State s, GenerationOptions options)
+        {
+            for (int i = 0; i < Parameters.Count; i++)
+            {
+                StateOptionsParameter param = Parameters[i];
+
+                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == ParameterEvaluationStrategy.PerState)
+                {
+                    Function f = new Function(param.Expression);
+                    f.RegisterStateAndOptionsProperties(s, this);
+
+                    for (int j = 0; j < i; j++)
+                    {
+                        StateOptionsParameter param2 = Parameters[j];
+                        lock (param2)
+                        {
+                            object? paramval = param2.Value;
+                            if (paramval != null)
+                            {
+                                f.RegisterParameter(param2.Name, paramval);
+                            }
+                        }
+                    }
+
+                    if (f.CanEvaluate())
+                    {
+                        param.Evaluation = ParameterEvaluationStrategy.PerState;
+
+                        lock (param.ValueLock)
+                        {
+
+                            f.LoadAddOns(AddOns.ToArray(), this, options);
+                            param.Value = f.Evaluate();
+                        }
+                    }
+                }
+            }
+        }
+
+        public void EvaluatePerPixelParameters(double x, double y, State s, GenerationOptions options)
+        {
+            for (int i = 0; i < Parameters.Count; i++)
+            {
+                StateOptionsParameter param = Parameters[i];
+
+                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == ParameterEvaluationStrategy.PerPixel)
+                {
+                    Function f = new Function(param.Expression);
+                    f.RegisterStateAndOptionsProperties(s, this);
+                    f.RegisterParameter("x", x);
+                    f.RegisterParameter("y", y);
+                    f.RegisterParameter("Th", 180 * Math.Atan2(y, x) / Math.PI);
+                    f.RegisterParameter("r", Math.Sqrt(x * x + y * y));
+
+                    for (int j = 0; j < i; j++)
+                    {
+                        StateOptionsParameter param2 = Parameters[j];
+                        lock (param2)
+                        {
+                            object? paramval = param2.Value;
+                            if (paramval != null)
+                            {
+                                f.RegisterParameter(param2.Name, paramval);
+                            }
+                        }
+                    }
+
+                    if (f.CanEvaluate())
+                    {
+                        param.Evaluation = ParameterEvaluationStrategy.PerPixel;
+
+                        lock (param.ValueLock)
+                        {
+                            f.LoadAddOns(AddOns.ToArray(), this, options);
+                            param.Value = f.Evaluate();
+                        }
+                    }
+                }
+            }
+        }
+
+
+        #region JSON Methods
         /// <summary>
         /// Determines whether the specified <see cref="JsonElement"/> is a valid representation of <see cref="StateOptions"/>.
         /// </summary>
@@ -229,7 +352,7 @@ namespace Modulartistic.Core
                         Parameters.AddRange(elem.Value.EnumerateArray().Select((e, i) => new StateOptionsParameter(
                             e.GetProperty(nameof(StateOptionsParameter.Name)).GetString(), 
                             e.GetProperty(nameof(StateOptionsParameter.Expression)).GetString(),
-                            e.GetProperty(nameof(StateOptionsParameter.Static)).GetString())));
+                            e.GetProperty(nameof(StateOptionsParameter.Evaluation)).GetString())));
                         break;
                     default:
                         throw new KeyNotFoundException($"Property '{elem.Name}' does not exist on type '{GetType().Name}'.");
