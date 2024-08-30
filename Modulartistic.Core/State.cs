@@ -371,7 +371,7 @@ namespace Modulartistic.Core
         /// <param name="image">The generated bitmap image.</param>
         /// <param name="idx">The index of the partial bitmap to generate.</param>
         /// <param name="max">The total number of partial bitmaps.</param>
-        private void GetPartialBitmap(StateOptions args, GenerationOptions options, out Bitmap image, int idx = 0, int max = 0, Progress? progress = null)
+        private void GetPartialBitmap(StateOptions args, object?[] parameters, GenerationOptions options, out Bitmap image, int idx = 0, int max = 0, Progress? progress = null)
         {
             #region Setting and validating State Properties
             // setting and validating State Properties
@@ -422,45 +422,28 @@ namespace Modulartistic.Core
             Function Func_R_H = new Function(args.FunctionRedHue);
             Func_R_H.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_R_H);
-            if (args.AddOns != null) Func_R_H.LoadAddOns(args.AddOns.ToArray(), args, options);
+            if (args.AddOns != null) Func_R_H.LoadAddOns(args, options);
 
             Function Func_G_S = new Function(args.FunctionGreenSaturation);
             Func_G_S.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_G_S);
-            if (args.AddOns != null) Func_G_S.LoadAddOns(args.AddOns.ToArray(), args, options);
+            if (args.AddOns != null) Func_G_S.LoadAddOns(args, options);
 
             Function Func_B_V = new Function(args.FunctionBlueValue);
             Func_B_V.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_B_V);
-            if (args.AddOns != null) Func_B_V.LoadAddOns(args.AddOns.ToArray(), args, options);
+            if (args.AddOns != null) Func_B_V.LoadAddOns(args, options);
 
             Function Func_Alp = new Function(args.FunctionAlpha);
             Func_Alp.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_Alp);
-            if (args.AddOns != null) Func_Alp.LoadAddOns(args.AddOns.ToArray(), args, options);
+            if (args.AddOns != null) Func_Alp.LoadAddOns(args, options);
             #endregion
 
             bool Func_R_H_null = Func_R_H.FunctionString == "";
             bool Func_G_S_null = Func_G_S.FunctionString == "";
             bool Func_B_V_null = Func_B_V.FunctionString == "";
             bool Func_Alp_null = Func_Alp.FunctionString == "";
-
-            #region StateOptions parameters
-            
-            Dictionary<string, Function> opt_perPixel_parameters = new Dictionary<string, Function>();
-            Dictionary<string, object?> opt_parameters = new Dictionary<string, object?>();
-            for (int i = 0; i < args.Parameters.Count; i++)
-            {
-                if (args.Parameters[i].Value == null) { continue; }
-
-                StateOptionsParameter param = args.Parameters[i];
-
-                opt_parameters.Add(param.Name, new Function(param.Expression));
-                opt_parameters[param.Name].LoadAddOns(args.AddOns.ToArray(), args, options);
-            }
-
-            #endregion
-
 
             #endregion
 
@@ -514,16 +497,64 @@ namespace Modulartistic.Core
                         pixel_b_v = 0,    // blue or value
                         pixel_alp = 0;    // alpha
 
-                    // evaluate per pixel evaluated parameters
-                    for (int i = 0; i < args.Parameters.Count; i++)
+                    // evaluate per generation parameters
+                    #region load perPixel parameters
+                    ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.PerPixel;
+                    for (int param_i = 0; param_i < args.Parameters.Count; param_i++)
                     {
-                        if (args.Parameters[i].Value == null) { continue; }
+                        StateOptionsParameter param = args.Parameters[param_i];
+                        string name = param.Name;
 
-                        StateOptionsParameter param = args.Parameters[i];
+                        if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
+                        {
+                            Function f = new Function(param.Expression);
+                            f.RegisterStateOptionsProperties(args);
 
-                        opt_parameters.Add(param.Name, new Function(param.Expression));
-                        opt_parameters[param.Name].LoadAddOns(args.AddOns.ToArray(), args, options);
+                            for (int param_j = 0; param_j <= param_i; param_j++)
+                            {
+                                lock (parameters)
+                                {
+                                    object? param_value = parameters[param_j];
+                                    if (param_value == null) { continue; }
+
+                                    string param_name = args.Parameters[param_j].Name;
+
+                                    f.RegisterParameter(param_name, param_value);
+                                }
+                            }
+
+                            f.RegisterStateAndOptionsProperties(this, args);
+                            f.RegisterParameter("x", x_);
+                            f.RegisterParameter("y", y_);
+                            f.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
+                            f.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
+
+                            if (f.CanEvaluate())
+                            {
+                                param.Evaluation = currentStrategy;
+
+                                lock (parameters)
+                                {
+                                    f.LoadAddOns(args, options);
+                                    object value = f.Evaluate();
+                                    parameters[param_i] = value;
+
+                                    if (!Func_R_H_null) { Func_R_H.RegisterParameter(name, value); }
+                                    if (!Func_G_S_null) { Func_G_S.RegisterParameter(name, value); }
+                                    if (!Func_B_V_null) { Func_B_V.RegisterParameter(name, value); }
+                                    if (!Func_Alp_null) { Func_Alp.RegisterParameter(name, value); }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (!Func_R_H_null) { Func_R_H.RegisterParameter(name, parameters[param_i]); }
+                            if (!Func_G_S_null) { Func_G_S.RegisterParameter(name, parameters[param_i]); }
+                            if (!Func_B_V_null) { Func_B_V.RegisterParameter(name, parameters[param_i]); }
+                            if (!Func_Alp_null) { Func_Alp.RegisterParameter(name, parameters[param_i]); }
+                        }
                     }
+                    #endregion
 
                     #region Evaluating Functions
                     void calculatePixelValue(Function func, double offset, bool circ, out double pixel_val)
@@ -537,14 +568,6 @@ namespace Modulartistic.Core
                         func.RegisterParameter("Th", 180 * Math.Atan2(y_, x_) / Math.PI);
                         func.RegisterParameter("r", Math.Sqrt(x_ * x_ + y_ * y_));
 
-                        // register parameters
-                        for (int i = 0; i < args.Parameters.Count; i++)
-                        {
-                            StateOptionsParameter param = args.Parameters[i];
-
-
-                            func.RegisterParameter(param.Name, param.Value);
-                        }
 
                         n = mod*offset + Convert.ToDouble(func.Evaluate());
                         pixel_val = n.IsFinite() ? (circ ? Helper.CircularMod(n, mod) : Helper.InclusiveMod(n, mod)) : -1;
@@ -742,7 +765,7 @@ namespace Modulartistic.Core
         /// If a file with the same name already exists in the output directory, an index is appended to the file name to make it unique.
         /// The generated image is saved in PNG format.
         /// </remarks>
-        public string GenerateImage(StateOptions args, GenerationOptions options, string out_dir)
+        public string GenerateImage(StateOptions args, object?[] parameters, GenerationOptions options, string out_dir)
         {
             // If out_dir is empty set to default, then check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException($"The Directory {out_dir} was not found."); }
@@ -754,7 +777,7 @@ namespace Modulartistic.Core
 
 
             // Generate the image
-            Bitmap image = GetBitmap(args, options);
+            Bitmap image = GetBitmap(args, parameters, options);
             // Save the image
             image.Save(file_path_out + @".png");
 
@@ -774,7 +797,7 @@ namespace Modulartistic.Core
         /// If <paramref name="options.MaxThreads"/> is greater than 1, the method generates the bitmap using multiple threads
         /// to improve performance by dividing the work across available processors.
         /// </remarks>
-        public Bitmap GetBitmap(StateOptions args, GenerationOptions options)
+        public Bitmap GetBitmap(StateOptions args, object?[] parameters, GenerationOptions options)
         {
             int max_threads = options.MaxThreads;
 
@@ -782,11 +805,59 @@ namespace Modulartistic.Core
             double pixelCount = args.Width * args.Height;
             Progress? stateProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid() + Name}", $"Generating State {Name}", pixelCount);
 
-            args.EvaluatePerStateParameters(this, options);
+            // evaluate per generation parameters
+            #region load perState parameters
+            ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.PerState;
+            for (int param_i = 0; param_i < args.Parameters.Count; param_i++)
+            {
+                StateOptionsParameter param = args.Parameters[param_i];
+
+                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
+                {
+                    Function f = new Function(param.Expression);
+                    f.RegisterStateOptionsProperties(args);
+
+                    for (int param_j = 0; param_j <= param_i; param_j++)
+                    {
+                        lock (parameters)
+                        {
+                            object? param_value = parameters[param_j];
+                            if (param_value == null) { continue; }
+
+                            string param_name = args.Parameters[param_j].Name;
+
+                            f.RegisterParameter(param_name, param_value);
+                        }
+                    }
+
+                    f.RegisterStateAndOptionsProperties(this, args);
+
+                    if (f.CanEvaluate())
+                    {
+                        param.Evaluation = currentStrategy;
+
+                        lock (parameters)
+                        {
+                            f.LoadAddOns(args, options);
+                            parameters[param_i] = f.Evaluate();
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            for (int param_i = 0; param_i < parameters.Length; param_i++)
+            {
+                if (args.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.PerPixel)
+                {
+                    parameters[param_i] = args.Parameters[param_i].InitialValue;
+                }
+            }
+
 
             if (max_threads == 0 || max_threads == 1)
             {
-                GetPartialBitmap(args, options, out Bitmap image, progress: stateProgress);
+                GetPartialBitmap(args, parameters, options, out Bitmap image, progress: stateProgress);
                 return image;
             }
             else
@@ -819,7 +890,7 @@ namespace Modulartistic.Core
                     {
                         try
                         {
-                            GetPartialBitmap(args, options, out partial_images[local_i], local_i, threads_num, stateProgress);
+                            GetPartialBitmap(args, parameters, options, out partial_images[local_i], local_i, threads_num, stateProgress);
                         }
                         catch (Exception e)
                         {

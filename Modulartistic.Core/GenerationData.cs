@@ -307,7 +307,7 @@ namespace Modulartistic.Core
         /// <remarks>
         /// This method validates the JSON element using the <see cref="ValidateGenerationDataJson"/> method, parses each element, and adds it to the <see cref="GenerationData"/> collection.
         /// </remarks>
-        public void LoadJson(JsonElement root)
+        public void LoadJson(JsonElement root, GenerationOptions gOpts)
         {
             // make sure json is valid GenerationData
             EvaluationResults res = ValidateGenerationDataJson(root);
@@ -334,7 +334,7 @@ namespace Modulartistic.Core
                 // Check if element is valid StateOptions
                 if (StateOptions.IsJsonElementValid(element))
                 {
-                    StateOptions args = StateOptions.FromJson(element);
+                    StateOptions args = StateOptions.FromJson(element, gOpts);
                     Data.Add(args);
                     currentArgs = args;
                     continue;
@@ -374,10 +374,10 @@ namespace Modulartistic.Core
         /// <param name="element">The <see cref="JsonElement"/> containing the <see cref="GenerationData"/>.</param>
         /// <returns>A new instance of <see cref="GenerationData"/> populated with the data from the JSON element.</returns>
         /// <exception cref="KeyNotFoundException">Thrown if the JSON element contains an unrecognized property type.</exception>
-        public static GenerationData FromJson(JsonElement element)
+        public static GenerationData FromJson(JsonElement element, GenerationOptions gOpts)
         {
             GenerationData data= new GenerationData();
-            data.LoadJson(element);
+            data.LoadJson(element, gOpts);
 
             return data;
         }
@@ -393,7 +393,7 @@ namespace Modulartistic.Core
         /// <remarks>
         /// This method reads the JSON file, parses it into a <see cref="JsonDocument"/>, and creates a <see cref="GenerationData"/> instance from the root JSON element.
         /// </remarks>
-        public static GenerationData FromFile(string file)
+        public static GenerationData FromFile(string file, GenerationOptions gOpts)
         {
             if (!File.Exists(file)) { throw new FileNotFoundException($"The file '{file}' does not exist.", file); }
             
@@ -403,7 +403,7 @@ namespace Modulartistic.Core
                 {
                     using (var jdoc = JsonDocument.Parse(stream))
                     {
-                        return FromJson(jdoc.RootElement);
+                        return FromJson(jdoc.RootElement, gOpts);
                     }
                 }
             }
@@ -459,6 +459,10 @@ namespace Modulartistic.Core
             logger?.LogInfo("Generating all generatable objects in GenerationData");
             logger?.LogDebug($"GUID for GenerationData: {guid}");
 
+            // StateOptions Parameter
+            object?[] parameters = Array.Empty<object>();
+            ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.Global;
+
             // loop over all objects in collection
             for (int i = 0; i < Count; i++)
             {
@@ -471,14 +475,103 @@ namespace Modulartistic.Core
                     currentArgs = (StateOptions)obj;
 
                     currentArgs.TestLoadingAddOns(options);
-                    currentArgs.EvaluateGlobalParameters(options);
+
+                    #region load global parameters
+                    parameters = currentArgs.Parameters.Select(p => p.InitialValue).ToArray();
+                    currentStrategy = ParameterEvaluationStrategy.Global;
+                    for (int param_i = 0; param_i < currentArgs.Parameters.Count; param_i++)
+                    {
+                        StateOptionsParameter param = currentArgs.Parameters[param_i];
+
+                        if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
+                        {
+                            Function f = new Function(param.Expression);
+                            f.RegisterStateOptionsProperties(currentArgs);
+
+                            for (int param_j = 0; param_j <= param_i; param_j++)
+                            {
+                                lock (parameters)
+                                {
+                                    object? param_value = parameters[param_j];
+                                    if (param_value == null) { continue; }
+
+                                    string param_name = currentArgs.Parameters[param_j].Name;
+
+                                    f.RegisterParameter(param_name, param_value);
+                                }
+                            }
+
+                            f.RegisterStateOptionsProperties(currentArgs);
+
+                            if (f.CanEvaluate())
+                            {
+                                param.Evaluation = currentStrategy;
+
+                                lock (parameters)
+                                {
+                                    f.LoadAddOns(currentArgs, options);
+                                    parameters[param_i] = f.Evaluate();
+                                }
+                            }
+                        }
+                    }
+                    #endregion
 
                     loopProgress?.IncrementProgress();
                     continue;
                 }
 
+                // evaluate per generation parameters
+                #region load perGen parameters
+                currentStrategy = ParameterEvaluationStrategy.PerGeneration;
+                for (int param_i = 0; param_i < currentArgs.Parameters.Count; param_i++)
+                {
+                    StateOptionsParameter param = currentArgs.Parameters[param_i];
+
+                    if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
+                    {
+                        Function f = new Function(param.Expression);
+                        f.RegisterStateOptionsProperties(currentArgs);
+
+                        for (int param_j = 0; param_j <= param_i; param_j++)
+                        {
+                            lock (parameters)
+                            {
+                                object? param_value = parameters[param_j];
+                                if (param_value == null) { continue; }
+
+                                string param_name = currentArgs.Parameters[param_j].Name;
+
+                                f.RegisterParameter(param_name, param_value);
+                            }
+                        }
+
+                        f.RegisterStateOptionsProperties(currentArgs);
+
+                        if (f.CanEvaluate())
+                        {
+                            param.Evaluation = currentStrategy;
+
+                            lock (parameters)
+                            {
+                                f.LoadAddOns(currentArgs, options);
+                                parameters[param_i] = f.Evaluate();
+                            }
+                        }
+                    } 
+                }
+                #endregion
+
+                for (int param_i = 0; param_i < parameters.Length; param_i++) 
+                { 
+                    if (currentArgs.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.PerState) 
+                    {
+                        parameters[param_i] = currentArgs.Parameters[param_i].InitialValue;
+                    }
+                }
+
                 // else if the object is a state, generate said state
-                else if (obj.GetType() == typeof(State))
+                if (obj.GetType() == typeof(State))
                 {
                     State S = (State)obj;
                     
@@ -488,7 +581,7 @@ namespace Modulartistic.Core
 
                         logger?.Log($"Generating State: {S.Name}");
 
-                        string filename = S.GenerateImage(currentArgs, options, path_out);
+                        string filename = S.GenerateImage(currentArgs, parameters, options, path_out);
 
                         logger?.LogInfo($"Finished Generating State: {S.Name}");
                         loopProgress?.IncrementProgress();
@@ -516,7 +609,7 @@ namespace Modulartistic.Core
                         logger?.Log($"Total Scenes: {SS.Count}");
                         logger?.Log($"Total Frames: {SS.TotalFrameCount(currentArgs.Framerate)}");
                         
-                        string filename = await SS.GenerateAnimation(currentArgs, options, path_out);
+                        string filename = await SS.GenerateAnimation(currentArgs, parameters, options, path_out);
 
                         logger?.LogInfo($"Finished Generating StateSequence: {SS.Name}");
                         loopProgress?.IncrementProgress();
@@ -543,7 +636,7 @@ namespace Modulartistic.Core
                         logger?.Log($"Generating StateTimeline: {ST.Name}");
                         logger?.Log($"Total Frames: {ST.TotalFrameCount(currentArgs.Framerate)}");
 
-                        string filename = await ST.GenerateAnimation(currentArgs, options, path_out);
+                        string filename = await ST.GenerateAnimation(currentArgs, parameters, options, path_out);
 
                         logger?.LogInfo($"Finished Generating StateTimeline: {ST.Name}");
                         loopProgress?.IncrementProgress();

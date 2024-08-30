@@ -20,40 +20,14 @@ namespace Modulartistic.Core
         public string Expression { get; set; }
 
         /// <summary>
+        /// A value this Parameter gets initialized with. Useful for Parameters that modify itself
+        /// </summary>
+        public object? InitialValue { get; set; }
+
+        /// <summary>
         /// Whether this parameter is static (evaluates per state) or not (evaluates per pixel) or auto -> determines automatically if true or false
         /// </summary>
         public ParameterEvaluationStrategy Evaluation { get; set; }
-
-        /// <summary>
-        /// Get the static Value
-        /// </summary>
-        [JsonIgnore]
-        public object? Value
-        {
-            get
-            {
-                return _value;
-            }
-            set
-            {
-                _value = value;
-            }
-        }
-
-        /// <summary>
-        /// Lock to make changing the value thread safe
-        /// </summary>
-        public object ValueLock { get => _valueLock; }
-
-        #endregion
-
-        #region private fields
-
-        // value used for static params
-        private object? _value;
-
-        // object used to lock _value
-        private object _valueLock = new object();
 
         #endregion
 
@@ -63,13 +37,22 @@ namespace Modulartistic.Core
         /// <param name="name">Identifier for this parameter</param>
         /// <param name="expression">expression tto evaluate the parameter</param>
         /// <param name="pstatic">whether or not the parameter is static</param>
-        public StateOptionsParameter(string name, string expression, string pstatic)
+        public StateOptionsParameter(string name, string expression, string pstatic, string initial, StateOptions sOpts, GenerationOptions gOpts)
         {
             Name = name;
             Expression = expression;
 
+            InitialValue = null;
+            if (!String.IsNullOrEmpty(initial)) 
+            {
+                Function f = new Function(initial);
+                f.LoadAddOns(sOpts, gOpts);
+                InitialValue = f.Evaluate();
+            }
+
             Evaluation = ParameterEvaluationStrategy.Auto;
             if (pstatic == "global") { Evaluation = ParameterEvaluationStrategy.Global; }
+            else if (pstatic == "object") { Evaluation = ParameterEvaluationStrategy.PerGeneration; }
             else if (pstatic == "state") { Evaluation = ParameterEvaluationStrategy.PerState; }
             else if (pstatic == "pixel") { Evaluation = ParameterEvaluationStrategy.PerPixel; }
         }

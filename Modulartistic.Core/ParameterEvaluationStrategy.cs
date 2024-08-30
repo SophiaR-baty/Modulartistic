@@ -10,7 +10,8 @@ namespace Modulartistic.Core
     {
         Auto = 0,
         Global = 1,
-        PerState = 2,
-        PerPixel = 3,
+        PerGeneration = 2,
+        PerState = 3,
+        PerPixel = 4,
     }
 }

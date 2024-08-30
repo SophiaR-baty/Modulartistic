@@ -2,8 +2,7 @@
   "profiles": {
     "Modulartistic": {
       "commandName": "Project",
-      "commandLineArgs": "generate -i input.json -o . -f -1 -d",
-      "workingDirectory": "D:\\mgeo\\projects\\Modulartistic\\Modulartistic\\bin\\Debug\\net8.0"
+      "commandLineArgs": "generate -i input.json -o . -f 1 -d"
     }
   }
 }

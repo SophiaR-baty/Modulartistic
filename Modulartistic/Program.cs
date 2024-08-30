@@ -400,8 +400,6 @@ namespace Modulartistic
 
                         try
                         {
-                            GenerationData generationData = GenerationData.FromFile(file);
-
                             GenerationOptions genOptions = new GenerationOptions()
                             {
                                 KeepAnimationFrames = options.KeepFrames,
@@ -412,6 +410,8 @@ namespace Modulartistic
                                 ProgressReporter = reporter,
                                 PathProvider = PathProvider,
                             };
+
+                            GenerationData generationData = GenerationData.FromFile(file, genOptions);
 
                             Task task = generationData.GenerateAll(genOptions, options.OutputDirectory);
                             task.Wait();
@@ -428,9 +428,8 @@ namespace Modulartistic
                     }
                     reporter.RemoveTask(loopProgress);
 
-
-                    double elapsed = tasks["fileloop"].ElapsedTime.Value.TotalMilliseconds;
-                    Logger.LogInfo($"Time elapsed: {elapsed}");
+                    TimeSpan elapsed = tasks["fileloop"].ElapsedTime.Value;
+                    Logger.LogInfo($"Time elapsed: {elapsed.ToString("hh':'mm':'ss':'ffff")}");
                 }
             );
 

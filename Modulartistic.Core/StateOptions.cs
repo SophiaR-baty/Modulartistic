@@ -183,128 +183,7 @@ namespace Modulartistic.Core
         }
 
         #endregion
-
-        public void EvaluateGlobalParameters(GenerationOptions options)
-        {
-            for (int i = 0; i < Parameters.Count; i++)
-            {
-                StateOptionsParameter param = Parameters[i];
-
-                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == ParameterEvaluationStrategy.Global)
-                {
-                    Function f = new Function(param.Expression);
-                    f.RegisterStateOptionsProperties(this);
-
-                    for (int j = 0; j < i; j++)
-                    {
-                        StateOptionsParameter param2 = Parameters[j];
-                        lock (param2)
-                        {
-                            object? paramval = param2.Value;
-                            if (paramval != null)
-                            {
-                                f.RegisterParameter(param2.Name, paramval);
-                            }
-                        }
-                    }
-
-                    if (f.CanEvaluate())
-                    {
-                        param.Evaluation = ParameterEvaluationStrategy.Global;
-
-                        lock (param.ValueLock)
-                        {
-
-                            f.LoadAddOns(AddOns.ToArray(), this, options);
-                            param.Value = f.Evaluate();
-                        }
-                    }
-                }
-            }
-        }
-
-        public void EvaluatePerStateParameters(State s, GenerationOptions options)
-        {
-            for (int i = 0; i < Parameters.Count; i++)
-            {
-                StateOptionsParameter param = Parameters[i];
-
-                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == ParameterEvaluationStrategy.PerState)
-                {
-                    Function f = new Function(param.Expression);
-                    f.RegisterStateAndOptionsProperties(s, this);
-
-                    for (int j = 0; j < i; j++)
-                    {
-                        StateOptionsParameter param2 = Parameters[j];
-                        lock (param2)
-                        {
-                            object? paramval = param2.Value;
-                            if (paramval != null)
-                            {
-                                f.RegisterParameter(param2.Name, paramval);
-                            }
-                        }
-                    }
-
-                    if (f.CanEvaluate())
-                    {
-                        param.Evaluation = ParameterEvaluationStrategy.PerState;
-
-                        lock (param.ValueLock)
-                        {
-
-                            f.LoadAddOns(AddOns.ToArray(), this, options);
-                            param.Value = f.Evaluate();
-                        }
-                    }
-                }
-            }
-        }
-
-        public void EvaluatePerPixelParameters(double x, double y, State s, GenerationOptions options)
-        {
-            for (int i = 0; i < Parameters.Count; i++)
-            {
-                StateOptionsParameter param = Parameters[i];
-
-                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == ParameterEvaluationStrategy.PerPixel)
-                {
-                    Function f = new Function(param.Expression);
-                    f.RegisterStateAndOptionsProperties(s, this);
-                    f.RegisterParameter("x", x);
-                    f.RegisterParameter("y", y);
-                    f.RegisterParameter("Th", 180 * Math.Atan2(y, x) / Math.PI);
-                    f.RegisterParameter("r", Math.Sqrt(x * x + y * y));
-
-                    for (int j = 0; j < i; j++)
-                    {
-                        StateOptionsParameter param2 = Parameters[j];
-                        lock (param2)
-                        {
-                            object? paramval = param2.Value;
-                            if (paramval != null)
-                            {
-                                f.RegisterParameter(param2.Name, paramval);
-                            }
-                        }
-                    }
-
-                    if (f.CanEvaluate())
-                    {
-                        param.Evaluation = ParameterEvaluationStrategy.PerPixel;
-
-                        lock (param.ValueLock)
-                        {
-                            f.LoadAddOns(AddOns.ToArray(), this, options);
-                            param.Value = f.Evaluate();
-                        }
-                    }
-                }
-            }
-        }
-
-
+         
         #region JSON Methods
         /// <summary>
         /// Determines whether the specified <see cref="JsonElement"/> is a valid representation of <see cref="StateOptions"/>.
@@ -321,7 +200,7 @@ namespace Modulartistic.Core
         /// </summary>
         /// <param name="element">The JSON element containing the state options data.</param>
         /// <exception cref="KeyNotFoundException">Thrown when a property in the JSON element does not match any known properties of <see cref="StateOptions"/>.</exception>
-        public void LoadJson(JsonElement element)
+        public void LoadJson(JsonElement element, GenerationOptions gOpts)
         {
             foreach (JsonProperty elem in element.EnumerateObject())
             {
@@ -352,7 +231,9 @@ namespace Modulartistic.Core
                         Parameters.AddRange(elem.Value.EnumerateArray().Select((e, i) => new StateOptionsParameter(
                             e.GetProperty(nameof(StateOptionsParameter.Name)).GetString(), 
                             e.GetProperty(nameof(StateOptionsParameter.Expression)).GetString(),
-                            e.GetProperty(nameof(StateOptionsParameter.Evaluation)).GetString())));
+                            e.GetProperty(nameof(StateOptionsParameter.Evaluation)).GetString(),
+                            e.GetProperty(nameof(StateOptionsParameter.InitialValue)).GetString(), 
+                            this, gOpts)));
                         break;
                     default:
                         throw new KeyNotFoundException($"Property '{elem.Name}' does not exist on type '{GetType().Name}'.");
@@ -360,16 +241,17 @@ namespace Modulartistic.Core
             }
         }
 
+
         /// <summary>
         /// Creates a new instance of <see cref="StateOptions"/> from the specified JSON element.
         /// </summary>
         /// <param name="element">The JSON element containing the state options data.</param>
         /// <returns>A new <see cref="StateOptions"/> instance populated with data from the JSON element.</returns>
         /// <exception cref="KeyNotFoundException">Thrown when a property in the JSON element does not match any known properties of <see cref="StateOptions"/>.</exception>
-        public static StateOptions FromJson(JsonElement element)
+        public static StateOptions FromJson(JsonElement element, GenerationOptions gOpts)
         {
             StateOptions stateOptions = new StateOptions();
-            stateOptions.LoadJson(element);
+            stateOptions.LoadJson(element, gOpts);
             
             return stateOptions;
         }

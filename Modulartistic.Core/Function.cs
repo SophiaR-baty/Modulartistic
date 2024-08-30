@@ -200,9 +200,12 @@ namespace Modulartistic.Core
         /// Load AddOns from a Collection of strings containing paths to dll_files
         /// </summary>
         /// <param name="dll_paths"></param>
-        public void LoadAddOns(IEnumerable<string> dll_paths, StateOptions sOpts, GenerationOptions gOpts)
+        public void LoadAddOns(StateOptions sOpts, GenerationOptions gOpts)
         {
             if (_expression == null) { return; }
+
+            IEnumerable<string> dll_paths = sOpts.AddOns;
+
             IPathProvider pathProvider = gOpts.PathProvider;
             AddOnInitializationArgs initArgs = new AddOnInitializationArgs()
             {

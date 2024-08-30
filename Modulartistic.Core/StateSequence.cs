@@ -149,7 +149,7 @@ namespace Modulartistic.Core
         /// <returns>
         /// An <see cref="IEnumerable{IVideoFrame}"/> that represents the frames of the animation.
         /// </returns>
-        private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, GenerationOptions options)
+        private IEnumerable<IVideoFrame> EnumerateFrames(StateOptions args, object?[] parameters, GenerationOptions options)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -168,7 +168,7 @@ namespace Modulartistic.Core
                 {
                     State frameState = new State(current.State, next.State, current.Easing, j, frames);
                     sceneProgress?.IncrementProgress();
-                    yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, options));
+                    yield return new BitmapVideoFrameWrapper(frameState.GetBitmap(args, parameters, options));
                 }
                 options.ProgressReporter?.RemoveTask(sceneProgress);
                 sequenceProgress?.IncrementProgress();
@@ -185,7 +185,7 @@ namespace Modulartistic.Core
         /// <returns>
         /// The path to the directory where the frames were saved.
         /// </returns>
-        private string GenerateFrames(StateOptions args, GenerationOptions options, string frames_dir)
+        private string GenerateFrames(StateOptions args, object?[] parameters, GenerationOptions options, string frames_dir)
         {
             // parses GenerationArgs
             uint framerate = args.Framerate;
@@ -210,7 +210,7 @@ namespace Modulartistic.Core
                 for (int j = 0; j < frames; j++)
                 {
                     State frameState = new State(current.State, next.State, current.Easing, j, frames);
-                    frameState.GenerateImage(args, options, scene_out_dir);
+                    frameState.GenerateImage(args, parameters, options, scene_out_dir);
                     sceneProgress?.IncrementProgress();
                 }
                 options.ProgressReporter?.RemoveTask(sceneProgress);
@@ -233,11 +233,11 @@ namespace Modulartistic.Core
         /// A task that represents the asynchronous operation.
         /// </returns>
         /// <exception cref="Exception">Thrown if an error occurs during animation generation.</exception>
-        private async Task CreateAnimation(StateOptions args, GenerationOptions options, AnimationFormat type, string absolute_out_filepath)
+        private async Task CreateAnimation(StateOptions args, object?[] parameters, GenerationOptions options, AnimationFormat type, string absolute_out_filepath)
         {
             // parsing framerate and setting piping source
             uint framerate = args.Framerate;
-            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, options))
+            var videoFramesSource = new RawVideoPipeSource(EnumerateFrames(args, parameters,options))
             {
                 FrameRate = framerate, // set source frame rate
             };
@@ -392,7 +392,7 @@ namespace Modulartistic.Core
         /// <returns>
         /// A task that represents the asynchronous operation. Returns the path to the generated animation file.
         /// </returns>
-        public async Task<string> GenerateAnimation(StateOptions args, GenerationOptions options, string out_dir)
+        public async Task<string> GenerateAnimation(StateOptions args, object?[] parameters, GenerationOptions options, string out_dir)
         {
             // check if it exists
             if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException("The Directory " + out_dir + " was not found."); }
@@ -409,12 +409,12 @@ namespace Modulartistic.Core
             if (keepframes)
             {
                 // the folder where the frames are saved
-                string folder = GenerateFrames(args, options, file_path_out);
+                string folder = GenerateFrames(args, parameters, options, file_path_out);
                 await CreateAnimationFromFolder(args, options, type, folder);
             }
             else
             {
-                await CreateAnimation(args, options, type, file_path_out);
+                await CreateAnimation(args, parameters, options, type, file_path_out);
             }
 
             return file_path_out + $".{Helper.GetAnimationFormatExtension(type)}";
