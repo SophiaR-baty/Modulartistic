@@ -499,7 +499,7 @@ namespace Modulartistic.Core
 
                     // evaluate per generation parameters
                     #region load perPixel parameters
-                    ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.PerPixel;
+                    ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.Pixel;
                     for (int param_i = 0; param_i < args.Parameters.Count; param_i++)
                     {
                         StateOptionsParameter param = args.Parameters[param_i];
@@ -807,7 +807,7 @@ namespace Modulartistic.Core
 
             // evaluate per generation parameters
             #region load perState parameters
-            ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.PerState;
+            ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.State;
             for (int param_i = 0; param_i < args.Parameters.Count; param_i++)
             {
                 StateOptionsParameter param = args.Parameters[param_i];
@@ -848,7 +848,7 @@ namespace Modulartistic.Core
 
             for (int param_i = 0; param_i < parameters.Length; param_i++)
             {
-                if (args.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.PerPixel)
+                if (args.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.Pixel)
                 {
                     parameters[param_i] = args.Parameters[param_i].InitialValue;
                 }

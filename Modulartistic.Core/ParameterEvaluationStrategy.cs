@@ -8,10 +8,10 @@ namespace Modulartistic.Core
 {
     public enum ParameterEvaluationStrategy
     {
-        Auto = 0,
-        Global = 1,
-        PerGeneration = 2,
-        PerState = 3,
-        PerPixel = 4,
+        Auto,
+        Global,
+        Object,
+        State,
+        Pixel,
     }
 }

@@ -268,6 +268,8 @@ namespace Modulartistic.Core
                 Converters =
                 {
                     new DictionaryTKeyEnumTValueConverter(),
+                    new EnumConverter<EasingType>(),
+                    new EnumConverter<ParameterEvaluationStrategy>(),
                 },
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
@@ -523,7 +525,7 @@ namespace Modulartistic.Core
 
                 // evaluate per generation parameters
                 #region load perGen parameters
-                currentStrategy = ParameterEvaluationStrategy.PerGeneration;
+                currentStrategy = ParameterEvaluationStrategy.Object;
                 for (int param_i = 0; param_i < currentArgs.Parameters.Count; param_i++)
                 {
                     StateOptionsParameter param = currentArgs.Parameters[param_i];
@@ -564,7 +566,7 @@ namespace Modulartistic.Core
 
                 for (int param_i = 0; param_i < parameters.Length; param_i++) 
                 { 
-                    if (currentArgs.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.PerState) 
+                    if (currentArgs.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.State) 
                     {
                         parameters[param_i] = currentArgs.Parameters[param_i].InitialValue;
                     }

@@ -51,10 +51,10 @@ namespace Modulartistic.Core
             }
 
             Evaluation = ParameterEvaluationStrategy.Auto;
-            if (pstatic == "global") { Evaluation = ParameterEvaluationStrategy.Global; }
-            else if (pstatic == "object") { Evaluation = ParameterEvaluationStrategy.PerGeneration; }
-            else if (pstatic == "state") { Evaluation = ParameterEvaluationStrategy.PerState; }
-            else if (pstatic == "pixel") { Evaluation = ParameterEvaluationStrategy.PerPixel; }
+            if (pstatic.ToLower() == "global") { Evaluation = ParameterEvaluationStrategy.Global; }
+            else if (pstatic.ToLower() == "object") { Evaluation = ParameterEvaluationStrategy.Object; }
+            else if (pstatic.ToLower() == "state") { Evaluation = ParameterEvaluationStrategy.State; }
+            else if (pstatic.ToLower() == "pixel") { Evaluation = ParameterEvaluationStrategy.Pixel; }
         }
     }
 }

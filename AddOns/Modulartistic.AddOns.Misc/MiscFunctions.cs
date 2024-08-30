@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -171,6 +172,81 @@ namespace Modulartistic.AddOns.Misc
                 throw new DivideByZeroException();
             else
                 return d1 - d2 * Math.Floor(d1 / d2);
+        }
+    
+        public static Dictionary<Tuple<int, int>, double> CalculateAverageDistance(RandomPointEvaluator evaluator, int minX, int maxX, int minY, int maxY, int depth)
+        {
+            Dictionary<Tuple<int, int>, double> averages = new Dictionary<Tuple<int, int>, double>();
+
+            for (int x = minX; x <= maxX; x++)
+            {
+                for (int y = minY; y <= maxY; y++)
+                {
+                    Complex startPoint = new Complex(x, y);
+                    int average = 0;
+                    for (int i = 0; i < depth; i++)
+                    {
+                        int steps = 0;
+                        int idx = evaluator.EvaluateIdx(startPoint, out steps);
+                        average += idx;
+                    }
+                    averages[new Tuple<int, int>(x, y)] = ((double)average) / depth;
+                }
+            }
+
+            return averages;
+        }
+
+        public static double FractalNGon(double x, double y, Complex[] vertices, int depth)
+        {
+            RandomPointEvaluator rpe = new RandomPointEvaluator(vertices.ToList(), 0.5);
+            Complex startPoint = new Complex(x, y);
+            int average = 0;
+            for (int i = 0; i < depth; i++)
+            {
+                int steps = 0;
+                int idx = rpe.EvaluateIdx(startPoint, out steps);
+                average += idx;
+            }
+
+            return ((double)average) / depth;
+        }
+
+        public static Complex[] NGonVertices(int n, double r, Complex center)
+        {
+            Complex[] vertices = new Complex[n];
+            
+            for (int i = 0; i < n; i++) 
+            {
+                double theta = 2*Math.PI*i/n;
+                vertices[i] = new Complex(center.Real + r*Math.Cos(theta), center.Imaginary + r*Math.Sin(theta));
+            }
+
+            return vertices;
+        }
+
+        public static RandomPointEvaluator RPE(double probability, params Complex[] points)
+        {
+            return new RandomPointEvaluator(points.ToList(), probability);
+        }
+
+        public static Complex Point(double x, double y)
+        {
+            return new Complex(x, y);
+        }
+
+        public static double Average(double x, double y, Dictionary<Tuple<int, int>, double> grid)
+        {
+            Tuple<int, int> key = new Tuple<int, int>((int)Math.Floor(x), (int)Math.Floor(y));
+            
+            if (!grid.TryGetValue(key, out double result))
+            {
+                return double.NaN;
+            }
+
+            // Console.WriteLine(result);
+            return result;
+            
         }
     }
 }

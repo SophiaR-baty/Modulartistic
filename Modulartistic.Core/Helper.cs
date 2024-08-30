@@ -236,27 +236,54 @@ namespace Modulartistic.Core
 
                     // create parameters
                     ParameterInfo[] paraInf = mInfo.GetParameters();
-                    object[] parameters = new object[paraInf.Length];
+                    int mInfoPCount = paraInf.Length;
+                    object[] parameters = new object[mInfoPCount];
 
-                    if (parameter_count > paraInf.Length)
+
+                    if (parameter_count > paraInf.Length && paraInf[mInfoPCount - 1].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length == 0)
                     {
                         args.HasResult = false;
                         return;
                     }
 
                     // fill parameters with passed parameters
-                    for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
+                    for (int i = 0; i < mInfoPCount; i++) 
+                    { 
+                        if (paraInf[i].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0)
+                        {
+                            int params_count = parameter_count - mInfoPCount;
+                            // object[] params_parameter = new object[params_count+1];
+                            
+                            // Get the type of the elements in the params array
+                            Type paramsElementType = paraInf[i].ParameterType.GetElementType() ?? typeof(object);
 
-                    // fill remaining parameters with default arameters
-                    for (int i = args.Parameters.Length; i < paraInf.Length; i++)
-                    {
-                        if (paraInf[i].HasDefaultValue) { parameters[i] = paraInf[i].DefaultValue; }
+                            // Create an array of the correct type and size
+                            Array params_parameter = Array.CreateInstance(paramsElementType, params_count+1);
+
+                            for (int j = i; j < parameter_count; j++) 
+                            {
+                                // params_parameter[j - i] = args.Parameters[j].Evaluate();
+                                params_parameter.SetValue(args.Parameters[j].Evaluate(), j - i);
+                            }
+
+                            parameters[i] = params_parameter;
+                        }
+                        else if (i >= parameter_count)
+                        {
+                            if (paraInf[i].HasDefaultValue) { parameters[i] = paraInf[i].DefaultValue; }
+                            else
+                            {
+                                args.HasResult = false;
+                                return;
+                            }
+                        }
                         else
                         {
-                            args.HasResult = false;
-                            return;
+                            parameters[i] = args.Parameters[i].Evaluate();
                         }
                     }
+                    // OLD
+                    // for (int i = 0; i < args.Parameters.Length; i++) { parameters[i] = args.Parameters[i].Evaluate(); }
 
                     object? result = mInfo.Invoke(obj, parameters) ?? throw new Exception("Result of Functions may not be null");
                     args.Result = Convert.ChangeType(result, mInfo.ReturnType);
