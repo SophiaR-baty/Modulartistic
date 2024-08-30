@@ -5,7 +5,7 @@
 ## Features
 
 - **Generative Art**: Create unique images and animations using mathematical expressions.
-- **Extensibility**: Easily extend the application with custom add-ons.
+- **Extensibility**: Extend the application with custom add-ons.
 - **Predefined Add-ons**: Includes add-ons for image processing and music analyzing/visualizing.
 
 ## Getting Started
@@ -25,7 +25,7 @@ Since the application is in its early stages, you may encounter bugs or have sug
 
 - **Share**: Feel free to share any images or animations you create with Modulartistic.
 - **Contact**: If you create something particularly interesting, I'd love to hear about it! Reach out to me at [maximilian.georgiev@maxgeo.de](mailto:maximilian.georgiev@maxgeo.de).
-- **Credit**: While not required, crediting Modulartistic is appreciated.
+- **Credit**: While not required, crediting/referencing Modulartistic is appreciated.
 
 ## License
 
