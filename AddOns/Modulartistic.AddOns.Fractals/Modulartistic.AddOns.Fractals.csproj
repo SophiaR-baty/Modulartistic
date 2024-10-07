@@ -25,9 +25,12 @@
 		</ItemGroup>
 		<Move SourceFiles="@(Dependencies)" DestinationFolder="$(PublishDir)$(AssemblyName)\" />
 	</Target>
+
+	<ItemGroup>
+	  <PackageReference Include="CoreCLR-NCalc" Version="3.1.253" />
+	</ItemGroup>
 	
   <ItemGroup>
-    <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
     <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
   </ItemGroup>
 

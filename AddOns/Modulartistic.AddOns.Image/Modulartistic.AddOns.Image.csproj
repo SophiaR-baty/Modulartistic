@@ -28,7 +28,6 @@
 	</Target>
 
 	<ItemGroup>
-    <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
     <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
     <ProjectReference Include="..\..\Modulartistic.Drawing\Modulartistic.Drawing.csproj" />
   </ItemGroup>

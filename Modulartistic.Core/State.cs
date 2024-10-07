@@ -11,7 +11,6 @@ using System.Xml.Linq;
 using SkiaSharp;
 using System.Collections.Generic;
 using Modulartistic.Common;
-using Modulartistic.AddOns;
 
 #nullable enable
 
@@ -419,22 +418,22 @@ namespace Modulartistic.Core
             if (!useRGB) { col_r_h /= 360; }
             // instanciate the functions
             #region parse the functions
-            Function Func_R_H = new Function(args.FunctionRedHue);
+            ExtendedExpression Func_R_H = new ExtendedExpression(args.FunctionRedHue);
             Func_R_H.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_R_H);
             if (args.AddOns != null) Func_R_H.LoadAddOns(args, options);
 
-            Function Func_G_S = new Function(args.FunctionGreenSaturation);
+            ExtendedExpression Func_G_S = new ExtendedExpression(args.FunctionGreenSaturation);
             Func_G_S.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_G_S);
             if (args.AddOns != null) Func_G_S.LoadAddOns(args, options);
 
-            Function Func_B_V = new Function(args.FunctionBlueValue);
+            ExtendedExpression Func_B_V = new ExtendedExpression(args.FunctionBlueValue);
             Func_B_V.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_B_V);
             if (args.AddOns != null) Func_B_V.LoadAddOns(args, options);
 
-            Function Func_Alp = new Function(args.FunctionAlpha);
+            ExtendedExpression Func_Alp = new ExtendedExpression(args.FunctionAlpha);
             Func_Alp.RegisterStateAndOptionsProperties(this, args);
             RegisterExtras(Func_Alp);
             if (args.AddOns != null) Func_Alp.LoadAddOns(args, options);
@@ -507,8 +506,8 @@ namespace Modulartistic.Core
 
                         if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
                         {
-                            Function f = new Function(param.Expression);
-                            f.RegisterStateOptionsProperties(args);
+                            ExtendedExpression f = new ExtendedExpression(param.Expression);
+                            f.RegisterStateOptions(args);
 
                             for (int param_j = 0; param_j <= param_i; param_j++)
                             {
@@ -557,7 +556,7 @@ namespace Modulartistic.Core
                     #endregion
 
                     #region Evaluating Functions
-                    void calculatePixelValue(Function func, double offset, bool circ, out double pixel_val)
+                    void calculatePixelValue(ExtendedExpression func, double offset, bool circ, out double pixel_val)
                     {
                         double n;
                         // not trying to catch exceptions here anymore! 
@@ -814,8 +813,8 @@ namespace Modulartistic.Core
 
                 if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
                 {
-                    Function f = new Function(param.Expression);
-                    f.RegisterStateOptionsProperties(args);
+                    ExtendedExpression f = new ExtendedExpression(param.Expression);
+                    f.RegisterStateOptions(args);
 
                     for (int param_j = 0; param_j <= param_i; param_j++)
                     {
@@ -1029,7 +1028,7 @@ namespace Modulartistic.Core
         /// register all extra methods defined in this state to a function 
         /// </summary>
         /// <param name="func">The function to register on</param>
-        public void RegisterExtraFunctions(Function func)
+        public void RegisterExtraFunctions(ExtendedExpression func)
         {
             foreach (KeyValuePair<object, HashSet<MethodInfo>> kvp in _extraFunctions)
             {
@@ -1047,7 +1046,7 @@ namespace Modulartistic.Core
         /// register all extra parameters defined in this state to a function
         /// </summary>
         /// <param name="func">The function to register on</param>
-        public void RegisterExtraParameters(Function func)
+        public void RegisterExtraParameters(ExtendedExpression func)
         {
             foreach (KeyValuePair<string, object> kvp in _extraParameters)
             {
@@ -1059,7 +1058,7 @@ namespace Modulartistic.Core
         /// Register all extra parameters or methods to a function
         /// </summary>
         /// <param name="func">The function to register on</param>
-        public void RegisterExtras(Function func)
+        public void RegisterExtras(ExtendedExpression func)
         {
             RegisterExtraFunctions(func);
             RegisterExtraParameters(func);
@@ -1188,9 +1187,9 @@ namespace Modulartistic.Core
             if (element.ValueKind == JsonValueKind.String)
             {
                 // if value is string type evaluate
-                Expression expr = new Expression(element.GetString());
-                Helper.ExprRegisterStateProperties(ref expr, this);
-                Helper.ExprRegisterStateOptions(ref expr, opts);
+                ExtendedExpression expr = new ExtendedExpression(element.GetString());
+                expr.RegisterStateProperties(this);
+                expr.RegisterStateOptions(opts);
                 try
                 {
                     value = (double)expr.Evaluate();

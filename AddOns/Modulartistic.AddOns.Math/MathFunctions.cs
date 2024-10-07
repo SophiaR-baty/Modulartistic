@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using MathNet.Numerics.Distributions;
 using MathNet.Numerics.Random;
-using Modulartistic.AddOns;
+using Modulartistic.Common;
 
 namespace MathFunctions
 {

@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.Drawing", "Mo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.Core.Tests", "Modulartistic.Core.Tests\Modulartistic.Core.Tests.csproj", "{CA518C6D-7611-41FC-8404-D08E3676CA3F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns", "Modulartistic.AddOns\Modulartistic.AddOns.csproj", "{82C395FB-C50D-4505-BB2A-4634E50F429F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.Common", "Modulartistic.Common\Modulartistic.Common.csproj", "{4A7B42DC-8CE1-48B1-A695-FCAA728FC094}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.AudioVisualization", "AddOns\Modulartistic.AddOns.AudioVisualization\Modulartistic.AddOns.AudioVisualization.csproj", "{4583589D-39F3-4A02-8FC4-0A7C36FD5BD5}"
@@ -30,6 +28,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Misc", "AddOns\Modulartistic.AddOns.Misc\Modulartistic.AddOns.Misc.csproj", "{8AA3DDC1-1E8E-4195-908D-D81979F51206}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.IFS", "AddOns\Modulartistic.AddOns.IFS\Modulartistic.AddOns.IFS.csproj", "{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic.AddOns.Complex", "Modulartistic.AddOns.Complex\Modulartistic.AddOns.Complex.csproj", "{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,10 +53,6 @@ Global
 		{CA518C6D-7611-41FC-8404-D08E3676CA3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA518C6D-7611-41FC-8404-D08E3676CA3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA518C6D-7611-41FC-8404-D08E3676CA3F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82C395FB-C50D-4505-BB2A-4634E50F429F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82C395FB-C50D-4505-BB2A-4634E50F429F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{82C395FB-C50D-4505-BB2A-4634E50F429F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{82C395FB-C50D-4505-BB2A-4634E50F429F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4A7B42DC-8CE1-48B1-A695-FCAA728FC094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4A7B42DC-8CE1-48B1-A695-FCAA728FC094}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A7B42DC-8CE1-48B1-A695-FCAA728FC094}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -89,6 +85,10 @@ Global
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,6 +101,7 @@ Global
 		{FA67C7FC-FC96-4089-9074-52E85C981D1C} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
 		{8AA3DDC1-1E8E-4195-908D-D81979F51206} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
+		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {19857336-0067-46DF-A798-2C8D7DD50364}

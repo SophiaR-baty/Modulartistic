@@ -5,7 +5,6 @@ using System.Xml.Linq;
 using System.Reflection;
 using NCalc;
 using Json.Schema;
-using Modulartistic.AddOns;
 using Modulartistic.Common;
 using Antlr4.Runtime.Misc;
 using FFMpegCore;
@@ -264,14 +263,13 @@ namespace Modulartistic.Core
         /// <exception cref="Exception">Thrown when the JSON property is neither a string nor a number.</exception>
         private double GetValueOrEvaluate(JsonProperty elem)
         {
-
             // retrieve the value beforehand
             double value;
             if (elem.Value.ValueKind == JsonValueKind.String)
             {
                 // if value is string type evaluate
-                Expression expr = new Expression(elem.Value.GetString());
-                Helper.ExprRegisterStateOptions(ref expr, this);
+                ExtendedExpression expr = new ExtendedExpression(elem.Value.GetString());
+                expr.RegisterStateOptions(this);
                 value = (double)expr.Evaluate();
             }
             else if (elem.Value.ValueKind == JsonValueKind.Number)

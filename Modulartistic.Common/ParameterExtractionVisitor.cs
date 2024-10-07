@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modulartistic.Core
+namespace Modulartistic.Common
 {
-    class ParameterExtractionVisitor : LogicalExpressionVisitor
+    public class ParameterExtractionVisitor : LogicalExpressionVisitor
     {
         public HashSet<string> Parameters = new HashSet<string>();
 

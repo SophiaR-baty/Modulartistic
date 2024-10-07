@@ -1,6 +1,4 @@
-﻿using Modulartistic.Common;
-
-namespace Modulartistic.AddOns
+﻿namespace Modulartistic.Common
 {
     public class AddOnInitializationArgs
     {
@@ -10,6 +8,8 @@ namespace Modulartistic.AddOns
         public int Height { get; set; }
         public uint Framerate { get; set; }
         public Guid Guid { get; set; }
+        public string[] AddOns { get; set; }
+        public string AddOnDir { get; set; }
 
         public AddOnInitializationArgs() { }
 

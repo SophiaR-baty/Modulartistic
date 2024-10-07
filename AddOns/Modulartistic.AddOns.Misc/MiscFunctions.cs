@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Modulartistic.Common;
 
 namespace Modulartistic.AddOns.Misc
 {
@@ -212,6 +213,21 @@ namespace Modulartistic.AddOns.Misc
             return ((double)average) / depth;
         }
 
+        public static double FractalNGon(double x, double y, Complex[] vertices, double[] probabilities, int depth)
+        {
+            RandomPointEvaluatorAlt rpe = new RandomPointEvaluatorAlt(vertices.ToList(), probabilities.ToList());
+            Complex startPoint = new Complex(x, y);
+            int average = 0;
+            for (int i = 0; i < depth; i++)
+            {
+                int steps = 0;
+                int idx = rpe.EvaluateIdx(startPoint, out steps);
+                average += idx;
+            }
+
+            return ((double)average) / depth;
+        }
+
         public static Complex[] NGonVertices(int n, double r, Complex center)
         {
             Complex[] vertices = new Complex[n];
@@ -223,6 +239,11 @@ namespace Modulartistic.AddOns.Misc
             }
 
             return vertices;
+        }
+
+        public static double[] Probabilities(params double[] probs) 
+        { 
+            return probs; 
         }
 
         public static RandomPointEvaluator RPE(double probability, params Complex[] points)

@@ -2,16 +2,12 @@
 using System;
 using System.IO;
 using System.Reflection;
-using Modulartistic.AddOns;
-using System.Reflection.Metadata.Ecma335;
-using System.Linq;
-using FFMpegCore;
 using System.Collections.Concurrent;
 using Modulartistic.Common;
 
-namespace Modulartistic.Core
+namespace Modulartistic.Common
 {
-    public class Function
+    public class ExtendedExpression
     {
         private Expression? _expression;
         private readonly HashSet<Type> _allowedResultTypes = new HashSet<Type>()
@@ -30,8 +26,8 @@ namespace Modulartistic.Core
         private static ConcurrentDictionary<string, Type> _addOnCache = new ConcurrentDictionary<string, Type>();
         private string _function;
 
-        public string FunctionString 
-        {  
+        public string FunctionString
+        {
             get => _function;
         }
 
@@ -39,10 +35,10 @@ namespace Modulartistic.Core
         #region constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Function"/> class by creating a new <see cref="Expression"/> object from the specified string.
+        /// Initializes a new instance of the <see cref="ExtendedExpression"/> class by creating a new <see cref="Expression"/> object from the specified string.
         /// </summary>
         /// <param name="expression">A string representing the expression to be evaluated.</param>
-        public Function(string expression) 
+        public ExtendedExpression(string expression)
         {
             _function = expression;
             if (!string.IsNullOrEmpty(_function))
@@ -51,16 +47,15 @@ namespace Modulartistic.Core
                 RegisterConversionFunctions();
                 _expression.Options = EvaluateOptions.UseDoubleForAbsFunction;
             }
-            
         }
 
-        public Function() : this("") { }
+        public ExtendedExpression() : this("") { }
 
         #endregion
 
         public object Evaluate()
         {
-            return _expression?.Evaluate() ?? 0;
+            return _expression?.Evaluate() ?? double.NaN;
         }
 
         public bool CanEvaluate()
@@ -71,29 +66,10 @@ namespace Modulartistic.Core
 
             var extractedParameters = visitor.Parameters;
 
-            
-            if (_expression ==  null) { return false; }
+
+            if (_expression == null) { return false; }
 
             return extractedParameters.All(s => _expression.Parameters.ContainsKey(s));
-        }
-
-        public void RegisterStateAndOptionsProperties(State s, StateOptions args)
-        {
-            if (_expression == null) { return; }
-            Helper.ExprRegisterStateProperties(ref _expression, s);
-            Helper.ExprRegisterStateOptions(ref _expression, args);
-        }
-
-        public void RegisterStateProperties(State s)
-        {
-            if (_expression == null) { return; }
-            Helper.ExprRegisterStateProperties(ref _expression, s);
-        }
-
-        public void RegisterStateOptionsProperties(StateOptions args)
-        {
-            if (_expression == null) { return; }
-            Helper.ExprRegisterStateOptions(ref _expression, args);
         }
 
         /// <summary>
@@ -150,7 +126,7 @@ namespace Modulartistic.Core
             {
                 Type type = typeInfos[i];
                 MethodInfo[] methodInfos;
-                if (!_addOnCache.ContainsKey(type.FullName)) 
+                if (!_addOnCache.ContainsKey(type.FullName))
                 {
                     // gets all public static methods of the type
                     // -> only methods that should be exposed to the parser should be public static
@@ -196,30 +172,6 @@ namespace Modulartistic.Core
             _expression.RegisterMethod(obj, mInfo);
         }
 
-        /// <summary>
-        /// Load AddOns from a Collection of strings containing paths to dll_files
-        /// </summary>
-        /// <param name="dll_paths"></param>
-        public void LoadAddOns(StateOptions sOpts, GenerationOptions gOpts)
-        {
-            if (_expression == null) { return; }
-
-            IEnumerable<string> dll_paths = sOpts.AddOns;
-
-            IPathProvider pathProvider = gOpts.PathProvider;
-            AddOnInitializationArgs initArgs = new AddOnInitializationArgs()
-            {
-                Framerate = sOpts.Framerate,
-                Width = sOpts.Width,
-                Height = sOpts.Height,
-                Logger = gOpts.Logger,
-                ProgressReporter = gOpts.ProgressReporter,
-                Guid = gOpts.GenerationDataGuid,
-            };
-            foreach (string dll in dll_paths)
-            {
-                LoadAddOn(Helper.GetAddOnPath(dll, pathProvider), initArgs);
-            }
-        }
+        
     }
 }

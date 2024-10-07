@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Modulartistic.Common;
 
 namespace Modulartistic.AddOns.AudioVisualization
 {

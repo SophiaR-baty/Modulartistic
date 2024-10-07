@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Modulartistic.Common;
 
 namespace Modulartistic.Core
 {
@@ -45,7 +46,7 @@ namespace Modulartistic.Core
             InitialValue = null;
             if (!String.IsNullOrEmpty(initial)) 
             {
-                Function f = new Function(initial);
+                ExtendedExpression f = new ExtendedExpression(initial);
                 f.LoadAddOns(sOpts, gOpts);
                 InitialValue = f.Evaluate();
             }

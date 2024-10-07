@@ -487,8 +487,8 @@ namespace Modulartistic.Core
 
                         if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
                         {
-                            Function f = new Function(param.Expression);
-                            f.RegisterStateOptionsProperties(currentArgs);
+                            ExtendedExpression f = new ExtendedExpression(param.Expression);
+                            f.RegisterStateOptions(currentArgs);
 
                             for (int param_j = 0; param_j <= param_i; param_j++)
                             {
@@ -503,7 +503,7 @@ namespace Modulartistic.Core
                                 }
                             }
 
-                            f.RegisterStateOptionsProperties(currentArgs);
+                            f.RegisterStateOptions(currentArgs);
 
                             if (f.CanEvaluate())
                             {
@@ -532,8 +532,8 @@ namespace Modulartistic.Core
 
                     if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
                     {
-                        Function f = new Function(param.Expression);
-                        f.RegisterStateOptionsProperties(currentArgs);
+                        ExtendedExpression f = new ExtendedExpression(param.Expression);
+                        f.RegisterStateOptions(currentArgs);
 
                         for (int param_j = 0; param_j <= param_i; param_j++)
                         {
@@ -548,7 +548,7 @@ namespace Modulartistic.Core
                             }
                         }
 
-                        f.RegisterStateOptionsProperties(currentArgs);
+                        f.RegisterStateOptions(currentArgs);
 
                         if (f.CanEvaluate())
                         {

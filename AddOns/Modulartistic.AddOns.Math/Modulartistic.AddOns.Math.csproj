@@ -32,7 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Modulartistic.AddOns\Modulartistic.AddOns.csproj" />
     <ProjectReference Include="..\..\Modulartistic.Common\Modulartistic.Common.csproj" />
   </ItemGroup>
 
