@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Misc",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.IFS", "AddOns\Modulartistic.AddOns.IFS\Modulartistic.AddOns.IFS.csproj", "{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modulartistic.AddOns.Complex", "Modulartistic.AddOns.Complex\Modulartistic.AddOns.Complex.csproj", "{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modulartistic.AddOns.Complex", "AddOns\Modulartistic.AddOns.Complex\Modulartistic.AddOns.Complex.csproj", "{594243B7-9944-4BC0-92B3-219638CEF06F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,10 +85,10 @@ Global
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{594243B7-9944-4BC0-92B3-219638CEF06F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{594243B7-9944-4BC0-92B3-219638CEF06F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{594243B7-9944-4BC0-92B3-219638CEF06F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{594243B7-9944-4BC0-92B3-219638CEF06F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,7 +101,7 @@ Global
 		{FA67C7FC-FC96-4089-9074-52E85C981D1C} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
 		{8AA3DDC1-1E8E-4195-908D-D81979F51206} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
 		{3C932C68-235A-4DF1-B38A-C6E44F6E02C9} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
-		{6C81B42C-E17E-4C59-92D9-DE1B8B2670D3} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
+		{594243B7-9944-4BC0-92B3-219638CEF06F} = {30C9620A-84DA-45BB-89AB-AF09FB03A11E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {19857336-0067-46DF-A798-2C8D7DD50364}

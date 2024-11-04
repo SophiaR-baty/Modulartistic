@@ -70,6 +70,11 @@
             public const string STATETIMELINE_NAME_DEFAULT = "timeline";   // default for statetimeline name
         }
 
+        public static class StateAnimation
+        {
+            public const string STATEANIMATION_NAME_DEFATULT = "StateAnimation";
+        }
+
         /// <summary>
         /// Constants and default values for Config
         /// </summary>

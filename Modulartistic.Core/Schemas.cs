@@ -383,11 +383,49 @@ namespace Modulartistic.Core
             }
             #endregion
 
+            #region Add StateAnimation definitions to schema
+            currentType = typeof(StateAnimation);
+            defs[$"{currentType.Name}"] = new JsonObject()
+            {
+                ["$comment"] = $"{currentType.Name} object",
+                ["type"] = "object",
+                ["properties"] = new JsonObject(),
+                ["additionalProperties"] = false,
+            };
+            foreach (PropertyInfo propInf in currentType.GetProperties().Where((prop) => !prop.IsDefined(typeof(JsonIgnoreAttribute))))
+            {
+                // Name and EndCondition
+                if (propInf.PropertyType == typeof(string))
+                {
+                    defs[$"{currentType.Name}"]["properties"].AsObject().Add(propInf.Name, new JsonObject() { ["type"] = "string" });
+                }
+                // MaxLength
+                else if (propInf.PropertyType == typeof(double))
+                {
+                    defs[$"{currentType.Name}"]["properties"].AsObject().Add(propInf.Name,
+                        new JsonObject()
+                        {
+                            ["type"] = "number",
+                            ["minimum"] = -1
+                        });
+                }
+                // Base State
+                else if (propInf.PropertyType == typeof(State))
+                {
+                    defs[$"{currentType.Name}"]["properties"].AsObject().Add(propInf.Name, new JsonObject() { ["$ref"] = $"#/$defs/{nameof(State)}" });
+                }
+                // in case of changes that aren't being handled well
+                else { throw new Exception($"{currentType.Name} should not contain Serializable Properties of type {propInf.PropertyType.Name}. You might be missing a JsonIgnore Attribute or a case isn't handled. "); }
+            }
+            #endregion
+
+
             var possibleItems = schema["items"]["oneOf"].AsArray();
             possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(StateOptions)}" });
             possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(State)}" });
             possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(StateSequence)}" });
             possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(StateTimeline)}" });
+            possibleItems.Add(new JsonObject() { ["$ref"] = $"#/$defs/{nameof(StateAnimation)}" });
 
             return schema;
         }

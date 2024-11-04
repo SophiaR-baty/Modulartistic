@@ -366,6 +366,19 @@ namespace Modulartistic.Core
                     continue;
                 }
 
+                // Check for StateAnimation
+                if (StateAnimation.IsJsonElementValid(element))
+                {
+                    StateAnimation stateAnimation = StateAnimation.FromJson(element, currentArgs);
+                    Data.Add(stateAnimation);
+                    continue;
+                }
+
+                // Errorhandling
+                if (element.TryGetProperty("Name", out JsonElement name))
+                {
+                    throw new KeyNotFoundException($"Unrecognized Property {name.GetString()}");
+                }
                 throw new KeyNotFoundException($"Unrecognized Property");
             }
         }
@@ -653,6 +666,33 @@ namespace Modulartistic.Core
                         continue;
                     }
                 }
+
+                // if the object is a StateTimeline
+                else if (obj.GetType() == typeof(StateAnimation))
+                {
+                    StateAnimation SA = (StateAnimation)obj;
+
+                    // generate Animation
+                    try
+                    {
+                        logger?.Log($"Generating StateAnimation: {SA.Name}");
+
+                        string filename = await SA.GenerateAnimation(currentArgs, parameters, options, path_out);
+
+                        logger?.LogInfo($"Finished Generating StateAnimation: {SA.Name}");
+                        loopProgress?.IncrementProgress();
+                        continue;
+                    }
+                    catch (Exception e)
+                    {
+                        logger?.LogError($"Generating StateAnimation:  {SA.Name}");
+                        if (options.PrintDebugInfo) { logger?.LogException(e); }
+                        logger?.LogInfo("Skipping...");
+                        loopProgress?.IncrementProgress();
+                        continue;
+                    }
+                }
+
 
                 else
                 {

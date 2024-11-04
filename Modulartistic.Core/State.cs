@@ -1,16 +1,11 @@
-﻿using System;
-using Modulartistic.Drawing;
+﻿using Modulartistic.Drawing;
 using MathNet.Numerics;
 using System.Text.Json.Serialization;
-using Antlr4.Runtime.Misc;
 using System.Text.Json;
-using NCalc;
-using Json.Schema;
 using System.Reflection;
-using System.Xml.Linq;
-using SkiaSharp;
-using System.Collections.Generic;
 using Modulartistic.Common;
+using Antlr4.Runtime.Misc;
+using FFMpegCore;
 
 #nullable enable
 
@@ -62,10 +57,6 @@ namespace Modulartistic.Core
         private double m_inv_alp;           // the alpha invalid value
 
         private double[] m_parameters;
-
-
-        private Dictionary<object, HashSet<MethodInfo>> _extraFunctions;
-        private Dictionary<string, object> _extraParameters;
         #endregion
 
         #region Properties
@@ -282,8 +273,6 @@ namespace Modulartistic.Core
         public State()
         {
             if (!PropStringFilled) { FillPropertyStringDict(); }
-            _extraFunctions = new Dictionary<object, HashSet<MethodInfo>>();
-            _extraParameters = new Dictionary<string, object>();
 
             m_name = Constants.State.STATENAME_DEFAULT;
 
@@ -420,22 +409,18 @@ namespace Modulartistic.Core
             #region parse the functions
             ExtendedExpression Func_R_H = new ExtendedExpression(args.FunctionRedHue);
             Func_R_H.RegisterStateAndOptionsProperties(this, args);
-            RegisterExtras(Func_R_H);
             if (args.AddOns != null) Func_R_H.LoadAddOns(args, options);
 
             ExtendedExpression Func_G_S = new ExtendedExpression(args.FunctionGreenSaturation);
             Func_G_S.RegisterStateAndOptionsProperties(this, args);
-            RegisterExtras(Func_G_S);
             if (args.AddOns != null) Func_G_S.LoadAddOns(args, options);
 
             ExtendedExpression Func_B_V = new ExtendedExpression(args.FunctionBlueValue);
             Func_B_V.RegisterStateAndOptionsProperties(this, args);
-            RegisterExtras(Func_B_V);
             if (args.AddOns != null) Func_B_V.LoadAddOns(args, options);
 
             ExtendedExpression Func_Alp = new ExtendedExpression(args.FunctionAlpha);
             Func_Alp.RegisterStateAndOptionsProperties(this, args);
-            RegisterExtras(Func_Alp);
             if (args.AddOns != null) Func_Alp.LoadAddOns(args, options);
             #endregion
 
@@ -930,11 +915,209 @@ namespace Modulartistic.Core
                 return image;
             }
         }
-        
+
+        #region Additional for StateAnimation
+
+        /// <summary>
+        /// Generates a bitmap image using the specified state and generation options, saves it to the specified output directory, and returns the file path of the saved image. Additionally evaluates an additional expression in this context
+        /// </summary>
+        /// <param name="args">The state options that determine the parameters for bitmap generation.</param>
+        /// <param name="options">The generation options that control the bitmap generation process.</param>
+        /// <param name="out_dir">The output directory where the generated image will be saved.</param>
+        /// <returns>The file path of the saved image.</returns>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the specified output directory does not exist.</exception>
+        /// <remarks>
+        /// If the Name is empty, the method sets it to a default name.
+        /// If a file with the same name already exists in the output directory, an index is appended to the file name to make it unique.
+        /// The generated image is saved in PNG format.
+        /// </remarks>
+        public string GenerateImage(StateOptions args, object?[] parameters, GenerationOptions options, string out_dir, string continue_expression, out object continue_result)
+        {
+            // If out_dir is empty set to default, then check if it exists
+            if (!Directory.Exists(out_dir)) { throw new DirectoryNotFoundException($"The Directory {out_dir} was not found."); }
+
+            // set the absolute path for the file to be save
+            string file_path_out = Path.Join(out_dir, (Name == "" ? Constants.State.STATENAME_DEFAULT : Name));
+            // Validate (if file with same name exists already, append index)
+            file_path_out = Helper.GetValidFileName(file_path_out);
+
+
+            // Generate the image
+            Bitmap image = GetBitmap(args, parameters, options, continue_expression, out continue_result);
+            // Save the image
+            image.Save(file_path_out + @".png");
+
+            Helper.EmbedGuid(file_path_out + @".png", options.GenerationDataGuid);
+
+            return file_path_out + @".png";
+        }
+
+
+        /// <summary>
+        /// Generates a bitmap image using the specified state and generation options. Additionally evaluates an additional expression in this context
+        /// </summary>
+        /// <param name="args">The state options that determine the parameters for bitmap generation.</param>
+        /// <param name="options">The generation options that control the number of threads used for bitmap generation.</param>
+        /// <returns>A bitmap image generated based on the specified parameters.</returns>
+        /// <remarks>
+        /// If <paramref name="options.MaxThreads"/> is set to 0 or 1, the method generates the bitmap using a single thread.
+        /// If <paramref name="options.MaxThreads"/> is greater than 1, the method generates the bitmap using multiple threads
+        /// to improve performance by dividing the work across available processors.
+        /// </remarks>
+        public Bitmap GetBitmap(StateOptions args, object?[] parameters, GenerationOptions options, string continue_expression, out object continue_result)
+        {
+            ExtendedExpression func = new ExtendedExpression(continue_expression);
+            func.LoadAddOns(args, options);
+            func.RegisterStateAndOptionsProperties(this, args);
+
+            int max_threads = options.MaxThreads;
+
+            // Set progrss tracker
+            double pixelCount = args.Width * args.Height;
+            Progress? stateProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid() + Name}", $"Generating State {Name}", pixelCount);
+
+            // evaluate per generation parameters
+            #region load perState parameters
+            ParameterEvaluationStrategy currentStrategy = ParameterEvaluationStrategy.State;
+            for (int param_i = 0; param_i < args.Parameters.Count; param_i++)
+            {
+                StateOptionsParameter param = args.Parameters[param_i];
+
+                if (param.Evaluation == ParameterEvaluationStrategy.Auto || param.Evaluation == currentStrategy)
+                {
+                    ExtendedExpression f = new ExtendedExpression(param.Expression);
+                    f.RegisterStateOptions(args);
+
+                    for (int param_j = 0; param_j <= param_i; param_j++)
+                    {
+                        lock (parameters)
+                        {
+                            object? param_value = parameters[param_j];
+                            if (param_value == null) { continue; }
+
+                            string param_name = args.Parameters[param_j].Name;
+
+                            f.RegisterParameter(param_name, param_value);
+                        }
+                    }
+
+                    f.RegisterStateAndOptionsProperties(this, args);
+
+                    if (f.CanEvaluate())
+                    {
+                        param.Evaluation = currentStrategy;
+
+                        lock (parameters)
+                        {
+                            f.LoadAddOns(args, options);
+                            parameters[param_i] = f.Evaluate();
+                        }
+                    }
+
+                    object? val = parameters[param_i] ?? param.InitialValue;
+
+                    if (val is not null)
+                    {
+                        func.RegisterParameter(param.Name, val);
+                    }
+                }
+            }
+            #endregion
+
+            continue_result = func.Evaluate();
+
+            for (int param_i = 0; param_i < parameters.Length; param_i++)
+            {
+                if (args.Parameters[param_i].Evaluation == ParameterEvaluationStrategy.Pixel)
+                {
+                    parameters[param_i] = args.Parameters[param_i].InitialValue;
+                }
+            }
+
+
+            if (max_threads == 0 || max_threads == 1)
+            {
+                GetPartialBitmap(args, parameters, options, out Bitmap image, progress: stateProgress);
+                return image;
+            }
+            else
+            {
+                // Parsing GenerationArgs Size
+                Size size = new Size(args.Width, args.Height);
+
+                // Set the number 
+                int threads_num = max_threads;
+                if (max_threads <= -1 || max_threads > Environment.ProcessorCount) { threads_num = Environment.ProcessorCount; }
+                else if (max_threads < 1) { threads_num = 1; }
+
+                // Create instance of Bitmap for pixel data and array of Bitmaps for Threads to work on
+                Bitmap image = new Bitmap(size.Width, size.Height);
+                Bitmap[] partial_images = new Bitmap[threads_num];
+
+                // Create the Threads
+                Thread[] threads = new Thread[threads_num];
+
+                // create a list of exceptions thrown at the and if there are any
+                List<Exception> exceptions = new List<Exception>();
+
+                // Run the threads
+                for (int i = 0; i < threads_num; i++)
+                {
+                    // index needs to be made local for the lambda function
+                    int local_i = i;
+
+                    threads[local_i] = new Thread(new ThreadStart(() =>
+                    {
+                        try
+                        {
+                            GetPartialBitmap(args, parameters, options, out partial_images[local_i], local_i, threads_num, stateProgress);
+                        }
+                        catch (Exception e)
+                        {
+                            lock (exceptions)
+                            {
+                                exceptions.Add(e);
+                            }
+                        }
+                    }
+
+                    ));
+                    threads[local_i].Start();
+                }
+
+                // Join the Threads
+                for (int i = 0; i < threads_num; i++)
+                {
+                    threads[i].Join();
+                }
+
+                // throw potential exceptions
+                if (exceptions.Count > 0)
+                {
+                    throw new AggregateException(exceptions);
+                }
+
+                // put all partial Bitmaps together
+                Graphics gr = Graphics.FromImage(image);
+                for (int i = 0; i < threads_num; i++)
+                {
+                    gr.DrawImage(partial_images[i], i * (size.Width / threads_num), 0, partial_images[i].Width, partial_images[i].Height);
+                }
+
+
+                options.ProgressReporter?.RemoveTask(stateProgress);
+
+                // return the Bitmap
+                return image;
+            }
+        }
+
+        #endregion
+
         #endregion
 
         #region Other Methods
-        
+
         /// <summary>
         /// Fills the Dictionary containing String to StateProperty Values
         /// </summary>
@@ -947,124 +1130,8 @@ namespace Modulartistic.Core
             PropStringFilled = true;
         }
 
-        /// <summary>
-        /// Adds a function to the evaluation
-        /// </summary>
-        /// <param name="obj">The object this method is evoked on</param>
-        /// <param name="mInfo"></param>
-        public void AddExtraFunction(object obj, MethodInfo mInfo)
-        {
-            _extraFunctions.TryAdd(obj, new HashSet<MethodInfo>());
-            _extraFunctions[obj].Add(mInfo);
-        }
-
-        /// <summary>
-        /// Tries to remove a function from the evaluation, if the object is not found do nothing
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="mInfo"></param>
-        public void RemoveExtraFunction(object obj, MethodInfo mInfo)
-        {
-            HashSet<MethodInfo> m;
-            if (_extraFunctions.TryGetValue(obj, out m))
-                m.Remove(mInfo);
-        }
-
-        /// <summary>
-        /// Removes all extra functions
-        /// </summary>
-        public void ClearExtraFunctions()
-        {
-            _extraFunctions.Clear();
-        }
-
-        /// <summary>
-        /// Removes all extra parameters
-        /// </summary>
-        public void ClearExtraParameters()
-        {
-            _extraParameters.Clear();
-        }
-
-        /// <summary>
-        /// Removes all extra parameters or functions
-        /// </summary>
-        public void ClearExtras()
-        {
-            ClearExtraFunctions();
-            ClearExtraParameters();
-        }
-
-        /// <summary>
-        /// Sets the value of a parameter, if it doesn't exist, register it
-        /// </summary>
-        /// <param name="name">Name of the parameter</param>
-        /// <param name="value">value of the parameter</param>
-        public void SetExtraParameter(string name, object value)
-        {
-            if (_extraParameters.ContainsKey(name))
-            {
-                _extraParameters[name] = value;
-            }
-            else
-            {
-                _extraParameters.Add(name, value);
-            }
-        }
-
-        /// <summary>
-        /// Tries to remove a parameter, if it doesn't exist, do nothing
-        /// </summary>
-        /// <param name="name">the name of the parameter to remove</param>
-        public void RemoveExtraParameter(string name)
-        {
-            if (_extraParameters.ContainsKey(name))
-            {
-                _extraParameters.Remove(name);
-            }
-        }
-
-        /// <summary>
-        /// register all extra methods defined in this state to a function 
-        /// </summary>
-        /// <param name="func">The function to register on</param>
-        public void RegisterExtraFunctions(ExtendedExpression func)
-        {
-            foreach (KeyValuePair<object, HashSet<MethodInfo>> kvp in _extraFunctions)
-            {
-                object obj = kvp.Key;
-                HashSet<MethodInfo> mInfos = kvp.Value;
-
-                foreach (MethodInfo mInfo in mInfos)
-                {
-                    func.RegisterFunction(mInfo, obj);
-                }
-            }
-        }
-
-        /// <summary>
-        /// register all extra parameters defined in this state to a function
-        /// </summary>
-        /// <param name="func">The function to register on</param>
-        public void RegisterExtraParameters(ExtendedExpression func)
-        {
-            foreach (KeyValuePair<string, object> kvp in _extraParameters)
-            {
-                func.RegisterParameter(kvp.Key, kvp.Value);
-            }
-        }
-
-        /// <summary>
-        /// Register all extra parameters or methods to a function
-        /// </summary>
-        /// <param name="func">The function to register on</param>
-        public void RegisterExtras(ExtendedExpression func)
-        {
-            RegisterExtraFunctions(func);
-            RegisterExtraParameters(func);
-        }
-
         #endregion
+
 
         #region Loading and validating Json methods
 
