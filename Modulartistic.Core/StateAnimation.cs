@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using FFMpegCore.Enums;
+using System.Globalization;
 
 namespace Modulartistic.Core
 {
@@ -160,14 +161,15 @@ namespace Modulartistic.Core
             // create Directory for frames if not exist
             if (!Directory.Exists(frames_dir)) { Directory.CreateDirectory(frames_dir); }
 
-            Progress? sequenceProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid().ToString()}", $"Generating scenes of {Name}", max_frames);
+            Progress? sequenceProgress = options.ProgressReporter?.AddTask($"{Guid.NewGuid().ToString()}", $"Generating scenes of {Name}", max_frames <= 0 ? 100 : max_frames);
             while (max_frames < 0 || frame < max_frames)
             {
                 State frameState = m_state;
+                frameState.Name = "Frame_" + frame.ToString();
                 frameState.GenerateImage(args, parameters, options, frames_dir, m_end_condition, out object end);
                 
                 frame++;
-                sequenceProgress?.SetProgress(frame);
+                sequenceProgress?.SetProgress(frame % sequenceProgress ?.MaxProgress ?? 0);
                 if (Convert.ToBoolean(end)) { break; }
             }
             options.ProgressReporter?.RemoveTask(sequenceProgress);
@@ -252,6 +254,11 @@ namespace Modulartistic.Core
         {
             // Creating the image list
             List<string> imgPaths = Directory.GetFiles(folder).ToList();
+            var compareInfo = CultureInfo.CurrentCulture.CompareInfo;
+
+            // Sort using CompareInfo to get a natural sort order
+            imgPaths.Sort(new Helper.NaturalStringComparer());
+
             // Enumerater for image files
             IEnumerable<IVideoFrame> EnumerateFrames()
             {

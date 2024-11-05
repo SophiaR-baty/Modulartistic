@@ -227,6 +227,44 @@ namespace Modulartistic.Core
             }
         }
 
+        public class NaturalStringComparer : IComparer<string>
+        {
+            public int Compare(string? x, string? y)
+            {
+                // Split strings into parts (numbers and non-numbers)
+                var xParts = SplitIntoParts(x);
+                var yParts = SplitIntoParts(y);
+
+                for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
+                {
+                    int result;
+                    if (int.TryParse(xParts[i], out int xNum) && int.TryParse(yParts[i], out int yNum))
+                    {
+                        // Compare numbers numerically
+                        result = xNum.CompareTo(yNum);
+                    }
+                    else
+                    {
+                        // Compare non-numeric parts lexicographically
+                        result = string.Compare(xParts[i], yParts[i], StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    if (result != 0)
+                    {
+                        return result; // Return result if not equal
+                    }
+                }
+
+                // If all parts are equal, compare lengths
+                return xParts.Length.CompareTo(yParts.Length);
+            }
+
+            private string[] SplitIntoParts(string str)
+            {
+                // Regular expression to split string into numeric and non-numeric parts
+                return System.Text.RegularExpressions.Regex.Split(str, @"(\d+)").Where(part => part != "").ToArray();
+            }
+        }
 
         #region test embedding guid in files
 
