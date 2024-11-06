@@ -278,11 +278,6 @@ namespace Modulartistic.AddOns.Fractals
         #endregion
 
         #region public helper functions
-        public static Complex NewComplex(double x, double y)
-        {
-            return new Complex(x, y);
-        }
-
         public static string NumToString(object obj)
         {
             if (obj is decimal || obj is double || obj is float || obj is int || obj is long || obj is short || obj is uint || obj is ulong || obj is ushort)
