@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -17,6 +18,11 @@ namespace Modulartistic.AddOns.Geometry
             return coordinates;
         }
 
+        public static double[] Vector(params double[] coordinates)
+        {
+            return coordinates;
+        }
+
         public static double[][] PointCloud(params double[][] points)
         {
             return points;
@@ -29,130 +35,80 @@ namespace Modulartistic.AddOns.Geometry
 
         public static double[][] RegularNGonVertices(int n, double r, double[] center, double[]? rx = null, double[]? ry = null)
         {
-            // check and adjust inputs
-            center = GuaranteeDimension(center, 2);
-            if (rx == null && ry == null)
+            if (rx is null ^ ry is null)
             {
-                // Check if the plane is valid
-                rx = [center[0] + 1, center[1]];
-                ry = [center[0], center[1] + 1];
+                throw new Exception("Either two or no axes must be defined.");
             }
-            else if (rx == null || ry == null)
-            {
-                throw new Exception("Either two or both axes must be defined.");
-            }
-            else
-            {
-                rx = GuaranteeDimension(rx, 2);
-                ry = GuaranteeDimension(ry, 2);
-            }
+            if (rx is null) { rx = [1, 0]; }
+            if (ry is null) { rx = [0, 1]; }
 
-
-
-            // Generate vertices on the given plane
             double[][] vertices = new double[n][];
-            double[] planeNormal = ComputePlaneNormal(plane);
-
+            VectorSpace VS = new VectorSpace(new Vector(center), [new Vector(rx), new Vector(ry)]);
+            Console.WriteLine();
             for (int i = 0; i < n; i++)
             {
                 double theta = 2 * Math.PI * i / n;
-                double[] pointOnPlane = new double[center.Length];
-                double[] direction1 = SubtractVectors(plane[1], plane[0]);
-                double[] direction2 = SubtractVectors(plane[2], plane[0]);
-
-                // Calculate position in the plane using the direction vectors
-                for (int j = 0; j < center.Length; j++)
-                {
-                    pointOnPlane[j] = center[j] + r * (Math.Cos(theta) * direction1[j] + Math.Sin(theta) * direction2[j]);
-                }
-
-                vertices[i] = ProjectPointOntoPlane(pointOnPlane, plane[0], planeNormal);
+                vertices[i] = VS.ToUnitSpace(new Vector(r * Math.Cos(theta), r * Math.Sin(theta))).Coordinates;
+                Console.WriteLine($"vertice {i+1}: ({r * Math.Cos(theta)}, {r * Math.Sin(theta)}) -> ({vertices[i][0]}, {vertices[i][1]}, {vertices[i][2]})");
             }
+            Console.WriteLine();
 
             return vertices;
         }
 
-        private static double[] GuaranteeDimension(double[] point, int dim) 
+        public static double DistanceToXYPlane(double[] point)
         {
-            double[] result = point;
-            if (point.Length < dim)
-            {
-                result = new double[dim];
-                for (int i = 0; i  < dim; i++)
-                {
-                    result[i] = point[i];
-                }
-            }
+            Vector v = new Vector(point.Skip(2).ToArray());
+            return v.Norm;
+        }
 
+        public static double ProjectPoint(double x, double y, double[][] points, double tolerance = 1)
+        {
+            double result = 0;
+            foreach (double[] point in points)
+            {
+                double _x = x - point[0], _y = y - point[1];
+                if (Math.Abs(_x*_x + _y*_y) <= tolerance) { result += DistanceToXYPlane(point); }
+            }
             return result;
         }
 
-        private static bool IsPointOnPlane(double[] point, double[][] plane)
+        public static double ProjectPointPOV(double x, double y, double[][] points, double[] pov, double tolerance = 1)
         {
-            double[] normal = ComputePlaneNormal(plane);
-            double[] vectorToPoint = SubtractVectors(point, plane[0]);
-            return Math.Abs(DotProduct(vectorToPoint, normal)) < 1e-6; // tolerance for floating-point precision
-        }
+            double result = 0;
 
-        private static double[] ComputePlaneNormal(double[][] plane)
-        {
-            double[] v1 = SubtractVectors(plane[1], plane[0]);
-            double[] v2 = SubtractVectors(plane[2], plane[0]);
-            return CrossProduct(v1, v2);
-        }
-
-        private static double[] ProjectPointOntoPlane(double[] point, double[] planePoint, double[] planeNormal)
-        {
-            double[] vectorToPoint = SubtractVectors(point, planePoint);
-            double distanceToPlane = DotProduct(vectorToPoint, planeNormal) / DotProduct(planeNormal, planeNormal);
-            double[] projection = new double[point.Length];
-
-            for (int i = 0; i < point.Length; i++)
+            Vector pov_v = new Vector(pov);
+            foreach (double[] point in points)
             {
-                projection[i] = point[i] - distanceToPlane * planeNormal[i];
+                Vector point_v = new Vector(point);
+                int min_dim = Math.Min(pov.Length, point.Length);
+                int max_dim = Math.Max(pov.Length, point.Length);
+                bool intersect = true;
+                for (int i = 2; intersect && i < min_dim; i++)
+                {
+                    intersect = pov_v[i] * point_v[i] <= 0;
+                }
+                if (!intersect) { continue; }
+
+                double t = point_v[2] / (point_v[2] - pov_v[2]); ;
+                for (int i = 3; i < max_dim; i++)
+                {
+                    double new_t = point_v[i] / (point_v[i] - pov_v[i]);
+                    if (Math.Abs(new_t - t) > 1E-15) { intersect = false; break; }
+                    
+                    t = new_t;
+                }
+                if (!intersect) { continue; }
+
+                Console.WriteLine($"HIT! \npixel:({x}, {y}) \npoint:({point_v[0]}, {point_v[1]})");
+
+                Vector xy_v = new Vector(x, y);
+                Vector p = point_v + t * (pov_v - point_v);
+                double _x = x - p[0], _y = y - p[1];
+                if (Math.Abs(_x * _x + _y * _y) <= tolerance) { result += (p - point_v).Norm; }
             }
-
-            return projection;
+            return result;
         }
 
-        private static double[] SubtractVectors(double[] a, double[] b)
-        {
-            return a.Zip(b, (x, y) => x - y).ToArray();
-        }
-
-        private static double DotProduct(double[] a, double[] b)
-        {
-            // implements the Kahan summation algorithm
-            // https://en.wikipedia.org/wiki/Kahan_summation_algorithm
-
-            int min_dim = Math.Min(a.Length, b.Length);
-            
-            double sum = 0.0;
-            double c = 0.0;
-            for (int i = 0; i < min_dim; i++)
-            {
-                double y = a[i] * b[i] - c;
-                double t = sum + y;
-                c = (t - sum) - y;
-                sum = t;
-            }
-
-            return sum;
-        }
-
-        private static double[] CrossProduct(double[] a, double[] b)
-        {
-            if (a.Length != 3 || b.Length != 3)
-            {
-                throw new ArgumentException("Cross product is only defined in 3 dimensions.");
-            }
-
-            return new double[]
-            {
-            a[1] * b[2] - a[2] * b[1],
-            a[2] * b[0] - a[0] * b[2],
-            a[0] * b[1] - a[1] * b[0]
-            };
-        }
     }
 }

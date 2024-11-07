@@ -13,6 +13,10 @@ namespace Modulartistic.AddOns.Geometry
     [AddOn]
     public static class GeometryFunctions
     {
+        public static double Test() { return 0; }
+        
+        
+        
         public static Complex Point(double x, double y)
         {
             return new Complex(x, y);
