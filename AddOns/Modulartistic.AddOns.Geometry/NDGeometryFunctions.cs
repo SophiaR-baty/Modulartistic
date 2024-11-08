@@ -15,22 +15,26 @@ namespace Modulartistic.AddOns.Geometry
     {
         public static double[] Point(params double[] coordinates)
         {
-            return coordinates;
+            return coordinates.ToArray();
         }
 
         public static double[] Vector(params double[] coordinates)
         {
-            return coordinates;
+            return coordinates.ToArray();
         }
 
         public static double[][] PointCloud(params double[][] points)
         {
-            return points;
+            double[][] copy = new double[points.Length][];
+
+            for (int i = 0; i < points.Length; i++) { copy[i] = points[i].ToArray(); }
+
+            return copy;
         }
 
         public static double[][] Triangle(double[] A, double[] B, double[] C)
         { 
-            return [A, B, C];
+            return [A.ToArray(), B.ToArray(), C.ToArray()];
         }
 
         public static double[][] RegularNGonVertices(int n, double r, double[] center, double[]? rx = null, double[]? ry = null)
@@ -44,14 +48,11 @@ namespace Modulartistic.AddOns.Geometry
 
             double[][] vertices = new double[n][];
             VectorSpace VS = new VectorSpace(new Vector(center), [new Vector(rx), new Vector(ry)]);
-            Console.WriteLine();
             for (int i = 0; i < n; i++)
             {
                 double theta = 2 * Math.PI * i / n;
                 vertices[i] = VS.ToUnitSpace(new Vector(r * Math.Cos(theta), r * Math.Sin(theta))).Coordinates;
-                Console.WriteLine($"vertice {i+1}: ({r * Math.Cos(theta)}, {r * Math.Sin(theta)}) -> ({vertices[i][0]}, {vertices[i][1]}, {vertices[i][2]})");
             }
-            Console.WriteLine();
 
             return vertices;
         }
@@ -100,10 +101,9 @@ namespace Modulartistic.AddOns.Geometry
                 }
                 if (!intersect) { continue; }
 
-                Console.WriteLine($"HIT! \npixel:({x}, {y}) \npoint:({point_v[0]}, {point_v[1]})");
-
                 Vector xy_v = new Vector(x, y);
                 Vector p = point_v + t * (pov_v - point_v);
+                Console.WriteLine($"({x}, {y}) -> {p}");
                 double _x = x - p[0], _y = y - p[1];
                 if (Math.Abs(_x * _x + _y * _y) <= tolerance) { result += (p - point_v).Norm; }
             }

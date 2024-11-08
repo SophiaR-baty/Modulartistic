@@ -15,10 +15,6 @@ ALSO CHECK IN NDGeometryFunctions.cs if there are similar mistakes/issues there!
  */
 
 
-
-
-
-
 namespace Modulartistic.AddOns.Geometry
 {
     internal class VectorSpace
@@ -38,17 +34,11 @@ namespace Modulartistic.AddOns.Geometry
         {
             if (point.Dimension > Dimension) { throw new Exception(); }
 
-
-
-            Console.WriteLine($"{Basis[0]} {Basis[1]}");
-            Console.WriteLine($"{point} to unit space");
             Vector result = new Vector(Origin);
             for (int i = 0; i < Dimension; i++) 
             {
-                Console.WriteLine(result.ToString());
                 result += point[i] * Basis[i];
             }
-            Console.WriteLine(result.ToString());
 
             return result;
         }
@@ -97,22 +87,20 @@ namespace Modulartistic.AddOns.Geometry
 
         public Vector(params double[] coordinates)
         {
-            Coordinates = new double[coordinates.Length];
-            coordinates.CopyTo(Coordinates, 0);
+            Coordinates = coordinates.ToArray();
         }
 
         public Vector(Vector vec)
         {
-            Coordinates = new double[vec.Dimension];
-            vec.Coordinates.CopyTo(Coordinates, 0);
+            Coordinates = vec.Coordinates.ToArray();
         }
 
         #region operators
 
         public static Vector operator +(Vector a, Vector b)
         {
-            double[] x = a.Dimension > b.Dimension ? a.Coordinates : b.Coordinates;
-            double[] y = a.Dimension < b.Dimension ? a.Coordinates : b.Coordinates;
+            double[] x = (a.Dimension > b.Dimension ? a.Coordinates : b.Coordinates).ToArray();
+            double[] y = (a.Dimension < b.Dimension ? a.Coordinates : b.Coordinates).ToArray();
 
             for (int i = 0; i < y.Length; i++)
             {
@@ -124,7 +112,7 @@ namespace Modulartistic.AddOns.Geometry
 
         public static Vector operator -(Vector a)
         {
-            double[] x = a.Coordinates;
+            double[] x = a.Coordinates.ToArray();
 
             for (int i = 0; i < a.Dimension; i++)
             {
@@ -141,7 +129,7 @@ namespace Modulartistic.AddOns.Geometry
 
         public static Vector operator *(Vector v, double a)
         {
-            double[] x = v.Coordinates;
+            double[] x = v.Coordinates.ToArray();
 
             for (int i = 0; i < v.Dimension; i++)
             {
@@ -183,7 +171,7 @@ namespace Modulartistic.AddOns.Geometry
 
         public static Vector operator /(Vector v, double a)
         {
-            double[] x = v.Coordinates;
+            double[] x = v.Coordinates.ToArray();
 
             for (int i = 0; i < v.Dimension; i++)
             {
