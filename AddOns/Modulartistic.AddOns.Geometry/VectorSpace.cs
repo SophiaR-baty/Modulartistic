@@ -99,15 +99,15 @@ namespace Modulartistic.AddOns.Geometry
 
         public static Vector operator +(Vector a, Vector b)
         {
-            double[] x = (a.Dimension > b.Dimension ? a.Coordinates : b.Coordinates).ToArray();
-            double[] y = (a.Dimension < b.Dimension ? a.Coordinates : b.Coordinates).ToArray();
+            int max_dim = Math.Max(a.Dimension, b.Dimension);
+            double[] v = new double[max_dim];
 
-            for (int i = 0; i < y.Length; i++)
+            for (int i = 0; i < max_dim; i++)
             {
-                x[i] += y[i];
+                v[i] = a[i] + b[i];
             }
 
-            return new Vector(x);
+            return new Vector(v);
         }
 
         public static Vector operator -(Vector a)
