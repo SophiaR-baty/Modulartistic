@@ -14,7 +14,6 @@ to fix this we should be able to simply change assignments to copy to stuff, I a
 ALSO CHECK IN NDGeometryFunctions.cs if there are similar mistakes/issues there!!!
  */
 
-
 namespace Modulartistic.AddOns.Geometry
 {
     internal class VectorSpace
@@ -44,9 +43,93 @@ namespace Modulartistic.AddOns.Geometry
         }
     }
 
+    internal class Matrix
+    {
+        private double[,] _data;
+
+        public int Rows => _data.GetLength(0);
+        public int Columns => _data.GetLength(1);
+
+        public Matrix(int rows, int columns)
+        {
+            _data = new double[rows, columns];
+        }
+
+        public double this[int row, int column]
+        {
+            get => row >= Rows || column >= Columns ? 0 : _data[row, column];
+            set => _data[row, column] = value;
+        }
+
+        public void SetRow(int row, params double[] values)
+        {
+            for (int i = 0; i < Columns; i++)
+            {
+                this[row, i] = values[i];
+            }
+        }
+
+        public void SetColumn(int column, params double[] values)
+        {
+            for (int i = 0; i < Columns; i++)
+            {
+                this[i, column] = values[i];
+            }
+        }
+
+        public Matrix Transpose()
+        {
+            Matrix transposed = new Matrix(Columns, Rows);
+            for (int i = 0; i < Rows; i++)
+            {
+                for (int j = 0; j < Columns; j++)
+                {
+                    transposed[j, i] = this[i, j];
+                }
+            }
+            return transposed;
+        }
+
+        public static Matrix operator *(Matrix m1, Matrix m2)
+        {
+            int max_rows = Math.Max(m1.Rows, m2.Rows);
+            int max_cols = Math.Max(m1.Columns, m2.Columns);
+            
+            Matrix result = new(max_rows, max_cols);
+            for (int i = 0; i < max_rows; i++)
+            {
+                for (int j = 0; j < max_cols; j++)
+                {
+                    for (int k = 0; k < max_cols; k++)
+                    {
+                        result[i, j] += m1[i, k] * m2[k, j];
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static Vector operator *(Matrix m, Vector v)
+        {
+            Vector result = new Vector(m.Rows);
+            for (int i = 0; i < result.Dimension; i++)
+            {
+                double sum = 0;
+                for (int j = 0; j < m.Columns; j++)
+                {
+                    sum += m[i, j] * v[j];
+                }
+                result[i] = sum;
+            }
+
+            return result;
+        }
+    }
+
     internal class Vector
     {
-        private double? _norm = null;
+        #region properties
 
         public double[] Coordinates { get; private set; }
         public int Dimension { get => Coordinates.Length; }
@@ -57,32 +140,37 @@ namespace Modulartistic.AddOns.Geometry
                 if (i >=  Dimension) { return 0; }
                 return Coordinates[i]; 
             } 
-            private set => Coordinates[i] = value;
+            set => Coordinates[i] = value;
         }
 
         public double Norm
         {
             get
             {
-                if (_norm is null)
+                // implements the Kahan summation algorithm
+                // https://en.wikipedia.org/wiki/Kahan_summation_algorithm
+
+                double sum = 0.0;
+                double c = 0.0;
+                for (int i = 0; i < Dimension; i++)
                 {
-                    // implements the Kahan summation algorithm
-                    // https://en.wikipedia.org/wiki/Kahan_summation_algorithm
-
-                    double sum = 0.0;
-                    double c = 0.0;
-                    for (int i = 0; i < Dimension; i++)
-                    {
-                        double y = Coordinates[i]* Coordinates[i] - c;
-                        double t = sum + y;
-                        c = (t - sum) - y;
-                        sum = t;
-                    }
-
-                    return Math.Sqrt(sum);
+                    double y = Coordinates[i] * Coordinates[i] - c;
+                    double t = sum + y;
+                    c = (t - sum) - y;
+                    sum = t;
                 }
-                return _norm.Value;
+                // Console.WriteLine(sum);
+                return Math.Sqrt(sum);
             }
+        }
+
+        #endregion
+
+        #region constructors
+
+        public Vector(int length)
+        {
+            Coordinates = new double[length];
         }
 
         public Vector(params double[] coordinates)
@@ -94,6 +182,8 @@ namespace Modulartistic.AddOns.Geometry
         {
             Coordinates = vec.Coordinates.ToArray();
         }
+
+        #endregion
 
         #region operators
 
@@ -144,8 +234,6 @@ namespace Modulartistic.AddOns.Geometry
             return v * a;
         }
 
-
-
         public static double operator *(Vector v1, Vector v2)
         {
             // Dot product
@@ -182,6 +270,11 @@ namespace Modulartistic.AddOns.Geometry
         }
 
         #endregion
+
+        public Vector Normalize()
+        {
+            return this / Norm; 
+        }
 
         public override string ToString()
         {

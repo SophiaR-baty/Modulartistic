@@ -1,111 +1,489 @@
-﻿using Antlr4.Runtime.Tree;
-using Modulartistic.Common;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Modulartistic.Common;
 
 namespace Modulartistic.AddOns.Geometry
 {
     [AddOn]
     public static class GeometryFunctions
     {
-        public static double Test() { return 0; }
-        
-        
-        
-        public static Complex Point(double x, double y)
+        #region Functions for basic n-dimensional types
+
+        public static double[] Point(params double[] coordinates)
         {
-            return new Complex(x, y);
+            return coordinates.ToArray();
         }
 
-        public static Complex[] PointCloud(params Complex[] points)
+        public static double[] Vector(params double[] coordinates)
         {
-            return points;
+            return coordinates.ToArray();
         }
 
-        // vertices of regular ngon with radius r
-        public static Complex[] RegularNGonVertices(int n, double r, Complex center)
-        {
-            Complex[] vertices = new Complex[n];
+        #endregion
 
-            for (int i = 0; i < n; i++)
+        #region Functions for Point Clouds
+
+        public static double[][] PointCloud(params double[][] points)
+        {
+            double[][] copy = new double[points.Length][];
+
+            for (int i = 0; i < points.Length; i++) { copy[i] = points[i].ToArray(); }
+
+            return copy;
+        }
+
+        public static double[][] AddPoint(double[][] pointcloud, double[] point, int idx = -1)
+        {
+            double[][] newPointCloud = new double[pointcloud.Length + 1][];
+            if (idx == -1)
             {
-                double theta = 2 * Math.PI * i / n;
-                vertices[i] = new Complex(center.Real + r * Math.Cos(theta), center.Imaginary + r * Math.Sin(theta));
+                Array.Copy(pointcloud, newPointCloud, idx);
+                newPointCloud[idx] = point.ToArray();
+                Array.Copy(pointcloud, idx, newPointCloud, idx + 1, pointcloud.Length - idx);
+
+                return pointcloud; 
+            }
+
+            if (idx < 0 || idx >= pointcloud.Length) 
+            { 
+                return pointcloud;
+            }
+
+            Array.Copy(pointcloud, newPointCloud, pointcloud.Length);
+            newPointCloud[pointcloud.Length] = point;
+            return newPointCloud;
+        }
+
+        public static double[][] RemovePoint(double[][] pointcloud, int idx)
+        {
+            if (idx < 0 || idx >= pointcloud.Length)
+                return pointcloud;
+
+            double[][] newPointCloud = new double[pointcloud.Length - 1][];
+            Array.Copy(pointcloud, newPointCloud, idx);
+            Array.Copy(pointcloud, idx + 1, newPointCloud, idx, pointcloud.Length - idx - 1);
+            return newPointCloud;
+        }
+
+        public static double[] GetPoint(double[][] pointcloud, int idx)
+        {
+            if (idx < 0 || idx >= pointcloud.Length)
+                return new double[] { double.NaN };
+
+            return pointcloud[idx].ToArray();
+        }
+
+        #endregion
+
+        #region predefined shapes
+
+        public static double[][] NCube(int n, double length, int depth)
+        {
+            double[][] vertices = NCubeVertices(n, length);
+
+            List<double[]> edges = new List<double[]>(vertices);
+
+            // Check all pairs of vertices for edges
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                for (int j = i + 1; j < vertices.Length; j++)
+                {
+                    Vector vertice1_v = new Vector(vertices[i]);
+                    Vector vertice2_v = new Vector(vertices[j]);
+
+                    bool is_edge = false;
+                    int max_dim = Math.Max(vertice1_v.Dimension, vertice2_v.Dimension);
+                    for (int k = 0; k < max_dim; k++)
+                    {
+                        if (vertice1_v[k] != vertice2_v[k])
+                        {
+                            if (!is_edge)
+                            {
+                                is_edge = true;
+                            }
+                            else
+                            {
+                                is_edge = false;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (is_edge)
+                    {
+                        // Generate the edge with interpolated points
+                        double[][] edge = new double[depth-1][]; // depth points - start and end point
+                        for (int k = 1; k < depth; k++)
+                        {
+                            double t = (double)k / (depth);
+                            edges.Add(InterpolatePoints(vertices[i], vertices[j], t));
+                        }
+                    }
+                }
+            }
+
+            return edges.ToArray();
+        }
+
+        public static double[][] HyperBall(double[] origin, double radius, int n, int depth)
+        {
+            List<double[]> points = new List<double[]>();
+
+            // Recursive function to generate points
+            void Generate(int dim, double[] currentPoint, double remainingRadius)
+            {
+                if (dim == n)
+                {
+                    // Base case: add the point to the list
+                    points.Add((double[])currentPoint.Clone());
+                    return;
+                }
+
+                for (int i = 0; i < depth; i++)
+                {
+                    // Calculate angle for this dimension
+                    double angle = (2 * Math.PI / depth) * i;
+
+                    // Compute the coordinate in the current dimension
+                    double coord = Math.Cos(angle) * remainingRadius;
+
+                    // Update the point with the new coordinate
+                    currentPoint[dim] = dim < origin.Length ? origin[dim] + coord : coord;
+
+                    // Recur to the next dimension
+                    double newRemainingRadius = remainingRadius * Math.Sin(angle);
+                    Generate(dim + 1, currentPoint, newRemainingRadius);
+                }
+            }
+
+            Generate(0, new double[n], radius);
+            return points.ToArray();
+        }
+
+        #endregion
+
+        #region transformations
+
+        public static double[] TranslatePoint(double[] point, double[] translationVector)
+        {
+            Vector trans_v = new Vector(translationVector);
+            Vector v = new Vector(point) + trans_v;
+            return v.Coordinates.ToArray();
+        }
+
+        public static double[][] TranslatePoints(double[][] points, double[] translationVector) 
+        {
+            List<double[]> result = new List<double[]>();
+            for (int i = 0; i < points.Length; i++) 
+            {
+                result.Add(TranslatePoint(points[i], translationVector));
+            }
+
+            return result.ToArray();
+        }
+
+        public static double[] ScalePoint(double[] point, double scaleFactor)
+        {
+            return (new Vector(point) * scaleFactor).Coordinates.ToArray();
+        }
+
+        public static double[][] ScalePoints(double[][] points, double scaleFactor)
+        {
+            List<double[]> result = new List<double[]>();
+
+            // Scale each point in the points array
+            for (int i = 0; i < points.Length; i++)
+            {
+                result.Add(ScalePoint(points[i], scaleFactor));
+            }
+
+            return result.ToArray();
+        }
+
+        public static double[] RotatePoint(double[] point, double rotation, int axis1, int axis2)
+        {
+            Vector point_v = new Vector(point);
+            double[] new_point = point.ToArray();
+            if (axis1 >= new_point.Length || axis2 >= new_point.Length)
+            {
+                new_point = new double[Math.Max(axis1, axis2)];
+                point.CopyTo(new_point, 0);
+            }
+
+            double rad = rotation / 360 * 2 * Math.PI;
+            double cos_r = Math.Cos(rad);
+            double sin_r = Math.Sin(rad);
+
+            new_point[axis1] = point_v[axis1]*cos_r - point_v[axis2]*sin_r;
+            new_point[axis2] = point_v[axis1]*sin_r + point_v[axis2]*cos_r;
+            
+            return new_point;
+        }
+
+        public static double[][] RotatePoints(double[][] points, double rotation, int axis1, int axis2) 
+        {
+            double rad = rotation / 360 * 2 * Math.PI;
+            double cos_r = Math.Cos(rad);
+            double sin_r = Math.Sin(rad);
+            List<double[]> result = new List<double[]>();
+
+            for (int i = 0; i < points.Length; i++) 
+            {
+
+                Vector point_v = new Vector(points[i]); 
+                double[] new_point = points[i].ToArray();
+                if (axis1 >= new_point.Length || axis2 >= new_point.Length)
+                {
+                    new_point = new double[Math.Max(axis1, axis2) + 1];
+                    points[i].CopyTo(new_point, 0);
+                }
+                new_point[axis1] = point_v[axis1] * cos_r - point_v[axis2] * sin_r;
+                new_point[axis2] = point_v[axis1] * sin_r + point_v[axis2] * cos_r;
+                result.Add(new_point);
+            }
+
+            return result.ToArray();
+        }
+
+        #endregion
+
+        #region Vertices
+
+        public static double[][] NCubeVertices(int n, double length)
+        {
+            if (n <= 0)
+                return new double[0][];
+            if (length <= 0)
+                length = Math.Abs(length);
+
+            int numVertices = (int)Math.Pow(2, n); // 2^n vertices for an n-dimensional cube
+            double[][] vertices = new double[numVertices][];
+
+            // Generate all vertices
+            for (int i = 0; i < numVertices; i++)
+            {
+                vertices[i] = new double[n];
+                for (int j = 0; j < n; j++)
+                {
+                    // Determine if the j-th coordinate of this vertex is on the "positive" or "negative" side
+                    int mask = 1 << j; // Mask to extract the j-th bit
+                    vertices[i][j] = ((i & mask) != 0 ? 1 : -1) * (length / 2.0);
+                }
             }
 
             return vertices;
         }
 
-        // Distance between two points
-        public static double Distance(Complex p1, Complex p2)
+        public static double[][] TriangleVertices(double[] A, double[] B, double[] C)
+        { 
+            return [A.ToArray(), B.ToArray(), C.ToArray()];
+        }
+
+        public static double[][] RegularNGonVertices(int n, double r, double[] center, double[]? rx = null, double[]? ry = null)
         {
-            return Complex.Abs(p1 - p2);
+            if (rx is null ^ ry is null)
+            {
+                throw new Exception("Either two or no axes must be defined.");
+            }
+            if (rx is null) { rx = [1, 0]; }
+            if (ry is null) { rx = [0, 1]; }
+
+            double[][] vertices = new double[n][];
+            VectorSpace VS = new VectorSpace(new Vector(center), [new Vector(rx), new Vector(ry)]);
+            for (int i = 0; i < n; i++)
+            {
+                double theta = 2 * Math.PI * i / n;
+                vertices[i] = VS.ToUnitSpace(new Vector(r * Math.Cos(theta), r * Math.Sin(theta))).Coordinates;
+            }
+
+            return vertices;
+        }
+
+        #endregion Vertices
+
+        #region "Output" Functions -> conversions to double
+
+        public static double[] ProjectTo2D(double[] point, double scale = 1)
+        {
+            if (point.Length < 2)
+            {
+                return new double[0];
+            }
+            
+            double[] projection = new double[2];
+            projection[0] = point[0];
+            projection[1] = point[1];
+
+            for (int i = 2; i < point.Length; i++)
+            {
+                double distance = DistanceToXYPlane(point) / scale;
+                if (distance != 0)
+                {
+                    projection[0] /= distance;
+                    projection[1] /= distance;
+                }
+            }
+
+            return projection;
+        }
+
+        public static double[][] ProjectTo2D(double[][] points, double scale = 1)
+        {
+            double[][] projections = new double[points.Length][];
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                projections[i] = ProjectTo2D(points[i]);
+            }
+
+            return projections;
+        }
+
+
+        public static double DistanceToXYPlane(double[] point)
+        {
+            Vector v = new Vector(point.Skip(2).ToArray());
+            return v.Norm;
+        }
+
+        public static double AverageDistance(double x, double y, double[][] points, double tolerance = double.PositiveInfinity)
+        {
+            double result = 0;
+            int added_points = 0;
+            foreach (double[] point in points)
+            {
+                Vector v = new Vector(point) - new Vector(x, y);
+
+                double norm = v.Norm;
+
+                if (norm < tolerance)
+                {
+                    result += v.Norm;
+                    added_points++;
+                }
+            }
+            result /= added_points;
+            return result;
+        }
+
+        public static double[][] ProjectToVectorSpace(double[][] points, double[] origin, double[][] basis)
+        {
+            List<Vector> b = new List<Vector>();
+            for (int i = 0; i < basis.Length; i++)
+            {
+                b.Add(new Vector(basis[i]));
+            }
+
+            VectorSpace vs = new VectorSpace(new Vector(origin), b.ToArray());
+
+            double[][] result = new double[points.Length][];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = vs.ToUnitSpace(new Vector(points[i])).Coordinates;
+            }
+
+            return result;
+        }
+
+
+        #endregion
+    
+        public static double[] InterpolatePoints(double[] p1, double[] p2, double t)
+        {
+            int maxDim = Math.Max(p1.Length, p2.Length);
+            double[] result = new double[maxDim];
+
+            for (int i = 0; i < maxDim; i++)
+            {
+                double p1Value = i < p1.Length ? p1[i] : 0.0;
+                double p2Value = i < p2.Length ? p2[i] : 0.0;
+
+                result[i] = (1 - t) * p1Value + t * p2Value;
+            }
+
+            return result;
+        }
+
+        public static double[][] AddSides(double[][] vertices, int depth)
+        {
+            if (vertices == null || vertices.Length < 2)
+                return vertices;
+            if (depth < 0)
+                return vertices;
+
+            int totalPoints = vertices.Length + (vertices.Length * depth);
+            double[][] result = new double[totalPoints][];
+            int index = 0;
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                result[index++] = vertices[i];
+
+                double[] nextVertex = vertices[(i + 1) % vertices.Length];
+
+                for (int j = 1; j <= depth; j++)
+                {
+                    double t = (double)j / (depth + 1);
+                    double[] interpolated = InterpolatePoints(vertices[i], nextVertex, t);
+                    result[index++] = interpolated;
+                }
+            }
+
+            return result;
+        }
+
+        public static double[][] ConnectPoints(double[][] vertices, int depth)
+        {
+            if (vertices == null || vertices.Length < 2)
+                return vertices;
+            if (depth < 0)
+                return vertices;
+
+            int totalPairs = vertices.Length * (vertices.Length - 1) / 2; // Combination nC2 = n * (n - 1) / 2
+            int totalPoints = vertices.Length + totalPairs * depth;
+
+            double[][] result = new double[totalPoints][];
+            int index = 0;
+
+            foreach (var vertex in vertices)
+            {
+                result[index++] = vertex;
+            }
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                for (int j = i + 1; j < vertices.Length; j++)
+                {
+                    for (int k = 1; k <= depth; k++)
+                    {
+                        double t = (double)k / (depth + 1);
+                        double[] interpolated = InterpolatePoints(vertices[i], vertices[j], t);
+                        result[index++] = interpolated;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        // Distance between two points
+        public static double Distance(double[] point1, double[] point2)
+        {
+            return (new Vector(point1) - new Vector(point2)).Norm;
         }
 
         // Angle between two points in radians
-        public static double AngleBetweenPoints(Complex p1, Complex p2)
+        public static double AngleBetweenPoints(double[] point1, double[] point2)
         {
-            return Math.Atan2(p2.Imaginary - p1.Imaginary, p2.Real - p1.Real);
+            Vector v1, v2;
+            v1 = new Vector(point1);
+            v2 = new Vector(point2);
+            double cos_th = v1 * v2 / (v1.Norm * v2.Norm);
+
+            return Math.Acos(cos_th);
         }
 
-        // Rotate a point around another point by a specified angle (in radians)
-        public static Complex RotatePoint(Complex point, Complex center, double angle)
+        public static double[] ClosestPoint(double[][] points, double[] target)
         {
-            Complex translatedPoint = point - center;
-            Complex rotatedPoint = translatedPoint * Complex.FromPolarCoordinates(1, angle);
-            return rotatedPoint + center;
-        }
-
-        // Area of a polygon given an array of vertices
-        public static double PolygonArea(Complex[] vertices)
-        {
-            int n = vertices.Length;
-            double area = 0.0;
-            for (int i = 0; i < n; i++)
-            {
-                Complex current = vertices[i];
-                Complex next = vertices[(i + 1) % n];
-                area += (current.Real * next.Imaginary) - (next.Real * current.Imaginary);
-            }
-            return Math.Abs(area) / 2.0;
-        }
-
-        // Bounding box of a set of points
-        public static (Complex min, Complex max) BoundingBox(Complex[] points)
-        {
-            double minX = double.MaxValue, minY = double.MaxValue;
-            double maxX = double.MinValue, maxY = double.MinValue;
-
-            foreach (var point in points)
-            {
-                minX = Math.Min(minX, point.Real);
-                minY = Math.Min(minY, point.Imaginary);
-                maxX = Math.Max(maxX, point.Real);
-                maxY = Math.Max(maxY, point.Imaginary);
-            }
-
-            return (new Complex(minX, minY), new Complex(maxX, maxY));
-        }
-
-        // Scale a set of points around a center by a given factor
-        public static Complex[] ScaleShape(Complex[] points, Complex center, double scale)
-        {
-            Complex[] scaledPoints = new Complex[points.Length];
-            for (int i = 0; i < points.Length; i++)
-            {
-                scaledPoints[i] = center + (points[i] - center) * scale;
-            }
-            return scaledPoints;
-        }
-
-        public static Complex ClosestPoint(Complex[] points, Complex target)
-        {
-            Complex closest = points[0];
+            double[] closest = points[0];
             double minDistance = Distance(points[0], target);
 
             foreach (var point in points)
@@ -119,16 +497,6 @@ namespace Modulartistic.AddOns.Geometry
             }
 
             return closest;
-        }
-
-        public static Complex ClosestPointTree(KDTree points, Complex target)
-        {
-            return points.FindNearest(target);
-        }
-
-        public static KDTree PointsToTree(Complex[] points)
-        {
-            return new KDTree(points);
         }
     }
 }

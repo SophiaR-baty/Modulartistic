@@ -173,7 +173,7 @@ namespace Modulartistic.Core
 
                         // Get parameter information
                         var parameters = methodInfo.GetParameters();
-                        string parametersString = string.Join(", ", parameters.Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                        string parametersString = string.Join(", ", parameters.Select(p => $"{p.ParameterType.Name} {p.Name}" + (p.HasDefaultValue ? $" = {p.DefaultValue??"null"}" : "")));
 
                         options.Logger?.LogDebug($"    {returnType} {methodName}({parametersString})");
                     }

@@ -44,6 +44,7 @@ namespace Modulartistic.Common
                     bool allow_additional_parameters = expected_parameters[expected_parameters_count - 1].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length == 0;
                     if (passed_parameters_count > expected_parameters_count && allow_additional_parameters)
                     {
+                        // Console.WriteLine("Parametr count exceeds expected parameters");
                         args.HasResult = false;
                         return;
                     }
@@ -91,6 +92,7 @@ namespace Modulartistic.Common
                             }
                             else
                             {
+                                // Console.WriteLine("no default values");
                                 args.HasResult = false;
                                 return;
                             }
@@ -106,6 +108,7 @@ namespace Modulartistic.Common
                             // if no implicit conversion possible, cancel evaluation
                             if (!CanCast(passed_type, expected_type))
                             {
+                                // Console.WriteLine($"cant cast from {passed_type.Name} to {expected_type.Name}");
                                 args.HasResult = false;
                                 return;
                             }
